@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auth Fundamentals</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f0f;--surface:#161616;--surface2:#1e1e1e;--surface3:#252525;
+  --border:#2a2a2a;--border2:#383838;
+  --text:#e8e8e8;--text2:#b8b8b8;--text3:#909090;
+  --cyan:#00d4aa;--cyan-d:rgba(0,212,170,.1);--cyan-b:rgba(0,212,170,.2);
+  --blue:#4a9eff;--blue-d:rgba(74,158,255,.1);--blue-b:rgba(74,158,255,.2);
+  --amber:#f0a500;--amber-d:rgba(240,165,0,.1);--amber-b:rgba(240,165,0,.2);
+  --red:#e05c5c;--red-d:rgba(224,92,92,.1);--red-b:rgba(224,92,92,.2);
+  --green:#3ecf8e;--green-d:rgba(62,207,142,.1);--green-b:rgba(62,207,142,.2);
+  --purple:#9f7aea;--purple-d:rgba(159,122,234,.1);--purple-b:rgba(159,122,234,.2);
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+body.comic{
+  --sans:'Comic Sans MS','Chalkboard SE',cursive;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.7}
+
+/* DISCLAIMER BANNER */
+.disclaimer{background:var(--surface);border-bottom:1px solid var(--border);padding:7px 20px;font-size:11px;color:var(--text3);line-height:1.5;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.disclaimer strong{color:var(--text2);font-weight:500}
+.disclaimer a{color:var(--cyan);text-decoration:none}
+.disclaimer a:hover{text-decoration:underline}
+.topnav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch;scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.logo{font-family:var(--mono);font-size:11px;color:var(--cyan);padding:0 20px;display:flex;align-items:center;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0}
+.tab-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
+.tab-btn:hover{color:var(--text2);border-color:var(--border2)}
+.tab-btn.active{color:var(--cyan);border-color:var(--cyan)}
+
+.lang-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-left:1px solid var(--border);transition:all .15s;text-decoration:none;display:flex;align-items:center}
+.lang-btn:hover{color:var(--cyan)}
+.settings-wrap{margin-left:auto;position:relative;display:flex;border-left:1px solid var(--border)}
+.settings-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:14px;cursor:pointer;display:flex;align-items:center;transition:color .15s}
+.settings-btn:hover{color:var(--cyan)}
+.settings-btn.open{color:var(--cyan)}
+.settings-menu{display:none;position:absolute;top:44px;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:4px;min-width:200px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.settings-menu.open{display:block}
+.settings-section{padding:8px 0;border-bottom:1px solid var(--border)}
+.settings-section:last-child{border-bottom:none}
+.settings-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;padding:6px 14px 4px;display:block}
+.settings-opt{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s}
+.settings-opt:hover{background:var(--surface2)}
+.settings-opt.active{color:var(--cyan)}
+.settings-opt-dot{width:6px;height:6px;border-radius:50%;border:1px solid var(--text3);flex-shrink:0;transition:all .15s}
+.settings-opt.active .settings-opt-dot{background:var(--cyan);border-color:var(--cyan)}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:44px;height:calc(100vh - 44px);overflow-y:auto;padding:16px 0;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sidecat{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;padding:12px 16px 4px;text-transform:uppercase}
+.sidelink{display:block;padding:6px 16px;font-size:12px;color:var(--text3);text-decoration:none;cursor:pointer;transition:all .12s;border-left:2px solid transparent}
+.sidelink:hover{color:var(--text2);background:var(--surface2)}
+.sidelink.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,170,.05)}
+.main{flex:1;min-width:0;padding:32px 48px 80px}
+
+/* VIEWS */
+.view{display:none;max-width:960px}.view.active{display:block}
+
+/* SECTION */
+.section{margin-bottom:56px;scroll-margin-top:60px}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.section-num{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.section-title{font-size:20px;font-weight:500}
+.tag{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;margin-left:auto;letter-spacing:.06em}
+.tag-authn{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}
+.tag-token{background:var(--purple-d);color:var(--purple);border:1px solid var(--purple-b)}
+.tag-authz{background:var(--green-d);color:var(--green);border:1px solid var(--green-b)}
+.tag-framework{background:var(--amber-d);color:var(--amber);border:1px solid var(--amber-b)}
+.tag-proto{background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-b)}
+.tag-concept{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+
+/* TEXT */
+.intro{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.75}
+.intro strong{color:var(--text)}
+p{color:var(--text2);font-size:13px;margin-bottom:10px;line-height:1.7}
+h3{font-size:14px;font-weight:500;color:var(--text);margin:20px 0 8px}
+h4{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.08em;margin:16px 0 6px}
+ul,ol{padding-left:18px;margin-bottom:10px}
+li{font-size:13px;color:var(--text2);margin-bottom:4px;line-height:1.6}
+strong{color:var(--text);font-weight:500}
+
+/* CALLOUTS */
+.callout{border-radius:5px;padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.65}
+.callout-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;margin-bottom:5px;font-weight:500}
+.callout p{margin:0;font-size:13px}
+.callout-warn{background:var(--red-d);border-left:3px solid var(--red)}.callout-warn .callout-label{color:var(--red)}
+.callout-note{background:var(--blue-d);border-left:3px solid var(--blue)}.callout-note .callout-label{color:var(--blue)}
+.callout-good{background:var(--green-d);border-left:3px solid var(--green)}.callout-good .callout-label{color:var(--green)}
+.callout-qa{background:var(--amber-d);border-left:3px solid var(--amber)}.callout-qa .callout-label{color:var(--amber)}
+.callout-info{background:var(--cyan-d);border-left:3px solid var(--cyan)}.callout-info .callout-label{color:var(--cyan)}
+
+/* FLOW */
+.flow{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px;overflow-x:auto}
+.flow-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:12px}
+.flow-step{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.flow-step:last-child{border-bottom:none;padding-bottom:0}
+.flow-n{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;margin-top:1px}
+.flow-body{flex:1}
+.flow-actor{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px}
+.flow-desc{font-size:13px;color:var(--text2);line-height:1.55}
+.flow-code{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--surface2);border-radius:3px;padding:4px 8px;display:inline-block;margin-top:4px;line-height:1.6;white-space:pre}
+.flow-note{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+
+/* CODE BLOCK */
+.code{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:14px;overflow-x:auto}
+.code-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:10px}
+.code pre{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);white-space:pre}
+.kw{color:var(--cyan)}.str{color:var(--amber)}.cm{color:var(--text3);font-style:italic}.key{color:var(--purple)}.num{color:var(--green)}.val{color:var(--blue)}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border2)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td:first-child{color:var(--text);font-weight:500}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+.card-title{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em}
+.card-body{font-size:12px;color:var(--text2);line-height:1.6}
+.card-body strong{color:var(--text)}
+
+/* POSTMAN GROUPS */
+.postman-group{border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden}
+.postman-group-head{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;font-weight:500}
+.postman-group-body{padding:10px 14px;background:var(--surface);font-size:12px;color:var(--text2);line-height:1.7}
+.postman-item{padding:4px 0;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--border)}
+.postman-item:last-child{border-bottom:none}
+.postman-item-name{font-family:var(--mono);font-size:11px;color:var(--text);min-width:140px}
+.postman-item-desc{font-size:12px;color:var(--text2)}
+
+/* MISTAKES */
+.mistake{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:5px;background:var(--red-d);border:1px solid var(--red-b);margin-bottom:8px}
+.mistake-x{color:var(--red);font-size:16px;flex-shrink:0;margin-top:1px}
+.mistake-body{font-size:13px;color:var(--text2);line-height:1.55}
+.mistake-body strong{color:var(--text)}
+.correct{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:5px;background:var(--green-d);border:1px solid var(--green-b);margin-bottom:8px}
+.correct-check{color:var(--green);font-size:16px;flex-shrink:0;margin-top:1px}
+.correct-body{font-size:13px;color:var(--text2);line-height:1.55}
+.correct-body strong{color:var(--text)}
+
+/* QA BLOCK */
+.qa-block{background:var(--amber-d);border:1px solid var(--amber-b);border-radius:5px;padding:12px 14px;margin-bottom:10px}
+.qa-q{font-size:12px;font-weight:500;color:var(--amber);margin-bottom:4px;font-family:var(--mono)}
+.qa-a{font-size:12px;color:var(--text2);line-height:1.6}
+
+/* Separator */
+.sep{border:none;border-top:1px solid var(--border);margin:32px 0}
+
+/* Spec reference link */
+.spec-ref{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--text3);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:2px 8px;margin-left:auto;letter-spacing:.06em;transition:all .12s}
+.spec-ref:hover{color:var(--cyan);border-color:var(--cyan)}
+.spec-ref::before{content:'↗';font-size:9px}
+
+/* Pill */
+.pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;margin:2px 2px 2px 0}
+.pill-cyan{background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-b)}
+.pill-blue{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}
+.pill-red{background:var(--red-d);color:var(--red);border:1px solid var(--red-b)}
+.pill-green{background:var(--green-d);color:var(--green);border:1px solid var(--green-b)}
+.pill-amber{background:var(--amber-d);color:var(--amber);border:1px solid var(--amber-b)}
+.pill-purple{background:var(--purple-d);color:var(--purple);border:1px solid var(--purple-b)}
+.pill-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+
+/* encoding explainer */
+.enc-row{display:grid;grid-template-columns:auto 24px 1fr;gap:6px 10px;align-items:center;margin-bottom:6px;font-size:12px}
+.enc-label{font-family:var(--mono);color:var(--text3);font-size:10px}
+.enc-arrow{color:var(--text3);text-align:center}
+.enc-result{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="disclaimer"><strong>Застереження:</strong> Це довідкова веб-сторінка, а не формальна специфікація. Зміст спрощено для ясності та практичного використання. Завжди перевіряйте офіційні джерела, посилання на які наведено в кожному розділі.</div>
+
+<nav class="topnav">
+  <div class="logo">AUTH FUNDAMENTALS</div>
+  <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (стандартний)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+    </div>
+  </div>
+  <a class="lang-btn" href="authn_v4.html">EN</a>
+</nav>
+
+<div class="layout">
+<nav id="sidebar" class="sidebar">
+  <div class="sidecat">Основні концепції</div>
+  <a class="sidelink" onclick="goTo('s00')">00 — AuthN vs AuthZ</a>
+  <a class="sidelink" onclick="goTo('s00b')">00b — Кодування / Шифрування / Хешування</a>
+
+  <div class="sidecat">Методи автентифікації</div>
+  <a class="sidelink" onclick="goTo('s01')">01 — Basic Auth</a>
+  <a class="sidelink" onclick="goTo('s02')">02 — Digest Auth</a>
+  <a class="sidelink" onclick="goTo('s03')">03 — API-ключі</a>
+  <a class="sidelink" onclick="goTo('s04')">04 — Сесійна автентифікація</a>
+
+  <div class="sidecat">Токени</div>
+  <a class="sidelink" onclick="goTo('s05')">05 — Bearer-токени та JWT</a>
+  <a class="sidelink" onclick="goTo('s06')">06 — Access та Refresh токени</a>
+
+  <div class="sidecat">Фреймворки авторизації</div>
+  <a class="sidelink" onclick="goTo('s07')">07 — OAuth 1.0</a>
+  <a class="sidelink" onclick="goTo('s08')">08 — OAuth 2.0</a>
+
+  <div class="sidecat">Протоколи ідентичності</div>
+  <a class="sidelink" onclick="goTo('s09')">09 — OpenID Connect</a>
+  <a class="sidelink" onclick="goTo('s11')">11 — SAML</a>
+
+  <div class="sidecat">UX-патерни та схеми</div>
+  <a class="sidelink" onclick="goTo('s10')">10 — SSO</a>
+
+  <div class="sidecat">Postman та тестування</div>
+  <a class="sidelink" onclick="goTo('s12')">12 — Типи автентифікації у Postman</a>
+  <a class="sidelink" onclick="goTo('s13')">13 — Типові помилки</a>
+</nav>
+
+<main class="main">
+<div id="view-course" class="view active">
+
+<!-- ── 00 ── -->
+<div class="section" id="s00">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <span class="section-title">Що таке автентифікація і авторизація?</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+  <div class="intro">Перш за все — два терміни, які постійно плутають. Вони <strong>не</strong> є синонімами і ніколи не взаємозамінні.</div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">АВТЕНТИФІКАЦІЯ (authn)</div><div class="card-body"><strong>"Хто ти?"</strong><br>Перевірка того, що суб'єкт запиту є тим, за кого себе видає.<br><br>Приклади: перевірка логіна + пароля, валідація підпису JWT, верифікація сертифіката.</div></div>
+    <div class="card"><div class="card-title">АВТОРИЗАЦІЯ (authz)</div><div class="card-body"><strong>"Що тобі дозволено робити?"</strong><br>Визначення того, до чого вже автентифікований суб'єкт має право доступу або що може виконувати.<br><br>Приклади: перевірка ролей, scope, прав, належності ресурсу.</div></div>
+  </div>
+  <div class="callout callout-note">
+    <div class="callout-label">HTTP-КОДИ СТАТУСУ — ШВИДКА ПІДКАЗКА</div>
+    <p><strong>401 Unauthorized</strong> = автентифікація не пройшла (назва оманлива — насправді означає "не автентифіковано").<br>
+    <strong>403 Forbidden</strong> = автентифіковано, але не авторизовано (особу встановлено, але доступ заборонено).</p>
+  </div>
+  <h3>Порядок завжди фіксований</h3>
+  <div class="flow">
+    <div class="flow-label">КОЖЕН ЗАХИЩЕНИЙ ЗАПИТ ПРОХОДИТЬ ЦЮ ПОСЛІДОВНІСТЬ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">АВТЕНТИФІКАЦІЯ</div><div class="flow-desc">Перевірка особи. Чи токен дійсний? Чи підпис правильний? Чи не прострочений? Чи видавець відповідає очікуваному?</div><div class="flow-note">Невдача → 401</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">АВТОРИЗАЦІЯ</div><div class="flow-desc">Перевірка прав. Чи дозволяє роль користувача цю дію? Чи є в токені необхідний scope? Чи належить ресурс цьому користувачу?</div><div class="flow-note">Невдача → 403</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">3</div><div class="flow-body"><div class="flow-actor">ДОСТУП НАДАНО</div><div class="flow-desc">Обидві перевірки пройдено. Запит обробляється, повертається 200.</div></div></div>
+  </div>
+  <h3>Що вважається "методом автентифікації"?</h3>
+  <p><strong>Метод автентифікації</strong> — конкретний механізм, за допомогою якого клієнт підтверджує свою особу в запиті. Приклади: надсилання пароля, API-ключа, підписаного токена.</p>
+  <p><strong>Фреймворк авторизації</strong> (наприклад, OAuth 2.0) — це <em>протокол</em>, що визначає правила отримання стороннім клієнтом обмеженого доступу до ресурсів. Він використовує методи автентифікації як складові, але сам методом автентифікації не є. Це розмежування критично важливе — дивіться розділ 13.</p>
+</div>
+
+<hr class="sep">
+
+<!-- ── 00b ── -->
+<div class="section" id="s00b">
+  <div class="section-head">
+    <span class="section-num">00b</span>
+    <span class="section-title">Кодування vs шифрування vs хешування</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+  <div class="intro">Три операції, які виглядають схоже, але є принципово різними. Плутанина між ними — серйозна помилка. Кожна тема в сфері автентифікації залежить від розуміння того, яка з трьох операцій застосовується.</div>
+  <div class="grid3">
+    <div class="card"><div class="card-title" style="color:var(--blue)">КОДУВАННЯ</div><div class="card-body"><strong>Мета:</strong> перетворення формату для сумісності під час передачі.<br><strong>Зворотне?</strong> Так — ключ не потрібен.<br><strong>Секретне?</strong> Ні — будь-хто може декодувати.<br><br>Приклади: Base64, Base64url, URL encoding, hex.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--amber)">ШИФРУВАННЯ</div><div class="card-body"><strong>Мета:</strong> приховати дані так, щоб лише авторизовані сторони могли їх прочитати.<br><strong>Зворотне?</strong> Так — за наявності правильного ключа.<br><strong>Секретне?</strong> Так — без ключа дані безглузді.<br><br>Приклади: AES-256, RSA (для обміну ключами).</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">ХЕШУВАННЯ</div><div class="card-body"><strong>Мета:</strong> отримати відбиток даних фіксованої довжини.<br><strong>Зворотне?</strong> Ні — за задумом.<br><strong>Секретне?</strong> Н/З — інша мета.<br><br>Приклади: SHA-256, bcrypt, MD5 (слабкий), HMAC-SHA256.</div></div>
+  </div>
+  <h3>Як кожна операція використовується в автентифікації</h3>
+  <table class="tbl">
+    <tr><th>Операція</th><th>Де застосовується</th><th>Що робить</th></tr>
+    <tr><td>Base64-кодування</td><td>Basic Auth, заголовок та payload JWT</td><td>Робить бінарні/JSON-дані безпечними для HTTP-заголовків та URL. Нічого не приховує.</td></tr>
+    <tr><td>Base64url-кодування</td><td>Всі три частини JWT для передачі</td><td>Те саме, що Base64, але URL-безпечне (використовує - та _ замість + та /). Також не є секретним.</td></tr>
+    <tr><td>Хешування (SHA-256)</td><td>Digest Auth, зберігання паролів, підпис JWT (у складі HMAC)</td><td>Створює відбиток фіксованої довжини. Не можна відновити вихідне значення.</td></tr>
+    <tr><td>HMAC (хеш + секретний ключ)</td><td>Підпис JWT (HS256)</td><td>Хеш даних у поєднанні з секретним ключем. Підтверджує цілісність і автентичність для всіх, хто знає ключ.</td></tr>
+    <tr><td>RSA-підпис</td><td>Підпис JWT (RS256)</td><td>Приватний ключ створює підпис; публічний ключ верифікує. Не "шифрування" в сенсі приховування — це підпис.</td></tr>
+    <tr><td>Шифрування (AES, RSA)</td><td>JWE (зашифрований JWT), HTTPS-транспорт</td><td>Дійсно приховує payload. JWE рідкісний — типовий JWT використовує JWS (підписаний JWT).</td></tr>
+  </table>
+  <div class="callout callout-warn">
+    <div class="callout-label">КРИТИЧНО — НЕ ГОВОРІТЬ</div>
+    <p>"JWT зашифрований" — це <strong>не так</strong> (якщо спеціально не використовується JWE).<br>
+    "Base64 — це шифрування" — це <strong>не так</strong>. Це кодування. Будь-хто може декодувати.<br>
+    "Підпис JWT зашифровано" — підпис є <strong>криптографічним результатом</strong> (HMAC або цифровий підпис RSA), закодованим у base64url для передачі. Це не "зашифровані дані".</p>
+  </div>
+  <h3>Підпис JWT — точне пояснення</h3>
+  <div class="code">
+    <div class="code-label">ЩО ВІДБУВАЄТЬСЯ ПРИ ПІДПИСАННІ JWT</div>
+    <pre><span class="cm">// Крок 1: кодуємо заголовок (JSON → base64url)</span>
+<span class="kw">base64url</span>({ <span class="key">"alg"</span>: <span class="str">"RS256"</span>, <span class="key">"typ"</span>: <span class="str">"JWT"</span> })
+→ <span class="str">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"</span>
+
+<span class="cm">// Крок 2: кодуємо payload (JSON → base64url)</span>
+<span class="kw">base64url</span>({ <span class="key">"sub"</span>: <span class="str">"user123"</span>, <span class="key">"exp"</span>: <span class="num">1745000000</span> })
+→ <span class="str">"eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjoxNzQ1MDAwMDAwfQ"</span>
+
+<span class="cm">// Крок 3: підписуємо конкатенацію закодованих частин</span>
+signing_input = <span class="str">"eyJhbGci..."</span> + <span class="str">"."</span> + <span class="str">"eyJzdWIi..."</span>
+signature_bytes = <span class="kw">RS256_sign</span>(signing_input, private_key)
+
+<span class="cm">// Крок 4: кодуємо байти підпису в base64url для передачі</span>
+<span class="kw">base64url</span>(signature_bytes) → <span class="str">"SflKxwRJSMe..."</span>
+
+<span class="cm">// Готовий JWT = заголовок . payload . підпис (всі в base64url)</span>
+<span class="str">"eyJhbGci..."</span> + <span class="str">"."</span> + <span class="str">"eyJzdWIi..."</span> + <span class="str">"."</span> + <span class="str">"SflKxwRJSMe..."</span></pre>
+  </div>
+  <div class="callout callout-info">
+    <div class="callout-label">ТОЧНЕ ФОРМУЛЮВАННЯ</div>
+    <p>Підпис JWT — результат алгоритму підпису, застосованого до закодованого заголовка + закодованого payload з використанням ключа. Цей результат (сирі байти) потім кодується в base64url для передачі. Заголовок і payload кодуються в base64url (читаються будь-ким). Підпис — криптографічний відбиток: декодувати до чогось значущого неможливо, підробити без ключа підпису — також.</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 01 ── -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Basic Authentication</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7617" target="_blank">RFC 7617</a>
+  </div>
+  <div class="intro">Найпростіший метод HTTP-автентифікації (RFC 7617). Клієнт надсилає логін та пароль <strong>з кожним запитом</strong> — у кодуванні base64 в заголовку Authorization. Без токенів. Без сесій. Без стану на сервері.</div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ЗАВЖДИ УТОЧНЮЙТЕ</div>
+    <p>Base64 — це <strong>кодування</strong>, не шифрування. Значення <code>YWxpY2U6c2VjcmV0</code> миттєво декодується в <code>alice:secret</code> без будь-якого ключа. Basic Auth є безпечним лише тоді, коли <strong>HTTPS</strong> шифрує все з'єднання. Без HTTPS облікові дані передаються відкритим текстом.</p>
+  </div>
+  <h3>Покроковий процес</h3>
+  <div class="flow">
+    <div class="flow-label">ПРОЦЕС BASIC AUTH</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Клієнт надсилає запит без облікових даних.</div><div class="flow-code">GET /api/orders HTTP/1.1</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div><div class="flow-body"><div class="flow-actor">СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Сервер відповідає 401 і вказує клієнту, яку схему використовувати.</div><div class="flow-code">401 Unauthorized
+WWW-Authenticate: Basic realm="MyApp"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (внутрішньо)</div><div class="flow-desc">Клієнт об'єднує логін і пароль через двокрапку, потім кодує результат у base64.</div><div class="flow-code">"alice:secret123" → base64 → "YWxpY2U6c2VjcmV0MTIz"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР (кожен запит)</div><div class="flow-desc">Клієнт включає заголовок Authorization у кожний наступний запит. Без кешування, без токена, без сесії — облікові дані передаються з кожним викликом.</div><div class="flow-code">GET /api/orders
+Authorization: Basic YWxpY2U6c2VjcmV0MTIz</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Сервер декодує значення з base64, розділяє по двокрапці, перевіряє пароль у базі даних. Повертає 200 (дійсний) або 401 (недійсний).</div><div class="flow-note">Сесія не створюється. Сервер не зберігає стан — перевірка виконується з нуля для кожного запиту.</div></div></div>
+  </div>
+  <h3>Характеристики</h3>
+  <table class="tbl">
+    <tr><th>Властивість</th><th>Деталі</th></tr>
+    <tr><td>Без стану?</td><td>Так — сервер не зберігає сесію. Облікові дані надсилаються з кожним запитом.</td></tr>
+    <tr><td>Кодування облікових даних</td><td>Base64 (зворотне, без ключа). НЕ шифрування, НЕ хеш.</td></tr>
+    <tr><td>Безпечний без HTTPS?</td><td>Ні — base64 миттєво декодується при перехопленні.</td></tr>
+    <tr><td>Можливий вихід?</td><td>Стандартного механізму немає. Браузер може кешувати облікові дані до закриття вкладки/сесії.</td></tr>
+    <tr><td>Використання сьогодні</td><td>Внутрішні інструменти, скрипти, застарілі API, сервісні акаунти CI/CD. Ніколи для користувацьких застосунків.</td></tr>
+  </table>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Дійсні облікові дані → 200. ② Неправильний пароль → 401. ③ Відсутній заголовок Authorization → 401. ④ Перехопити заголовок у Burp Suite → декодувати base64 → бачимо облікові дані відкритим текстом (задокументувати). ⑤ Тест через звичайний HTTP (якщо доступний) — підтвердити, що HTTPS обов'язковий. ⑥ Тест спеціальних символів у паролі (двокрапка в паролі ламає формат — сервер повинен це обробляти).</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 02 ── -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Digest Authentication</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7616" target="_blank">RFC 7616</a>
+  </div>
+  <div class="intro">Digest Auth (RFC 7616) розроблено для усунення головної слабкості Basic Auth: <strong>пароль ніколи не передається мережею</strong>. Натомість клієнт надсилає хеш пароля, об'єднаного з випадковим значенням, згенерованим сервером (<strong>nonce</strong>). Навіть якщо перехопити — хеш не можна відновити до вихідного пароля.</div>
+  <h3>Ключова концепція: nonce</h3>
+  <p><strong>Nonce</strong> (число, що використовується один раз) — випадковий рядок, який сервер генерує для кожного запиту автентифікації. Клієнт змішує пароль з цим nonce перед хешуванням. Оскільки nonce змінюється з кожним запитом, перехоплена відповідь не спрацює в іншому запиті.</p>
+  <div class="flow">
+    <div class="flow-label">ПРОЦЕС DIGEST AUTH</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Клієнт надсилає запит без облікових даних.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div><div class="flow-body"><div class="flow-actor">СЕРВЕР → КЛІЄНТ (виклик)</div><div class="flow-desc">Сервер відповідає 401 і включає свіжий nonce в заголовок.</div><div class="flow-code">401 Unauthorized
+WWW-Authenticate: Digest realm="MyApp", nonce="abc123xyz"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (внутрішньо)</div><div class="flow-desc">Клієнт хешує облікові дані разом із nonce, використовуючи MD5 (або SHA-256 в новіших версіях).</div><div class="flow-code">HA1 = MD5("alice:MyApp:secret123")
+HA2 = MD5("GET:/api/orders")
+response = MD5(HA1 + ":" + nonce + ":" + HA2)</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Клієнт надсилає хеш (так звану "response") — але не пароль.</div><div class="flow-code">Authorization: Digest username="alice", nonce="abc123xyz",
+  response="6f3a..."</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Сервер виконує те саме хешування зі збереженим паролем і виданим nonce. Порівнює результати. Якщо збігаються → 200.</div><div class="flow-note">Пароль ніколи не передається. Якщо канал перехоплено, хеш сам по собі не можна відновити.</div></div></div>
+  </div>
+  <h3>Digest vs Basic — порівняння</h3>
+  <table class="tbl">
+    <tr><th>Властивість</th><th>Basic Auth</th><th>Digest Auth</th></tr>
+    <tr><td>Пароль передається?</td><td>Так (у base64-кодуванні)</td><td>Ні — передається лише хеш</td></tr>
+    <tr><td>Захист від replay?</td><td>Відсутній</td><td>Так — nonce змінюється з кожним запитом</td></tr>
+    <tr><td>Безпечний без HTTPS?</td><td>Ні</td><td>Краще (пароль не передається), але все одно слабкий (хеш можна брутфорсити)</td></tr>
+    <tr><td>Алгоритм хешування</td><td>Немає (base64)</td><td>MD5 або SHA-256</td></tr>
+    <tr><td>Статус сьогодні</td><td>Застарілий, але ще використовується</td><td>Здебільшого замінений токенною автентифікацією через HTTPS</td></tr>
+  </table>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Перевірити, що nonce унікальний для кожного запиту (повторне використання nonce уможливлює replay-атаки). ② Перевірити, що HTTPS все одно обов'язковий. ③ Якщо зустрічається: задокументувати як застарілий механізм і рекомендувати міграцію на Bearer Token через HTTPS. ④ Тест з дійсними даними → 200; неправильний пароль → 401; відсутній nonce → 400/401.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 03 ── -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">API-ключі</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
+    <a class="spec-ref" href="https://swagger.io/docs/specification/v3_0/authentication/api-keys/" target="_blank">Без RFC — вендорна конвенція</a>
+  </div>
+  <div class="intro">API-ключ — статичний рядок, згенерований сервером і наданий клієнту, який слугує обліковими даними для ідентифікації. На відміну від Basic Auth, клієнт не надсилає логін/пароль — він надсилає ключ. Сервер шукає ключ у базі даних для ідентифікації клієнта та отримання його прав.</div>
+  <h3>Як працює автентифікація через API-ключ</h3>
+  <div class="flow">
+    <div class="flow-label">ПРОЦЕС API KEY</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → API СЕРВЕР</div><div class="flow-desc">Клієнт надсилає запит з API-ключем — у кастомному заголовку або як query-параметр.</div><div class="flow-code">GET /api/users
+Authorization: ApiKey abc123xyz456
+<span class="cm">— або —</span>
+X-API-Key: abc123xyz456</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">API СЕРВЕР → БАЗА ДАНИХ</div><div class="flow-desc">Сервер шукає хеш ключа в базі даних, щоб знайти, якому користувачу/клієнту він належить і які у нього права.</div><div class="flow-code">SELECT user_id, scopes, active FROM api_keys
+WHERE key_hash = hash(request_key)</div><div class="flow-note">Ключ зберігається у вигляді хешу — відкритий ключ ніколи не зберігається на сервері.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2a — ключ дійсний</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Ключ існує, активний і має необхідний scope → авторизувати запит → повернути 200 з даними.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2b — ключ недійсний</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Ключ не знайдено або позначено як неактивний.</div><div class="flow-code">401 Unauthorized</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2c — ключ відсутній</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">API-ключ у запиті відсутній взагалі.</div><div class="flow-code">400 Bad Request (API key required)</div></div></div>
+  </div>
+  <h3>Де передаються API-ключі</h3>
+  <table class="tbl">
+    <tr><th>Місце</th><th>Приклад</th><th>Ризик</th></tr>
+    <tr><td>Кастомний заголовок</td><td><code>X-API-Key: abc123</code></td><td>Низький — не потрапляє в URL чи історію браузера</td></tr>
+    <tr><td>Заголовок Authorization</td><td><code>Authorization: ApiKey abc123</code></td><td>Низький</td></tr>
+    <tr><td>Query-параметр</td><td><code>GET /data?api_key=abc123</code></td><td>Високий — потрапляє в логи сервера, історію браузера, заголовки Referer</td></tr>
+    <tr><td>Тіло запиту</td><td><code>{"api_key": "abc123"}</code></td><td>Середній — лише для POST-запитів</td></tr>
+  </table>
+  <div class="callout callout-warn">
+    <div class="callout-label">API-КЛЮЧІ ЗБЕРІГАЮТЬ СТАН</div>
+    <p>На відміну від JWT, API-ключ не має вбудованого часу закінчення дії. Дійсність визначається через запит до бази даних при кожному зверненні. Це означає: API-ключі потребують серверного зберігання, їх можна миттєво відкликати (видалити з БД), але вони додають затримку (запит до БД при кожному зверненні).</p>
+  </div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Ключ у query-параметрі → перевірити логи сервера на наявність витоку ключа. ② Відкликати ключ через адмін-панель → одразу перевірити, чи він все ще працює (має повертати 401). ③ Тест rate limiting для ключа. ④ Тест з ключем, що належить іншому scope. ⑤ Перевірити, що відкритий ключ не зберігається в БД (лише хеш). ⑥ Перевірити, чи обов'язковий HTTPS — ключі в заголовках все одно є відкритим текстом на транспортному рівні без TLS.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 04 ── -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Сесійна автентифікація</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6265" target="_blank">RFC 6265 (Cookie)</a>
+  </div>
+  <div class="intro">Сесійна автентифікація — класична модель веб-автентифікації. Після одноразового входу з обліковими даними сервер створює <strong>запис сесії</strong> у своїй базі даних і видає клієнту <strong>ідентифікатор сесії</strong> (зберігається у cookie). Кожен наступний запит надсилає цей ідентифікатор — сервер шукає його для ідентифікації користувача. Стан сесії зберігається на сервері.</div>
+  <div class="flow">
+    <div class="flow-label">ПРОЦЕС СЕСІЙНОЇ АВТЕНТИФІКАЦІЇ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Користувач відправляє форму входу з обліковими даними.</div><div class="flow-code">POST /login
+Body: { username: "alice", password: "secret123" }</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">СЕРВЕР (внутрішньо)</div><div class="flow-desc">Сервер перевіряє облікові дані. Якщо дійсні: створює запис сесії у сховищі (база даних/Redis), генерує унікальний випадковий ідентифікатор сесії.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Сервер надсилає ідентифікатор сесії клієнту через заголовок Set-Cookie.</div><div class="flow-code">Set-Cookie: session_id=xK9mR3...;
+  HttpOnly; Secure; SameSite=Strict</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР (кожен запит)</div><div class="flow-desc">Браузер автоматично надсилає cookie з кожним відповідним запитом.</div><div class="flow-code">GET /api/orders
+Cookie: session_id=xK9mR3...</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Сервер шукає ідентифікатор сесії у сховищі. Отримує дані та права користувача. Обробляє запит.</div><div class="flow-note">Потрібен запит до бази даних при кожному зверненні. Зберігає стан — сервер повинен зберігати сесії.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6 — вихід</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">При виході: сервер видаляє запис сесії зі сховища. Cookie з ідентифікатором сесії стає марним — навіть якщо перехоплений, він не відповідатиме жодній сесії.</div></div></div>
+  </div>
+  <h3>Сесія vs JWT — ключова відмінність</h3>
+  <table class="tbl">
+    <tr><th>Властивість</th><th>Сесійна автентифікація</th><th>JWT-автентифікація</th></tr>
+    <tr><td>Розташування стану</td><td>Сервер (сховище сесій)</td><td>Клієнт (сам токен)</td></tr>
+    <tr><td>Запит до БД?</td><td>Так — при кожному зверненні</td><td>Ні — валідація криптографічна</td></tr>
+    <tr><td>Масштабованість</td><td>Складніша (сесії потрібно ділити між серверами)</td><td>Легша (без стану — будь-який сервер може верифікувати)</td></tr>
+    <tr><td>Відкликання</td><td>Миттєве — видалити запис сесії</td><td>Складне — токен дійсний до exp</td></tr>
+    <tr><td>Вихід працює?</td><td>Так — сервер видаляє сесію</td><td>Лише якщо використовується блокліст або короткий TTL</td></tr>
+  </table>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Вийти → одразу використати старий cookie сесії → має повернути 401 (сесія видалена на сервері). ② Перевірити атрибути cookie: HttpOnly (без доступу через JS), Secure (лише HTTPS), SameSite=Strict (захист від CSRF). ③ Тест session fixation: чи можна встановити свій ідентифікатор сесії до входу? ④ Тест одночасних сесій: два входи для одного користувача — чи обидві сесії дійсні, чи вхід анулює попередню? ⑤ Тест тайм-ауту сесії — чи закінчуються неактивні сесії?</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 05 ── -->
+<div class="section" id="s05">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <span class="section-title">Bearer-токени та JWT</span>
+    <span class="tag tag-token">ТОКЕН</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6750" target="_blank">RFC 6750 (Bearer)</a>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank">RFC 7519 (JWT)</a>
+  </div>
+  <div class="intro"><strong>Bearer-токен</strong> — токен доступу, де сам факт його наявності надає доступ: "хто пред'являє цей токен — той входить". Найпоширеніший формат — <strong>JWT (JSON Web Token)</strong>. На відміну від сесій, JWT є <strong>самодостатнім</strong> — всі дані для валідації містяться всередині токена. Для верифікації JWT запит до бази даних не потрібен.</div>
+  <h3>Що означає "Bearer"</h3>
+  <p>Bearer — <em>назва схеми</em> в заголовку Authorization. Вона означає: "пред'явник цього токена авторизований". Сервер надає доступ тому, хто пред'являє дійсний токен — не перевіряючи, чи це початковий отримувач. Саме тому крадіжка токена є серйозним ризиком.</p>
+  <div class="code">
+    <div class="code-label">ЯК ПЕРЕДАЄТЬСЯ ТОКЕН</div>
+    <pre>GET /api/orders HTTP/1.1
+<span class="key">Authorization</span>: <span class="kw">Bearer</span> <span class="str">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIn0.SflKxw...</span></pre>
+  </div>
+  <h3>Структура JWT — три частини</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">ВАЖЛИВА ТОЧНІСТЬ</div>
+    <p>Всі три частини <strong>кодуються в base64url для передачі</strong>. Але заголовок і payload — читабельний JSON (лише кодування). Підпис — криптографічний результат (алгоритму підпису), закодований у base64url. Декодувати до чогось значущого без ключа неможливо, підробити без ключа підпису — також.</p>
+  </div>
+  <div class="code">
+    <div class="code-label">JWT ДЕКОДОВАНИЙ — ВСІ ТРИ ЧАСТИНИ</div>
+    <pre><span class="cm">// ЧАСТИНА 1: ЗАГОЛОВОК — алгоритм і тип токена</span>
+{
+  <span class="key">"alg"</span>: <span class="str">"RS256"</span>,
+  <span class="key">"typ"</span>: <span class="str">"JWT"</span>
+}
+
+<span class="cm">// ЧАСТИНА 2: PAYLOAD — claim'и (дані про суб'єкт)</span>
+<span class="cm">// (base64url-кодований JSON — читабельний для будь-кого — НЕ секретний)</span>
+{
+  <span class="key">"sub"</span>: <span class="str">"user-123"</span>,
+  <span class="key">"iss"</span>: <span class="str">"https://auth.co.com"</span>,
+  <span class="key">"aud"</span>: <span class="str">"api.co.com"</span>,
+  <span class="key">"iat"</span>: <span class="num">1744996400</span>,
+  <span class="key">"exp"</span>: <span class="num">1745000000</span>,
+  <span class="key">"jti"</span>: <span class="str">"uuid-abc-123"</span>,
+  <span class="key">"scope"</span>: <span class="str">"orders:read"</span>
+}
+
+<span class="cm">// ЧАСТИНА 3: ПІДПИС — доводить, що токен не було підроблено</span>
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
+  </div>
+  <h3>HS256 vs RS256 — алгоритми підпису</h3>
+  <div class="grid2">
+    <div class="card"><div class="card-title" style="color:var(--purple)">HS256 — СИМЕТРИЧНИЙ (HMAC-SHA256)</div><div class="card-body">Один спільний секретний ключ для підпису та верифікації. Будь-який сервіс, що верифікує токени, повинен знати секрет. Якщо будь-який верифікатор скомпрометовано — секрет підпису розкрито, зловмисник може підробляти токени.<br><br><strong>Підходить для:</strong> односервісних застосунків, внутрішніх інструментів.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--cyan)">RS256 — АСИМЕТРИЧНИЙ (RSA-SHA256)</div><div class="card-body">Приватний ключ підписує (лише auth-сервер, ніколи не передається). Публічний ключ верифікує (будь-який сервіс може його мати). Скомпрометований верифікатор не може підробляти токени.<br><br><strong>Підходить для:</strong> мікросервісів, розподілених систем, мультикомандних архітектур.</div></div>
+  </div>
+  <h3>Валідація JWT — що сервер перевіряє при кожному запиті</h3>
+  <div class="flow">
+    <div class="flow-label">ПОСЛІДОВНІСТЬ ВАЛІДАЦІЇ JWT</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-desc"><strong>Підпис</strong> — перерахувати очікуваний підпис з отриманого заголовка+payload. Порівняти з підписом у токені. Якщо не збігається → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-desc"><strong>Час закінчення (exp)</strong> — чи поточний час до мітки exp? Якщо прострочено → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-desc"><strong>Видавець (iss)</strong> — чи збігається видавець з очікуваним? Якщо невідповідність → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-desc"><strong>Аудиторія (aud)</strong> — чи призначений цей токен для цього сервісу? Якщо невідповідність → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-desc"><strong>Алгоритм (alg)</strong> — чи алгоритм очікуваний сервером? Відхилити "none". Якщо несподіваний → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-desc">Всі перевірки пройдено → витягти claim'и з payload → перейти до авторизації.</div></div></div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">КРИТИЧНА АТАКА — alg:none</div>
+    <p>Якщо JWT-бібліотека приймає <code>"alg": "none"</code>, вона повністю пропускає верифікацію підпису. Зловмисник встановлює alg в none, змінює payload (наприклад, роль на admin), видаляє підпис і надсилає токен. Сервер приймає його без верифікації. Тест: надіслати токен з alg:none — має повертати 401.</p>
+  </div>
+  <h3>Проблема відкликання</h3>
+  <p>JWT не зберігає стан — після видачі жодного запису в базі даних немає. Якщо токен вкрадено або користувача заблоковано, токен залишається дійсним до закінчення <code>exp</code>. Заходи протидії:</p>
+  <ul>
+    <li><strong>Короткий TTL</strong> — access-токени мають закінчуватись через 5–15 хвилин.</li>
+    <li><strong>Refresh-токени</strong> — довгострокові токени для отримання нових access-токенів без повторного входу.</li>
+    <li><strong>Блокліст jti</strong> — зберігати відкликані jti у Redis із TTL рівним часу закінчення дії токена.</li>
+    <li><strong>Rotation refresh-токенів</strong> — кожне використання скасовує старий і видає новий.</li>
+  </ul>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Змінити payload вручну (наприклад, sub або role) → збережений підпис більше не збігається → має повертати 401. ② Відправити прострочений токен → 401. ③ Відправити токен з alg:none → 401 (критичний тест). ④ Відправити токен з невідповідним aud → 401. ⑤ Відправити токен з невідповідним iss → 401. ⑥ Декодувати payload на jwt.io — чи містить він зайві чутливі дані?</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 06 ── -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">Access та Refresh токени</span>
+    <span class="tag tag-token">ПАРА ТОКЕНІВ</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749#section-1.4" target="_blank">RFC 6749 §1.4</a>
+  </div>
+  <div class="intro">Access та refresh токени вирішують протиріччя між безпекою і зручністю. Короткий access-токен обмежує вікно витоку. Довгий refresh-токен дозволяє отримувати нові access-токени без повторного входу.</div>
+  <div class="grid2">
+    <div class="card"><div class="card-title" style="color:var(--blue)">ACCESS TOKEN</div><div class="card-body"><strong>TTL:</strong> хвилини (зазвичай 5–15 хв)<br><strong>Формат:</strong> зазвичай JWT (самодостатній)<br><strong>Куди передається:</strong> до кожного захищеного API-ендпоінта<br><strong>Зберігається:</strong> в пам'яті (SPA) або httpOnly cookie<br><strong>При закінченні:</strong> клієнт використовує refresh-токен для отримання нового</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">REFRESH TOKEN</div><div class="card-body"><strong>TTL:</strong> дні-тижні (або довше)<br><strong>Формат:</strong> непрозорий рядок (випадковий, без структури) або JWE (зашифрований JWT — 5 частин)<br><strong>Куди передається:</strong> ЛИШЕ до /token ендпоінта (refresh token endpoint)<br><strong>Зберігається:</strong> httpOnly + Secure + SameSite cookie<br><strong>При використанні:</strong> видається новий access-токен; при rotation — також новий refresh-токен</div></div>
+  </div>
+  <h3>Чому refresh-токен не є JWT (зазвичай)</h3>
+  <p>JWT самодостатній — будь-хто може його прочитати і перевірити без запиту до бази даних. Refresh-токен <strong>повинен</strong> бути відкличним: якщо він скомпрометований або користувач виходить — він має негайно стати недійсним. Непрозорий рядок вимагає пошуку в БД при кожному використанні, що уможливлює миттєве відкликання. JWE є альтернативою: зашифрований (лише auth-сервер може розшифрувати), але все одно потребує перевірки в БД для rotation та виявлення повторного використання.</p>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ЗНАХІДКА ПРИ ТЕСТУВАННІ</div>
+    <p>Якщо refresh-токен не декодується на jwt.io — це <strong>правильна поведінка</strong>, не баг. Непрозорий токен не має структури. JWE зашифрований — лише auth-сервер може його розшифрувати. Застосовуйте <strong>поведінкове тестування</strong> (що робить система при його використанні?), а не тестування вмісту.</p>
+  </div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Після виходу: POST refresh-токена до /token → має повертати 401 (тест зомбі-сесії). ② Rotation + повторне використання: зберегти R1 → використати → отримати R2 → використати R1 знову → і R1, і R2 мають бути недійсними. ③ Підміна типу: надіслати refresh-токен до /api/users/me як Bearer → має повертати 401. ④ TTL: тест через 7/14/30 днів — коли він закінчується? ⑤ Прив'язка client_id: використати refresh-токен з іншим client_id → має повертати 401. ⑥ Зберігання: у DevTools → перевірити, що refresh-токен у httpOnly+Secure+SameSite cookie, а не в localStorage. ⑦ Паралельні сесії: два входи → два refresh-токени → обидва мають працювати незалежно.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 07 ── -->
+<div class="section" id="s07">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <span class="section-title">OAuth 1.0</span>
+    <span class="tag tag-framework">ФРЕЙМВОРК AUTHZ</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc5849" target="_blank">RFC 5849</a>
+  </div>
+  <div class="intro">OAuth 1.0 (RFC 5849, 2010) — перший стандартизований протокол для <strong>делегованого доступу</strong>. Згідно з RFC 5849, він надає "метод для клієнтів отримувати доступ до ресурсів сервера від імені власника ресурсу… без передачі облікових даних". Здебільшого замінений OAuth 2.0, але ще зустрічається у деяких старих API (Twitter/X classic API, деякі платіжні системи).</div>
+  <div class="callout callout-note">
+    <div class="callout-label">ЩО ОЗНАЧАЄ "ФРЕЙМВОРК АВТОРИЗАЦІЇ"</div>
+    <p>OAuth — це <strong>не метод автентифікації</strong>. Це <strong>фреймворк</strong> — набір правил для того, як сторонній застосунок може отримати обмежений доступ до ресурсів. Користувач автентифікується на сервері авторизації (будь-яким методом). OAuth визначає протокол, за яким стороня отримує токен, що представляє наданий доступ.</p>
+  </div>
+  <h3>Як працює OAuth 1.0</h3>
+  <div class="flow">
+    <div class="flow-label">ПРОЦЕС OAUTH 1.0 — 3-СТОРОННЯ АВТЕНТИФІКАЦІЯ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР</div><div class="flow-desc">Клієнт запитує тимчасовий "Request Token", використовуючи свій Consumer Key і Consumer Secret.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Повертає Request Token (тимчасовий, ще не авторизований).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">3</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ перенаправляє КОРИСТУВАЧА → AUTH СЕРВЕР</div><div class="flow-desc">Користувача переспрямовують на auth-сервер для входу і підтвердження доступу.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">4</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ підтверджує → AUTH СЕРВЕР перенаправляє назад</div><div class="flow-desc">Auth-сервер повертає користувача на callback URL клієнта з кодом верифікації.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР</div><div class="flow-desc">Клієнт обмінює: Request Token + Verifier + Consumer Secret → Access Token.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → RESOURCE СЕРВЕР</div><div class="flow-desc">Клієнт використовує Access Token для підписаних запитів. Кожен запит підписується HMAC-SHA1 із використанням Consumer Secret і Token Secret.</div><div class="flow-note">Підпис запитів — ключова складність OAuth 1.0. Саме тому OAuth 2.0 відмовився від цього на користь HTTPS.</div></div></div>
+  </div>
+  <h3>OAuth 1.0 vs OAuth 2.0 — ключові відмінності</h3>
+  <table class="tbl">
+    <tr><th>Властивість</th><th>OAuth 1.0</th><th>OAuth 2.0</th></tr>
+    <tr><td>Підпис запитів</td><td>Так — кожен запит підписується HMAC</td><td>Ні — покладається на HTTPS для транспортної безпеки</td></tr>
+    <tr><td>Тип токена</td><td>Лише непрозорі токени</td><td>JWT (або непрозорі), refresh-токени</td></tr>
+    <tr><td>Складність</td><td>Висока — реалізація підпису схильна до помилок</td><td>Нижча — стандартизовані потоки</td></tr>
+    <tr><td>Підтримка mobile/SPA</td><td>Погана</td><td>Гарна — розширення PKCE</td></tr>
+    <tr><td>Статус</td><td>Застарілий — здебільшого замінений</td><td>Поточний стандарт</td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<!-- ── 08 ── -->
+<div class="section" id="s08">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <span class="section-title">OAuth 2.0</span>
+    <span class="tag tag-framework">ФРЕЙМВОРК AUTHZ</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank">RFC 6749</a>
+  </div>
+  <div class="intro">Згідно з RFC 6749, OAuth 2.0 — фреймворк авторизації, який <strong>"дозволяє сторонньому застосунку отримати обмежений доступ до HTTP-сервісу, або від імені власника ресурсу… або дозволяючи сторонньому застосунку отримати доступ від свого власного імені."</strong> OAuth 2.0 сам по собі обробляє лише <strong>авторизацію</strong>. Він не визначає автентифікацію (це робить OIDC поверх нього — дивіться розділ 09). Зауважте: коли клієнт діє від свого імені (Client Credentials grant), жодного користувача чи делегування немає — лише пряма видача токена клієнту.</div>
+  <div class="callout callout-warn">
+    <div class="callout-label">OAUTH 2.0 — НЕ МЕТОД АВТЕНТИФІКАЦІЇ</div>
+    <p>OAuth 2.0 вказує, що користувач дозволив клієнту робити. Він <strong>не</strong> вказує, хто є цим користувачем. Коли ви "входите через Google", OAuth 2.0 надає застосунку доступ до ваших даних Google. OpenID Connect (поверх OAuth 2.0) надає ідентичність — хто ви є.</p>
+  </div>
+  <h3>Чотири ролі в OAuth 2.0</h3>
+  <div class="grid2">
+    <div class="card"><div class="card-title">ВЛАСНИК РЕСУРСУ</div><div class="card-body">Користувач, якому належать захищені дані і який надає до них доступ.</div></div>
+    <div class="card"><div class="card-title">КЛІЄНТ</div><div class="card-body">Сторонній застосунок, який хоче отримати доступ до ресурсів користувача.</div></div>
+    <div class="card"><div class="card-title">СЕРВЕР АВТОРИЗАЦІЇ</div><div class="card-body">Видає токени після автентифікації користувача та отримання згоди. (наприклад, Google Auth, AWS Cognito)</div></div>
+    <div class="card"><div class="card-title">RESOURCE СЕРВЕР</div><div class="card-body">API, що зберігає захищені дані. Приймає та валідує access-токени.</div></div>
+  </div>
+  <h3>Потік 1: Authorization Code (застосунки з користувачем)</h3>
+  <p>Використовується, коли користувач повинен бути присутнім для автентифікації та надання згоди.</p>
+  <div class="flow">
+    <div class="flow-label">ПОТІК AUTHORIZATION CODE</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР</div><div class="flow-desc">Клієнт перенаправляє користувача до ендпоінта /authorize auth-сервера.</div><div class="flow-code">GET /authorize?response_type=code
+  &amp;client_id=myapp
+  &amp;redirect_uri=https://app.com/callback
+  &amp;scope=orders:read
+  &amp;state=random_csrf_token</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ (на auth-сервері)</div><div class="flow-desc">Користувач входить і підтверджує запитувані scope.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → КЛІЄНТ (redirect)</div><div class="flow-desc">Auth-сервер перенаправляє на redirect_uri з короткостроковим кодом авторизації та тим самим значенням state.</div><div class="flow-code">GET https://app.com/callback?code=AUTH_CODE&amp;state=random_csrf_token</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (внутрішньо)</div><div class="flow-desc">Клієнт перевіряє, що state збігається з надісланим (захист від CSRF).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР (зворотній канал)</div><div class="flow-desc">Клієнт обмінює code + client_secret на токени. Це сервер-до-сервера — токени ніколи не потрапляють в URL браузера.</div><div class="flow-code">POST /token
+grant_type=authorization_code&amp;code=AUTH_CODE
+&amp;client_id=myapp&amp;client_secret=SECRET
+&amp;redirect_uri=https://app.com/callback</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Повертає access_token та refresh_token.</div></div></div>
+  </div>
+  <h3>Потік 2: Authorization Code + PKCE (mobile/SPA)</h3>
+  <p>PKCE розширює потік Authorization Code для <strong>публічних клієнтів</strong>, які не можуть безпечно зберігати client_secret (мобільні застосунки, SPA).</p>
+  <div class="flow">
+    <div class="flow-label">ДОПОВНЕННЯ PKCE ДО ПОТОКУ AUTH CODE</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (до кроку 1)</div><div class="flow-desc">Клієнт генерує випадковий рядок <strong>code_verifier</strong>, потім хешує його для отримання <strong>code_challenge</strong>.</div><div class="flow-code">code_verifier = random_string(64 chars)
+code_challenge = base64url(SHA256(code_verifier))</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">B</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР (крок 1 змінено)</div><div class="flow-desc">Клієнт включає code_challenge до запиту авторизації.</div><div class="flow-code">GET /authorize?...&amp;code_challenge=HASH&amp;code_challenge_method=S256</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">C</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР (крок 5 змінено)</div><div class="flow-desc">При обміні токена клієнт надсилає вихідний code_verifier (не хеш). Auth-сервер хешує verifier і порівнює зі збереженим challenge.</div><div class="flow-code">POST /token
+...&amp;code_verifier=ORIGINAL_RANDOM_STRING</div></div></div>
+  </div>
+  <h3>Потік 3: Client Credentials (машина-до-машини)</h3>
+  <p>Використовується, коли користувач відсутній — сервіс автентифікується від свого власного імені.</p>
+  <div class="flow">
+    <div class="flow-label">ПОТІК CLIENT CREDENTIALS</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">СЕРВІС → AUTH СЕРВЕР</div><div class="flow-desc">Сервіс надсилає свій client_id і client_secret безпосередньо до ендпоінта /token. Без перенаправлення користувача, без згоди.</div><div class="flow-code">POST /token
+grant_type=client_credentials
+&amp;client_id=my-service&amp;client_secret=SERVICE_SECRET
+&amp;scope=data:ingest</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → СЕРВІС</div><div class="flow-desc">Повертає access_token, що представляє сервіс (а не будь-якого користувача). Без refresh-токена.</div><div class="flow-note">Claim sub у токені — це client_id сервісу, а не ID користувача.</div></div></div>
+  </div>
+  <table class="tbl">
+    <tr><th>Потік</th><th>Коли використовувати</th><th>Користувач присутній?</th><th>client_secret потрібен?</th></tr>
+    <tr><td>Auth Code</td><td>Веб-застосунки з бекендом</td><td>Так</td><td>Так</td></tr>
+    <tr><td>Auth Code + PKCE</td><td>Мобільні застосунки, SPA</td><td>Так</td><td>Ні (PKCE замінює його)</td></tr>
+    <tr><td>Client Credentials</td><td>Сервіс-до-сервісу, фонові задачі</td><td>Ні</td><td>Так</td></tr>
+  </table>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Змінити redirect_uri → auth-сервер має відхилити (ризик перехоплення коду). ② Прибрати параметр state → сервер має все одно валідувати state на callback (тест CSRF). ③ Auth Code: спробувати повторно використати код авторизації → має повертати помилку. ④ PKCE: надіслати обмін токена без code_verifier → має бути відхилено. ⑤ Токен Client Credentials → надіслати до ендпоінта для конкретного користувача → має повернути 403. ⑥ Перевірити code_challenge_method=S256, а не plain.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 09 ── -->
+<div class="section" id="s09">
+  <div class="section-head">
+    <span class="section-num">09</span>
+    <span class="section-title">OpenID Connect (OIDC)</span>
+    <span class="tag tag-proto">ПРОТОКОЛ AUTHN</span>
+    <a class="spec-ref" href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OIDC Core 1.0</a>
+  </div>
+  <div class="intro">Згідно зі <a href="https://openid.net/specs/openid-connect-core-1_0.html" style="color:var(--cyan)">специфікацією OpenID Connect Core 1.0</a>: <strong>"OpenID Connect 1.0 — простий рівень ідентичності поверх протоколу OAuth 2.0."</strong> Точніше — це <strong>протокол автентифікації</strong>, який визначає, як клієнт верифікує особу кінцевого користувача на основі автентифікації, виконаної сервером авторизації. OAuth 2.0 відповідає на "що може цей клієнт?" OIDC відповідає на "хто цей користувач?" Він додає <strong>id_token</strong> (JWT з claim'ами ідентичності) та <strong>ендпоінт UserInfo</strong> до фреймворку OAuth 2.0. Це не фреймворк авторизації — це протокол, побудований <em>поверх</em> нього.</div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ПОШИРЕНА ПОМИЛКА</div>
+    <p>OIDC часто групують з OAuth 2.0 під "фреймворками авторизації", оскільки вони спільно використовують потоки та ендпоінти. Це неправильно. OAuth 2.0 — фреймворк авторизації. OIDC — протокол автентифікації, що використовує OAuth 2.0 як транспортний рівень.</p>
+  </div>
+  <h3>id_token vs access_token — критична відмінність</h3>
+  <div class="grid2">
+    <div class="card"><div class="card-title" style="color:var(--blue)">ID_TOKEN</div><div class="card-body"><strong>Для кого:</strong> клієнтський застосунок.<br><strong>Містить:</strong> claim'и ідентичності — ім'я, email, профіль.<br><strong>Мета:</strong> повідомляє клієнту, хто є користувач.<br><strong>Надсилати до API?</strong> Ні — НЕ для авторизації API.<br><strong>Аудиторія:</strong> client_id.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">ACCESS_TOKEN</div><div class="card-body"><strong>Для кого:</strong> resource-сервер (API).<br><strong>Містить:</strong> claim'и авторизації — scope, subject.<br><strong>Мета:</strong> повідомляє API, що дозволено робити користувачу.<br><strong>Надсилати до API?</strong> Так — в заголовку Authorization: Bearer.<br><strong>Аудиторія:</strong> API resource-сервер.</div></div>
+  </div>
+  <h3>Стандартні scope OIDC</h3>
+  <table class="tbl">
+    <tr><th>Scope</th><th>Claim'и, що повертаються</th></tr>
+    <tr><td>openid</td><td>sub (обов'язковий — вмикає OIDC)</td></tr>
+    <tr><td>profile</td><td>name, given_name, family_name, picture, locale</td></tr>
+    <tr><td>email</td><td>email, email_verified</td></tr>
+    <tr><td>phone</td><td>phone_number, phone_number_verified</td></tr>
+    <tr><td>address</td><td>address (структурований JSON)</td></tr>
+  </table>
+  <h3>Claim nonce — захист від replay-атак</h3>
+  <p>Клієнт генерує випадковий <strong>nonce</strong>, надсилає його в запиті авторизації, а auth-сервер вбудовує його в id_token. Клієнт перевіряє, що nonce в отриманому id_token збігається з надісланим. Без nonce: перехоплений id_token може бути використаний повторно для автентифікації жертви протягом усього її TTL.</p>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Декодувати id_token → перевірити наявність PII понад потреби застосунку. ② Надіслати id_token до ендпоінта resource API (замість access_token) → має повертати 401/403. ③ Викликати /userinfo з простроченим access_token → має повертати 401. ④ Тест nonce: повторно надіслати перехоплений id_token при другому вході → має бути відхилено. ⑤ Знахідка AWS Cognito: claim iss містить повну URL user pool — розкриття інфраструктури, середня критичність.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 10 ── -->
+<div class="section" id="s10">
+  <div class="section-head">
+    <span class="section-num">10</span>
+    <span class="section-title">Single Sign-On (SSO)</span>
+    <span class="tag tag-concept">UX-ПАТЕРН / СХЕМА</span>
+    <a class="spec-ref" href="https://en.wikipedia.org/wiki/Single_sign-on" target="_blank">Wikipedia</a>
+  </div>
+  <div class="intro">SSO — це <strong>схема автентифікації та UX-патерн</strong>, а не протокол. Wikipedia визначає його як <em>"схему автентифікації, що дозволяє користувачу входити з одним ID для доступу до кількох пов'язаних, але незалежних програмних систем."</em> Він описує <em>досвід користувача та архітектуру</em> централізованої автентифікації. Базовими механізмами є реальні протоколи: <strong>SAML</strong> (корпоративний), <strong>OIDC</strong> (сучасний веб/мобайл), або Kerberos (мережевий). SSO знаходиться вище протокольного рівня — він визначає мету; протоколи визначають, як її досягти.</div>
+  <div class="callout callout-note">
+    <div class="callout-label">SSO — НЕ МЕТОД АВТЕНТИФІКАЦІЇ</div>
+    <p>SSO описує <em>досвід користувача та архітектуру</em> централізованої автентифікації. Базовими механізмами є протоколи: SAML, OIDC або власні реалізації. SSO знаходиться вище рівня методу автентифікації — він визначає, як сесії спільно використовуються між застосунками.</p>
+  </div>
+  <div class="flow">
+    <div class="flow-label">ПРОЦЕС SSO</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ → ЗАСТОСУНОК A</div><div class="flow-desc">Користувач намагається отримати доступ до застосунку A. Застосунок A не має сесії для цього користувача.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">ЗАСТОСУНОК A → IDENTITY PROVIDER</div><div class="flow-desc">Застосунок A перенаправляє користувача до центрального IdP (наприклад, Okta, Google Workspace, ADFS).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ автентифікується в IdP</div><div class="flow-desc">Користувач входить один раз з корпоративними обліковими даними. IdP встановлює сесію для цього користувача.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">4</div><div class="flow-body"><div class="flow-actor">IDP → ЗАСТОСУНОК A</div><div class="flow-desc">IdP надсилає підтвердження (SAML) або токен (OIDC) до застосунку A. Застосунок A встановлює власну локальну сесію.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ → ЗАСТОСУНОК B (пізніше)</div><div class="flow-desc">Користувач намагається отримати доступ до застосунку B. Застосунок B перенаправляє до IdP. IdP перевіряє свою сесію — користувач вже автентифікований. Одразу надсилає підтвердження до застосунку B — без запиту входу.</div></div></div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 11 ── -->
+<div class="section" id="s11">
+  <div class="section-head">
+    <span class="section-num">11</span>
+    <span class="section-title">SAML</span>
+    <span class="tag tag-proto">ПРОТОКОЛ ІДЕНТИЧНОСТІ</span>
+    <a class="spec-ref" href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf" target="_blank">OASIS SAML 2.0</a>
+  </div>
+  <div class="intro">SAML (Security Assertion Markup Language) — XML-базований протокол для SSO, що використовується переважно в корпоративних середовищах (корпоративний вхід, B2B-інтеграції). Він передує OAuth/OIDC і використовує XML-підписані підтвердження замість JWT-токенів. Поширений у: Okta, ADFS, Salesforce, корпоративних порталах.</div>
+  <table class="tbl">
+    <tr><th>Властивість</th><th>SAML</th><th>OIDC</th></tr>
+    <tr><td>Формат</td><td>XML-підтвердження</td><td>JWT-токени</td></tr>
+    <tr><td>Транспорт</td><td>HTTP-перенаправлення (POST/Redirect binding)</td><td>HTTP-перенаправлення + API-виклики</td></tr>
+    <tr><td>Основне використання</td><td>Корпоративний SSO, B2B</td><td>Споживчі застосунки, API, мобайл</td></tr>
+    <tr><td>Складність</td><td>Висока — XML, підписи, обмін метаданими</td><td>Нижча — JSON, стандартизований</td></tr>
+    <tr><td>Підтримка мобайл</td><td>Погана</td><td>Гарна</td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<!-- ── 12 ── -->
+<div class="section" id="s12">
+  <div class="section-head">
+    <span class="section-num">12</span>
+    <span class="section-title">Типи автентифікації у Postman — що це таке</span>
+    <span class="tag tag-concept">ІНСТРУМЕНТ ТЕСТУВАННЯ</span>
+    <a class="spec-ref" href="https://learning.postman.com/docs/sending-requests/authorization/authorization-types/" target="_blank">Postman Docs</a>
+  </div>
+  <div class="intro">Postman групує типи автентифікації за категоріями. Розуміння категорії кожного варіанта запобігає поширеній помилці — ставленню до всіх опцій автентифікації Postman як рівнозначних.</div>
+
+  <div class="postman-group">
+    <div class="postman-group-head" style="background:var(--blue-d);color:var(--blue)">МЕТОДИ АВТЕНТИФІКАЦІЇ — клієнт підтверджує особу при кожному запиті</div>
+    <div class="postman-group-body">
+      <div class="postman-item"><span class="postman-item-name">Basic Auth</span><span class="postman-item-desc">Кодує username:password у Base64, надсилає з кожним запитом. Облікові дані передаються з кожним викликом.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Bearer Token</span><span class="postman-item-desc">Ви вставляєте попередньо згенерований токен. Postman надсилає його як <code>Authorization: Bearer &lt;token&gt;</code>. Без підпису.</span></div>
+      <div class="postman-item"><span class="postman-item-name">JWT Bearer</span><span class="postman-item-desc">Postman локально конструює та підписує JWT, використовуючи вказані алгоритм, ключ і claim'и. Корисно для тестування конкретних комбінацій claim'ів у dev-середовищах, де відомий ключ підпису.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Digest Auth</span><span class="postman-item-desc">Реалізує Digest challenge-response обмін. Надсилає хеш, а не пароль.</span></div>
+      <div class="postman-item"><span class="postman-item-name">NTLM Authentication</span><span class="postman-item-desc">Протокол автентифікації Windows. Базується на challenge-response. Використовується для корпоративних мережевих ресурсів.</span></div>
+      <div class="postman-item"><span class="postman-item-name">API Key</span><span class="postman-item-desc">Надсилає статичний ключ у заголовку або query-параметрі. Ви вказуєте назву та значення ключа.</span></div>
+    </div>
+  </div>
+
+  <div class="postman-group">
+    <div class="postman-group-head" style="background:var(--green-d);color:var(--green)">ФРЕЙМВОРКИ АВТОРИЗАЦІЇ — протокольні потоки для обмеженого доступу до ресурсів</div>
+    <div class="postman-group-body">
+      <div class="postman-item"><span class="postman-item-name">OAuth 1.0</span><span class="postman-item-desc">Реалізує 3-сторонній потік OAuth 1.0 з підписом запитів. Для застарілих API.</span></div>
+      <div class="postman-item"><span class="postman-item-name">OAuth 2.0</span><span class="postman-item-desc">Реалізує потоки OAuth 2.0 (Auth Code, Client Credentials тощо). Postman обробляє redirect і обмін токенів. Зберігає отриманий access-токен для використання в запитах.</span></div>
+    </div>
+  </div>
+
+  <div class="postman-group">
+    <div class="postman-group-head" style="background:var(--amber-d);color:var(--amber)">ВЕНДОРНІ РЕАЛІЗАЦІЇ</div>
+    <div class="postman-group-body">
+      <div class="postman-item"><span class="postman-item-name">AWS Signature</span><span class="postman-item-desc">Реалізує AWS SigV4 підпис для прямих викликів до AWS-сервісів (DynamoDB, SQS, SNS, S3). Ви вказуєте Access Key ID, Secret Access Key, регіон і сервіс. Кожен запит підписується хешем вмісту запиту + часова мітка. Використовуйте для тестування AWS-сервісів безпосередньо — оминаючи рівень застосунку.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Hawk Authentication</span><span class="postman-item-desc">MAC-базований підпис запитів, схожий на OAuth 1.0. Кожен запит підписується. Використовується деякими Mozilla та застарілими API.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Akamai EdgeGrid</span><span class="postman-item-desc">Власний підпис запитів Akamai для їхніх API управління CDN.</span></div>
+      <div class="postman-item"><span class="postman-item-name">ASAP (Atlassian)</span><span class="postman-item-desc">Внутрішня сервіс-до-сервісу автентифікація Atlassian. JWT-базована з асиметричними ключами. Використовується для інтеграцій Jira, Confluence.</span></div>
+    </div>
+  </div>
+
+  <div class="callout callout-qa">
+    <div class="callout-label">КОЛИ ЩО ВИКОРИСТОВУВАТИ В QA-РОБОТІ</div>
+    <p><strong>Тестування REST API з JWT:</strong> Bearer Token (вставити токен) або JWT Bearer (якщо є ключ).<br>
+    <strong>Тестування DynamoDB/SQS/SNS напряму:</strong> AWS Signature (SigV4).<br>
+    <strong>Тестування повного OAuth2 потоку входу наскрізно:</strong> OAuth 2.0 helper.<br>
+    <strong>Тестування застарілого внутрішнього API:</strong> Basic Auth або Digest Auth.<br>
+    <strong>Тестування IoT sensor API:</strong> API Key (зазвичай у кастомному заголовку).</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 13 ── -->
+<div class="section" id="s13">
+  <div class="section-head">
+    <span class="section-num">13</span>
+    <span class="section-title">Типові помилки — що НЕ слід говорити</span>
+    <span class="tag tag-concept">КРИТИЧНО ВАЖЛИВО</span>
+    <a class="spec-ref" href="https://owasp.org/www-project-top-ten/" target="_blank">OWASP Top 10</a>
+  </div>
+
+  <div class="intro">Поширені помилки при описі концепцій автентифікації та авторизації.</div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Називати OAuth 2.0 методом автентифікації.</strong><br>OAuth 2.0 — фреймворк авторизації, а не метод автентифікації. Він обробляє отримання обмеженого доступу до ресурсів. OIDC, побудований поверх OAuth 2.0, обробляє автентифікацію.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Групувати SSO разом з методами автентифікації.</strong><br>SSO — архітектурний патерн, а не метод. Він реалізується за допомогою протоколів — OIDC, SAML або Kerberos. Патерн описує мету; протокол описує, як її досягти.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Використовувати JWT і Bearer Token як взаємозамінні поняття.</strong><br>Bearer — назва HTTP-схеми в заголовку Authorization. JWT — формат токена. Bearer-токен може бути непрозорим рядком. JWT може використовуватися як Bearer-токен. Це різні концепції на різних рівнях.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Називати JWT типом автентифікації.</strong><br>JWT — формат токена, визначений у RFC 7519: структура даних із конкретним кодуванням і підписом. Він використовується в межах схем автентифікації та фреймворків авторизації, але сам по собі не є ні тим, ні іншим.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Плутати автентифікацію і авторизацію.</strong><br>Автентифікація відповідає на "хто ти?" — перевірка особи. Авторизація відповідає на "що тобі дозволено?" — перевірка прав. Це окремі кроки з окремими кодами помилок (401 vs 403), що діють на різних рівнях. Автентифікація завжди передує авторизації.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Стверджувати, що JWT зашифрований.</strong><br>Стандартний JWT (JWS) не зашифрований — payload кодується в base64url і читабельний для будь-кого. Підпис забезпечує виявлення підробки, а не конфіденційність. JWE — зашифрований варіант з 5 частинами замість 3.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Вважати, що облікові дані Basic Auth захищені через base64-кодування.</strong><br>Base64 — схема кодування, а не шифрування: повністю зворотна без ключа. Єдиний захист в Basic Auth — шифрування транспортного рівня через HTTPS.</div></div>
+
+  <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+
+  <h3>Правильна ментальна модель — три рівні</h3>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">РІВЕНЬ 1: МЕТОДИ AUTHN</div>
+      <div class="card-body">Як клієнт підтверджує особу в запиті.<br><br><span class="pill pill-blue">Basic Auth</span><span class="pill pill-blue">Digest Auth</span><span class="pill pill-blue">API Key</span><span class="pill pill-blue">Session cookie</span><span class="pill pill-blue">Bearer Token</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--green)">РІВЕНЬ 2: ФРЕЙМВОРКИ AUTHZ</div>
+      <div class="card-body">Протоколи для отримання обмеженого доступу до ресурсів від імені власника або від власного імені клієнта.<br><br><span class="pill pill-green">OAuth 1.0</span><span class="pill pill-green">OAuth 2.0</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--cyan)">РІВЕНЬ 3: ПРОТОКОЛИ ІДЕНТИЧНОСТІ</div>
+      <div class="card-body">Протоколи, що додають ідентичність (автентифікацію) поверх або поряд з фреймворками авторизації.<br><br><span class="pill pill-cyan">OIDC</span><span class="pill pill-cyan">SAML</span><span class="pill pill-cyan">SSO (патерн)</span></div>
+    </div>
+  </div>
+
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>JWT — це формат токена</strong>, що використовується в Bearer-автентифікації та в access-токенах OAuth 2.0. Не метод автентифікації.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>OAuth 2.0 — фреймворк авторизації</strong> — обробляє отримання обмеженого доступу до ресурсів, а не ідентичність. Ідентичністю займається OIDC.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>SSO — архітектурний патерн</strong> — реалізується через OIDC або SAML. Сам по собі не є методом чи фреймворком.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Bearer ≠ JWT</strong> — Bearer — схема заголовка. JWT — формат токена. Bearer-токен може бути непрозорим рядком.</div></div>
+</div>
+
+</div><!-- end view-course -->
+</main>
+</div><!-- end layout -->
+
+<script>
+// ── COOKIES ──
+function setCookie(name, value) {
+  const d = new Date();
+  d.setTime(d.getTime() + 365*24*60*60*1000);
+  document.cookie = name+'='+value+';expires='+d.toUTCString()+';path=/;SameSite=Lax;Secure';
+}
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )'+name+'=([^;]*)'));
+  return match ? match[1] : null;
+}
+
+// ── SETTINGS MENU ──
+function toggleSettings(e) {
+  e.stopPropagation();
+  const btn = document.getElementById('settings-btn');
+  const menu = document.getElementById('settings-menu');
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.settings-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('settings-menu').classList.remove('open');
+    document.getElementById('settings-btn').classList.remove('open');
+  }
+});
+
+// ── FONT ──
+function setFont(font, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('comic', font === 'comic');
+  document.getElementById('opt-normal').classList.toggle('active', font === 'normal');
+  document.getElementById('opt-comic').classList.toggle('active', font === 'comic');
+  setCookie('ui_font', font);
+  document.getElementById('settings-menu').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+(function(){
+  const saved = getCookie('ui_font');
+  if (saved) setFont(saved);
+})();
+
+// ── TAB SWITCHING ──
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function goTo(id) {
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.sidelink').forEach(l=>l.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      document.querySelectorAll('.sidelink').forEach(l=>{
+        l.classList.toggle('active', l.getAttribute('onclick')&&l.getAttribute('onclick').includes("'"+id+"'"));
+      });
+    }
+  });
+},{rootMargin:'-10% 0px -80% 0px'});
+document.querySelectorAll('.section').forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>

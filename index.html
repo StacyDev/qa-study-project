@@ -19,6 +19,8 @@
   --purple:#9f7aea;--purple-d:rgba(159,122,234,.1);--purple-b:rgba(159,122,234,.2);
   --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
 }
+body.comic{
+  --sans:'Comic Sans MS','Chalkboard SE',cursive;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.7}
 
@@ -27,12 +29,29 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .disclaimer strong{color:var(--text2);font-weight:500}
 .disclaimer a{color:var(--cyan);text-decoration:none}
 .disclaimer a:hover{text-decoration:underline}
-.topnav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none}
+.topnav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch;scrollbar-width:none}
 .topnav::-webkit-scrollbar{display:none}
 .logo{font-family:var(--mono);font-size:11px;color:var(--cyan);padding:0 20px;display:flex;align-items:center;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0}
 .tab-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
 .tab-btn:hover{color:var(--text2);border-color:var(--border2)}
 .tab-btn.active{color:var(--cyan);border-color:var(--cyan)}
+
+.lang-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-left:1px solid var(--border);transition:all .15s;text-decoration:none;display:flex;align-items:center}
+.lang-btn:hover{color:var(--cyan)}
+.settings-wrap{margin-left:auto;position:relative;display:flex;border-left:1px solid var(--border)}
+.settings-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:14px;cursor:pointer;display:flex;align-items:center;transition:color .15s}
+.settings-btn:hover{color:var(--cyan)}
+.settings-btn.open{color:var(--cyan)}
+.settings-menu{display:none;position:absolute;top:44px;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:4px;min-width:200px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.settings-menu.open{display:block}
+.settings-section{padding:8px 0;border-bottom:1px solid var(--border)}
+.settings-section:last-child{border-bottom:none}
+.settings-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;padding:6px 14px 4px;display:block}
+.settings-opt{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s}
+.settings-opt:hover{background:var(--surface2)}
+.settings-opt.active{color:var(--cyan)}
+.settings-opt-dot{width:6px;height:6px;border-radius:50%;border:1px solid var(--text3);flex-shrink:0;transition:all .15s}
+.settings-opt.active .settings-opt-dot{background:var(--cyan);border-color:var(--cyan)}
 
 /* LAYOUT */
 .layout{display:flex;min-height:100vh}
@@ -43,10 +62,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .sidelink{display:block;padding:6px 16px;font-size:12px;color:var(--text3);text-decoration:none;cursor:pointer;transition:all .12s;border-left:2px solid transparent}
 .sidelink:hover{color:var(--text2);background:var(--surface2)}
 .sidelink.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,170,.05)}
-.main{flex:1;min-width:0;padding:32px 48px 80px;max-width:820px}
-
-/* VIEWS */
-.view{display:none}.view.active{display:block}
+.main{flex:1;min-width:0;padding:32px 48px 80px}
+.view{display:none;max-width:960px}.view.active{display:block}
 
 /* SECTION */
 .section{margin-bottom:56px;scroll-margin-top:60px}
@@ -170,6 +187,17 @@ strong{color:var(--text);font-weight:500}
 <nav class="topnav">
   <div class="logo">AUTH FUNDAMENTALS</div>
   <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">FONT</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+    </div>
+  </div>
+  <a class="lang-btn" href="authn_v4_uk.html">UA</a>
 </nav>
 
 <div class="layout">
@@ -1043,6 +1071,48 @@ grant_type=client_credentials
 </div><!-- end layout -->
 
 <script>
+// ── COOKIES ──
+function setCookie(name, value) {
+  const d = new Date();
+  d.setTime(d.getTime() + 365*24*60*60*1000);
+  document.cookie = name+'='+value+';expires='+d.toUTCString()+';path=/;SameSite=Lax;Secure';
+}
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )'+name+'=([^;]*)'));
+  return match ? match[1] : null;
+}
+
+// ── SETTINGS MENU ──
+function toggleSettings(e) {
+  e.stopPropagation();
+  const btn = document.getElementById('settings-btn');
+  const menu = document.getElementById('settings-menu');
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.settings-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('settings-menu').classList.remove('open');
+    document.getElementById('settings-btn').classList.remove('open');
+  }
+});
+
+// ── FONT ──
+function setFont(font, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('comic', font === 'comic');
+  document.getElementById('opt-normal').classList.toggle('active', font === 'normal');
+  document.getElementById('opt-comic').classList.toggle('active', font === 'comic');
+  setCookie('ui_font', font);
+  document.getElementById('settings-menu').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+(function(){
+  const saved = getCookie('ui_font');
+  if (saved) setFont(saved);
+})();
+
 // ── TAB SWITCHING ──
 function showTab(name, btn) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
