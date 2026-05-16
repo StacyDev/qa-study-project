@@ -911,6 +911,7 @@ function setFont(font, e) {
 })();
 
 // ── TAB SWITCHING ──
+function showTab(name, btn) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
