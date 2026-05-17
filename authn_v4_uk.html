@@ -181,6 +181,36 @@ strong{color:var(--text);font-weight:500}
 .enc-label{font-family:var(--mono);color:var(--text3);font-size:10px}
 .enc-arrow{color:var(--text3);text-align:center}
 .enc-result{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:3px}
+
+/* ── RESPONSIVE ── */
+.menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:none;color:var(--text3);font-size:18px;cursor:pointer;border-right:1px solid var(--border);flex-shrink:0;transition:color .15s}
+.menu-toggle:hover{color:var(--cyan)}
+.sidebar-overlay{display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.5)}
+.sidebar-overlay.open{display:block}
+
+@media(max-width:900px){
+  .menu-toggle{display:flex}
+  .sidebar{width:0;overflow:hidden;position:fixed;z-index:100;top:44px;height:calc(100vh - 44px);transition:width .2s}
+  .sidebar.open{width:240px;overflow-y:auto}
+  .main{padding:24px 28px 60px}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .main{padding:16px 14px 60px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .section-head{flex-wrap:wrap;gap:6px}
+  .spec-ref{margin-left:0}
+  .tbl{font-size:11px}
+  .tbl th,.tbl td{padding:6px 7px}
+  .flow-n{width:24px;height:24px;font-size:9px}
+  .postman-item{flex-direction:column;gap:3px}
+  .postman-item-name{min-width:unset}
+  .view{max-width:100%}
+  .logo{font-size:10px;padding:0 12px}
+  .tab-btn{padding:0 10px;font-size:10px}
+  .lang-btn{padding:0 10px}
+  .settings-btn{padding:0 10px}
+}
 </style>
 </head>
 <body>
@@ -188,6 +218,7 @@ strong{color:var(--text);font-weight:500}
 <div class="disclaimer"><strong>Застереження:</strong> Це довідкова веб-сторінка, а не формальна специфікація. Зміст спрощено для ясності та практичного використання. Завжди перевіряйте офіційні джерела, посилання на які наведено в кожному розділі.</div>
 
 <nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Меню">☰</button>
   <div class="logo">AUTH FUNDAMENTALS</div>
   <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
   <div class="settings-wrap">
@@ -204,6 +235,7 @@ strong{color:var(--text);font-weight:500}
 </nav>
 
 <div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <nav id="sidebar" class="sidebar">
   <div class="sidecat">Основні концепції</div>
   <a class="sidelink" onclick="goTo('s00')">00 — AuthN vs AuthZ</a>
@@ -585,10 +617,10 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
     <span class="tag tag-framework">ФРЕЙМВОРК AUTHZ</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc5849" target="_blank">RFC 5849</a>
   </div>
-  <div class="intro">OAuth 1.0 (RFC 5849, 2010) — перший стандартизований протокол для <strong>делегованого доступу</strong>. Згідно з RFC 5849, він надає "метод для клієнтів отримувати доступ до ресурсів сервера від імені власника ресурсу… без передачі облікових даних". Здебільшого замінений OAuth 2.0, але ще зустрічається у деяких старих API (Twitter/X classic API, деякі платіжні системи).</div>
+  <div class="intro">OAuth 1.0 (RFC 5849, 2010) — перший стандартизований протокол <strong>делегованого доступу</strong>: сторонній застосунок отримує доступ до ресурсів користувача, не отримуючи його облікових даних. Здебільшого витіснений OAuth 2.0, але ще трапляється у старих API (Twitter/X classic API, деякі платіжні шлюзи).</div>
   <div class="callout callout-note">
     <div class="callout-label">ЩО ОЗНАЧАЄ "ФРЕЙМВОРК АВТОРИЗАЦІЇ"</div>
-    <p>OAuth — це <strong>не метод автентифікації</strong>. Це <strong>фреймворк</strong> — набір правил для того, як сторонній застосунок може отримати обмежений доступ до ресурсів. Користувач автентифікується на сервері авторизації (будь-яким методом). OAuth визначає протокол, за яким стороня отримує токен, що представляє наданий доступ.</p>
+    <p>OAuth — це <strong>не метод автентифікації</strong>. Це <strong>фреймворк</strong> — набір правил про те, як сторонній застосунок може отримати обмежений доступ до ресурсів. Користувач автентифікується на сервері авторизації будь-яким методом, який той вимагає. OAuth визначає протокол, за яким сторонній застосунок отримує токен, що представляє наданий доступ.</p>
   </div>
   <h3>Як працює OAuth 1.0</h3>
   <div class="flow">
@@ -621,7 +653,7 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
     <span class="tag tag-framework">ФРЕЙМВОРК AUTHZ</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank">RFC 6749</a>
   </div>
-  <div class="intro">Згідно з RFC 6749, OAuth 2.0 — фреймворк авторизації, який <strong>"дозволяє сторонньому застосунку отримати обмежений доступ до HTTP-сервісу, або від імені власника ресурсу… або дозволяючи сторонньому застосунку отримати доступ від свого власного імені."</strong> OAuth 2.0 сам по собі обробляє лише <strong>авторизацію</strong>. Він не визначає автентифікацію (це робить OIDC поверх нього — дивіться розділ 09). Зауважте: коли клієнт діє від свого імені (Client Credentials grant), жодного користувача чи делегування немає — лише пряма видача токена клієнту.</div>
+  <div class="intro">OAuth 2.0 (RFC 6749) — фреймворк авторизації: він визначає, як сторонній застосунок може отримати обмежений доступ до HTTP-сервісу — або від імені користувача, або від власного імені (без користувача взагалі). OAuth 2.0 відповідає виключно за <strong>авторизацію</strong> — він не визначає, хто є користувач. Це робить OIDC поверх нього (розділ 09). Коли клієнт діє від власного імені (Client Credentials grant) — жодного користувача чи делегування немає, лише пряма видача токена сервісу.</div>
   <div class="callout callout-warn">
     <div class="callout-label">OAUTH 2.0 — НЕ МЕТОД АВТЕНТИФІКАЦІЇ</div>
     <p>OAuth 2.0 вказує, що користувач дозволив клієнту робити. Він <strong>не</strong> вказує, хто є цим користувачем. Коли ви "входите через Google", OAuth 2.0 надає застосунку доступ до ваших даних Google. OpenID Connect (поверх OAuth 2.0) надає ідентичність — хто ви є.</p>
@@ -910,6 +942,14 @@ function setFont(font, e) {
   if (saved) setFont(saved);
 })();
 
+// ── SIDEBAR TOGGLE (mobile) ──
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const open = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', open);
+}
+
 // ── TAB SWITCHING ──
 function showTab(name, btn) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -923,6 +963,8 @@ function goTo(id) {
   if(el) el.scrollIntoView({behavior:'smooth'});
   document.querySelectorAll('.sidelink').forEach(l=>l.classList.remove('active'));
   event.target.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
 }
 
 const observer = new IntersectionObserver((entries)=>{
