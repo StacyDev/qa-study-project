@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
@@ -63,6 +63,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .sidelink:hover{color:var(--text2);background:var(--surface2)}
 .sidelink.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,170,.05)}
 .main{flex:1;min-width:0;padding:32px 48px 80px}
+
+/* VIEWS */
 .view{display:none;max-width:960px}.view.active{display:block}
 
 /* SECTION */
@@ -183,123 +185,86 @@ strong{color:var(--text);font-weight:500}
 </head>
 <body>
 
-<div class="disclaimer"><strong>Disclaimer:</strong> This is a reference web page — not a formal specification. Content is simplified for clarity and practical use. Always verify against official sources linked in each section.</div>
+<div class="disclaimer"><strong>Застереження:</strong> Це довідкова веб-сторінка, а не формальна специфікація. Зміст спрощено для ясності та практичного використання. Завжди перевіряйте офіційні джерела, посилання на які наведено в кожному розділі.</div>
+
 <nav class="topnav">
   <div class="logo">AUTH FUNDAMENTALS</div>
-  <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
   <div class="settings-wrap">
-    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
     <div class="settings-menu" id="settings-menu">
       <div class="settings-section">
-        <span class="settings-label">FONT</span>
-        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (стандартний)</div>
         <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
       </div>
     </div>
   </div>
-  <a class="lang-btn" href="authn_v4_uk.html">UA</a>
+  <a class="lang-btn" href="index.html">EN</a>
 </nav>
 
 <div class="layout">
+<nav id="sidebar" class="sidebar">
+  <div class="sidecat">Основні концепції</div>
+  <a class="sidelink" onclick="goTo('s00')">00 — AuthN vs AuthZ</a>
+  <a class="sidelink" onclick="goTo('s00b')">00b — Кодування / Шифрування / Хешування</a>
 
-<!-- SIDEBAR (course only) -->
-<nav class="sidebar" id="sidebar">
-  <div class="sidecat">Foundations</div>
-  <a class="sidelink" onclick="goTo('s00')">00 — What is auth?</a>
-  <a class="sidelink" onclick="goTo('s00b')">00b — Encoding vs encryption vs hashing</a>
-
-  <div class="sidecat">Authentication methods</div>
+  <div class="sidecat">Методи автентифікації</div>
   <a class="sidelink" onclick="goTo('s01')">01 — Basic Auth</a>
   <a class="sidelink" onclick="goTo('s02')">02 — Digest Auth</a>
-  <a class="sidelink" onclick="goTo('s03')">03 — API Keys</a>
-  <a class="sidelink" onclick="goTo('s04')">04 — Session-based Auth</a>
+  <a class="sidelink" onclick="goTo('s03')">03 — API-ключі</a>
+  <a class="sidelink" onclick="goTo('s04')">04 — Сесійна автентифікація</a>
 
-  <div class="sidecat">Token-based auth</div>
-  <a class="sidelink" onclick="goTo('s05')">05 — Bearer tokens &amp; JWT</a>
-  <a class="sidelink" onclick="goTo('s06')">06 — Access &amp; Refresh tokens</a>
+  <div class="sidecat">Токени</div>
+  <a class="sidelink" onclick="goTo('s05')">05 — Bearer-токени та JWT</a>
+  <a class="sidelink" onclick="goTo('s06')">06 — Access та Refresh токени</a>
 
-  <div class="sidecat">Authorization frameworks</div>
+  <div class="sidecat">Фреймворки авторизації</div>
   <a class="sidelink" onclick="goTo('s07')">07 — OAuth 1.0</a>
   <a class="sidelink" onclick="goTo('s08')">08 — OAuth 2.0</a>
 
-  <div class="sidecat">Identity protocols &amp; layers</div>
+  <div class="sidecat">Протоколи ідентичності</div>
   <a class="sidelink" onclick="goTo('s09')">09 — OpenID Connect</a>
   <a class="sidelink" onclick="goTo('s11')">11 — SAML</a>
 
-  <div class="sidecat">UX patterns &amp; schemes</div>
+  <div class="sidecat">UX-патерни та схеми</div>
   <a class="sidelink" onclick="goTo('s10')">10 — SSO</a>
 
-  <div class="sidecat">Postman &amp; testing</div>
-  <a class="sidelink" onclick="goTo('s12')">12 — Postman auth types</a>
-  <a class="sidelink" onclick="goTo('s13')">13 — Common mistakes</a>
+  <div class="sidecat">Postman та тестування</div>
+  <a class="sidelink" onclick="goTo('s12')">12 — Типи автентифікації у Postman</a>
+  <a class="sidelink" onclick="goTo('s13')">13 — Типові помилки</a>
 </nav>
 
-<!-- MAIN CONTENT -->
 <main class="main">
-
-<!-- ═══════════ COURSE VIEW ═══════════ -->
 <div id="view-course" class="view active">
 
 <!-- ── 00 ── -->
 <div class="section" id="s00">
   <div class="section-head">
     <span class="section-num">00</span>
-    <span class="section-title">What is authentication vs authorization?</span>
-    <span class="tag tag-concept">CONCEPT</span>
+    <span class="section-title">Що таке автентифікація і авторизація?</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
   </div>
-
-  <div class="intro">
-    Before anything else, two terms that are always confused — and always asked in interviews. They are <strong>not</strong> the same thing and are never interchangeable.
-  </div>
-
+  <div class="intro">Перш за все — два терміни, які постійно плутають. Вони <strong>не</strong> є синонімами і ніколи не взаємозамінні.</div>
   <div class="grid2">
-    <div class="card">
-      <div class="card-title">AUTHENTICATION (authn)</div>
-      <div class="card-body"><strong>"Who are you?"</strong><br>Verifying that the entity making the request is who they claim to be.<br><br>Examples: checking username + password, validating a JWT signature, verifying a certificate.</div>
-    </div>
-    <div class="card">
-      <div class="card-title">AUTHORIZATION (authz)</div>
-      <div class="card-body"><strong>"What are you allowed to do?"</strong><br>Deciding what an already-authenticated entity is permitted to access or perform.<br><br>Examples: checking roles, scopes, permissions, ownership of a resource.</div>
-    </div>
+    <div class="card"><div class="card-title">АВТЕНТИФІКАЦІЯ (authn)</div><div class="card-body"><strong>"Хто ти?"</strong><br>Перевірка того, що суб'єкт запиту є тим, за кого себе видає.<br><br>Приклади: перевірка логіна + пароля, валідація підпису JWT, верифікація сертифіката.</div></div>
+    <div class="card"><div class="card-title">АВТОРИЗАЦІЯ (authz)</div><div class="card-body"><strong>"Що тобі дозволено робити?"</strong><br>Визначення того, до чого вже автентифікований суб'єкт має право доступу або що може виконувати.<br><br>Приклади: перевірка ролей, scope, прав, належності ресурсу.</div></div>
   </div>
-
   <div class="callout callout-note">
-    <div class="callout-label">HTTP STATUS CODES — THE SHORTCUT</div>
-    <p><strong>401 Unauthorized</strong> = authentication failed (the name is misleading — it means "not authenticated").<br>
-    <strong>403 Forbidden</strong> = authenticated but not authorized (you are known, but not permitted).</p>
+    <div class="callout-label">HTTP-КОДИ СТАТУСУ — ШВИДКА ПІДКАЗКА</div>
+    <p><strong>401 Unauthorized</strong> = автентифікація не пройшла (назва оманлива — насправді означає "не автентифіковано").<br>
+    <strong>403 Forbidden</strong> = автентифіковано, але не авторизовано (особу встановлено, але доступ заборонено).</p>
   </div>
-
-  <h3>The order is always fixed</h3>
+  <h3>Порядок завжди фіксований</h3>
   <div class="flow">
-    <div class="flow-label">EVERY PROTECTED REQUEST GOES THROUGH THIS SEQUENCE</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body">
-        <div class="flow-actor">AUTHENTICATION</div>
-        <div class="flow-desc">Verify identity. Is this token valid? Is the signature correct? Is it expired? Does the issuer match?</div>
-        <div class="flow-note">Failure → 401</div>
-      </div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div>
-      <div class="flow-body">
-        <div class="flow-actor">AUTHORIZATION</div>
-        <div class="flow-desc">Verify permissions. Does this user's role allow this action? Does this token have the required scope? Does the user own this resource?</div>
-        <div class="flow-note">Failure → 403</div>
-      </div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">3</div>
-      <div class="flow-body">
-        <div class="flow-actor">ACCESS GRANTED</div>
-        <div class="flow-desc">Both checks passed. Process the request and return 200.</div>
-      </div>
-    </div>
+    <div class="flow-label">КОЖЕН ЗАХИЩЕНИЙ ЗАПИТ ПРОХОДИТЬ ЦЮ ПОСЛІДОВНІСТЬ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">АВТЕНТИФІКАЦІЯ</div><div class="flow-desc">Перевірка особи. Чи токен дійсний? Чи підпис правильний? Чи не прострочений? Чи видавець відповідає очікуваному?</div><div class="flow-note">Невдача → 401</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">АВТОРИЗАЦІЯ</div><div class="flow-desc">Перевірка прав. Чи дозволяє роль користувача цю дію? Чи є в токені необхідний scope? Чи належить ресурс цьому користувачу?</div><div class="flow-note">Невдача → 403</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">3</div><div class="flow-body"><div class="flow-actor">ДОСТУП НАДАНО</div><div class="flow-desc">Обидві перевірки пройдено. Запит обробляється, повертається 200.</div></div></div>
   </div>
-
-  <h3>What counts as an "authentication method"?</h3>
-  <p>An <strong>authentication method</strong> is a specific mechanism by which a client proves its identity on a request. Examples: sending a password, sending an API key, sending a signed token.</p>
-  <p>An <strong>authorization framework</strong> (like OAuth 2.0) is a <em>protocol</em> that defines rules for how a third-party client obtains limited access to resources — it uses authentication methods as building blocks but is not itself an authentication method. This distinction is critical — see section 13 (common mistakes).</p>
+  <h3>Що вважається "методом автентифікації"?</h3>
+  <p><strong>Метод автентифікації</strong> — конкретний механізм, за допомогою якого клієнт підтверджує свою особу в запиті. Приклади: надсилання пароля, API-ключа, підписаного токена.</p>
+  <p><strong>Фреймворк авторизації</strong> (наприклад, OAuth 2.0) — це <em>протокол</em>, що визначає правила отримання стороннім клієнтом обмеженого доступу до ресурсів. Він використовує методи автентифікації як складові, але сам методом автентифікації не є. Це розмежування критично важливе — дивіться розділ 13.</p>
 </div>
 
 <hr class="sep">
@@ -308,73 +273,55 @@ strong{color:var(--text);font-weight:500}
 <div class="section" id="s00b">
   <div class="section-head">
     <span class="section-num">00b</span>
-    <span class="section-title">Encoding vs encryption vs hashing</span>
-    <span class="tag tag-concept">CONCEPT</span>
+    <span class="section-title">Кодування vs шифрування vs хешування</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
   </div>
-
-  <div class="intro">
-    Three words that look similar but are fundamentally different. Getting these wrong in an interview is an immediate red flag. Every auth topic depends on understanding which of these three operations is happening.
-  </div>
-
+  <div class="intro">Три операції, які виглядають схоже, але є принципово різними. Плутанина між ними — серйозна помилка. Кожна тема в сфері автентифікації залежить від розуміння того, яка з трьох операцій застосовується.</div>
   <div class="grid3">
-    <div class="card">
-      <div class="card-title" style="color:var(--blue)">ENCODING</div>
-      <div class="card-body"><strong>Purpose:</strong> format transformation for transport compatibility.<br><strong>Reversible?</strong> Yes — no key needed.<br><strong>Secret?</strong> No — anyone can decode.<br><br>Examples: Base64, Base64url, URL encoding, hex.</div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--amber)">ENCRYPTION</div>
-      <div class="card-body"><strong>Purpose:</strong> hide data so only authorized parties can read it.<br><strong>Reversible?</strong> Yes — with the correct key.<br><strong>Secret?</strong> Yes — meaningless without the key.<br><br>Examples: AES-256, RSA (used for key exchange).</div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--green)">HASHING</div>
-      <div class="card-body"><strong>Purpose:</strong> produce a fixed-length fingerprint of data.<br><strong>Reversible?</strong> No — by design.<br><strong>Secret?</strong> N/A — different purpose.<br><br>Examples: SHA-256, bcrypt, MD5 (weak), HMAC-SHA256.</div>
-    </div>
+    <div class="card"><div class="card-title" style="color:var(--blue)">КОДУВАННЯ</div><div class="card-body"><strong>Мета:</strong> перетворення формату для сумісності під час передачі.<br><strong>Зворотне?</strong> Так — ключ не потрібен.<br><strong>Секретне?</strong> Ні — будь-хто може декодувати.<br><br>Приклади: Base64, Base64url, URL encoding, hex.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--amber)">ШИФРУВАННЯ</div><div class="card-body"><strong>Мета:</strong> приховати дані так, щоб лише авторизовані сторони могли їх прочитати.<br><strong>Зворотне?</strong> Так — за наявності правильного ключа.<br><strong>Секретне?</strong> Так — без ключа дані безглузді.<br><br>Приклади: AES-256, RSA (для обміну ключами).</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">ХЕШУВАННЯ</div><div class="card-body"><strong>Мета:</strong> отримати відбиток даних фіксованої довжини.<br><strong>Зворотне?</strong> Ні — за задумом.<br><strong>Секретне?</strong> Н/З — інша мета.<br><br>Приклади: SHA-256, bcrypt, MD5 (слабкий), HMAC-SHA256.</div></div>
   </div>
-
-  <h3>How each is used in auth</h3>
+  <h3>Як кожна операція використовується в автентифікації</h3>
   <table class="tbl">
-    <tr><th>Operation</th><th>Where it appears</th><th>What it does</th></tr>
-    <tr><td>Base64 encoding</td><td>Basic Auth, JWT header &amp; payload</td><td>Makes binary/JSON safe for HTTP headers and URLs. Does NOT hide anything.</td></tr>
-    <tr><td>Base64url encoding</td><td>JWT all three parts for transport</td><td>Same as Base64 but URL-safe (uses - and _ instead of + and /). Still not secret.</td></tr>
-    <tr><td>Hashing (SHA-256)</td><td>Digest Auth, password storage, JWT signature (as part of HMAC)</td><td>Produces a fixed fingerprint. Cannot be reversed to original value.</td></tr>
-    <tr><td>HMAC (hash + secret key)</td><td>JWT signature (HS256)</td><td>Hash of data combined with a secret key. Proves both integrity and authenticity to anyone who knows the key.</td></tr>
-    <tr><td>RSA signing</td><td>JWT signature (RS256)</td><td>Private key produces signature; public key verifies. Not "encryption" in the hiding sense — it's used for signing.</td></tr>
-    <tr><td>Encryption (AES, RSA)</td><td>JWE (encrypted JWT), HTTPS transport</td><td>Actually hides the payload. JWE is rare — JWS (signed JWT) is the default.</td></tr>
+    <tr><th>Операція</th><th>Де застосовується</th><th>Що робить</th></tr>
+    <tr><td>Base64-кодування</td><td>Basic Auth, заголовок та payload JWT</td><td>Робить бінарні/JSON-дані безпечними для HTTP-заголовків та URL. Нічого не приховує.</td></tr>
+    <tr><td>Base64url-кодування</td><td>Всі три частини JWT для передачі</td><td>Те саме, що Base64, але URL-безпечне (використовує - та _ замість + та /). Також не є секретним.</td></tr>
+    <tr><td>Хешування (SHA-256)</td><td>Digest Auth, зберігання паролів, підпис JWT (у складі HMAC)</td><td>Створює відбиток фіксованої довжини. Не можна відновити вихідне значення.</td></tr>
+    <tr><td>HMAC (хеш + секретний ключ)</td><td>Підпис JWT (HS256)</td><td>Хеш даних у поєднанні з секретним ключем. Підтверджує цілісність і автентичність для всіх, хто знає ключ.</td></tr>
+    <tr><td>RSA-підпис</td><td>Підпис JWT (RS256)</td><td>Приватний ключ створює підпис; публічний ключ верифікує. Не "шифрування" в сенсі приховування — це підпис.</td></tr>
+    <tr><td>Шифрування (AES, RSA)</td><td>JWE (зашифрований JWT), HTTPS-транспорт</td><td>Дійсно приховує payload. JWE рідкісний — типовий JWT використовує JWS (підписаний JWT).</td></tr>
   </table>
-
   <div class="callout callout-warn">
-    <div class="callout-label">CRITICAL — DO NOT SAY IN AN INTERVIEW</div>
-    <p>"JWT is encrypted" — it is <strong>not</strong> (unless JWE is specifically used).<br>
-    "Base64 is encrypted" — it is <strong>not</strong>. It is encoding. Anyone can decode it.<br>
-    "The JWT signature is encrypted" — the signature is a <strong>cryptographic output</strong> (HMAC or RSA digital signature) that is then base64url-encoded for transport. It is not "encrypted data".</p>
+    <div class="callout-label">КРИТИЧНО — НЕ ГОВОРІТЬ</div>
+    <p>"JWT зашифрований" — це <strong>не так</strong> (якщо спеціально не використовується JWE).<br>
+    "Base64 — це шифрування" — це <strong>не так</strong>. Це кодування. Будь-хто може декодувати.<br>
+    "Підпис JWT зашифровано" — підпис є <strong>криптографічним результатом</strong> (HMAC або цифровий підпис RSA), закодованим у base64url для передачі. Це не "зашифровані дані".</p>
   </div>
-
-  <h3>The JWT signature precisely explained</h3>
+  <h3>Підпис JWT — точне пояснення</h3>
   <div class="code">
-    <div class="code-label">WHAT ACTUALLY HAPPENS WHEN A JWT IS SIGNED</div>
-    <pre><span class="cm">// Step 1: encode the header (JSON → base64url)</span>
+    <div class="code-label">ЩО ВІДБУВАЄТЬСЯ ПРИ ПІДПИСАННІ JWT</div>
+    <pre><span class="cm">// Крок 1: кодуємо заголовок (JSON → base64url)</span>
 <span class="kw">base64url</span>({ <span class="key">"alg"</span>: <span class="str">"RS256"</span>, <span class="key">"typ"</span>: <span class="str">"JWT"</span> })
 → <span class="str">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"</span>
 
-<span class="cm">// Step 2: encode the payload (JSON → base64url)</span>
+<span class="cm">// Крок 2: кодуємо payload (JSON → base64url)</span>
 <span class="kw">base64url</span>({ <span class="key">"sub"</span>: <span class="str">"user123"</span>, <span class="key">"exp"</span>: <span class="num">1745000000</span> })
 → <span class="str">"eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjoxNzQ1MDAwMDAwfQ"</span>
 
-<span class="cm">// Step 3: sign the concatenated encoded parts</span>
+<span class="cm">// Крок 3: підписуємо конкатенацію закодованих частин</span>
 signing_input = <span class="str">"eyJhbGci..."</span> + <span class="str">"."</span> + <span class="str">"eyJzdWIi..."</span>
 signature_bytes = <span class="kw">RS256_sign</span>(signing_input, private_key)
-<span class="cm">// → produces raw bytes (cryptographic output)</span>
 
-<span class="cm">// Step 4: base64url-encode the signature bytes for transport</span>
+<span class="cm">// Крок 4: кодуємо байти підпису в base64url для передачі</span>
 <span class="kw">base64url</span>(signature_bytes) → <span class="str">"SflKxwRJSMe..."</span>
 
-<span class="cm">// Final JWT = header . payload . signature (all base64url-encoded)</span>
+<span class="cm">// Готовий JWT = заголовок . payload . підпис (всі в base64url)</span>
 <span class="str">"eyJhbGci..."</span> + <span class="str">"."</span> + <span class="str">"eyJzdWIi..."</span> + <span class="str">"."</span> + <span class="str">"SflKxwRJSMe..."</span></pre>
   </div>
-
   <div class="callout callout-info">
-    <div class="callout-label">PRECISE TERMINOLOGY</div>
-    <p>The JWT signature is the output of a signing algorithm applied to the encoded header + encoded payload using a key. That output (raw bytes) is then base64url-encoded for transport. The header and payload are base64url-encoded (readable by anyone). The signature is a cryptographic fingerprint — it cannot be "decoded" to anything meaningful, and it cannot be forged without the signing key.</p>
+    <div class="callout-label">ТОЧНЕ ФОРМУЛЮВАННЯ</div>
+    <p>Підпис JWT — результат алгоритму підпису, застосованого до закодованого заголовка + закодованого payload з використанням ключа. Цей результат (сирі байти) потім кодується в base64url для передачі. Заголовок і payload кодуються в base64url (читаються будь-ким). Підпис — криптографічний відбиток: декодувати до чогось значущого неможливо, підробити без ключа підпису — також.</p>
   </div>
 </div>
 
@@ -385,57 +332,35 @@ signature_bytes = <span class="kw">RS256_sign</span>(signing_input, private_key)
   <div class="section-head">
     <span class="section-num">01</span>
     <span class="section-title">Basic Authentication</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7617" target="_blank">RFC 7617</a>
   </div>
-
-  <div class="intro">
-    The simplest HTTP authentication method (RFC 7617). The client sends the username and password <strong>with every request</strong> — base64-encoded in the Authorization header. No tokens. No sessions. No state on the server.
-  </div>
-
+  <div class="intro">Найпростіший метод HTTP-автентифікації (RFC 7617). Клієнт надсилає логін та пароль <strong>з кожним запитом</strong> — у кодуванні base64 в заголовку Authorization. Без токенів. Без сесій. Без стану на сервері.</div>
   <div class="callout callout-warn">
-    <div class="callout-label">ALWAYS CLARIFY IN INTERVIEWS</div>
-    <p>Base64 is <strong>encoding</strong>, not encryption. The value <code>YWxpY2U6c2VjcmV0</code> decodes instantly to <code>alice:secret</code> with no key. Basic Auth is only safe when <strong>HTTPS</strong> encrypts the entire connection. Without HTTPS, credentials are plaintext on the wire.</p>
+    <div class="callout-label">ЗАВЖДИ УТОЧНЮЙТЕ</div>
+    <p>Base64 — це <strong>кодування</strong>, не шифрування. Значення <code>YWxpY2U6c2VjcmV0</code> миттєво декодується в <code>alice:secret</code> без будь-якого ключа. Basic Auth є безпечним лише тоді, коли <strong>HTTPS</strong> шифрує все з'єднання. Без HTTPS облікові дані передаються відкритим текстом.</p>
   </div>
-
-  <h3>Step-by-step flow</h3>
+  <h3>Покроковий процес</h3>
   <div class="flow">
-    <div class="flow-label">BASIC AUTH FLOW</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">Client sends a request with no credentials.</div><div class="flow-code">GET /api/orders HTTP/1.1</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div>
-      <div class="flow-body"><div class="flow-actor">SERVER → CLIENT</div><div class="flow-desc">Server responds with 401 and tells the client which scheme to use.</div><div class="flow-code">401 Unauthorized
-WWW-Authenticate: Basic realm="MyApp"</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client concatenates username and password with a colon, then base64-encodes the result.</div><div class="flow-code">"alice:secret123" → base64 → "YWxpY2U6c2VjcmV0MTIz"</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER (every request)</div><div class="flow-desc">Client includes the Authorization header on every single subsequent request. No caching, no token, no session — the credentials travel with every call.</div><div class="flow-code">GET /api/orders
-Authorization: Basic YWxpY2U6c2VjcmV0MTIz</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Server base64-decodes the value, splits on the colon, verifies the password against its database. Returns 200 (valid) or 401 (invalid).</div><div class="flow-note">No session is created. The server is stateless — it verifies from scratch on every request.</div></div>
-    </div>
+    <div class="flow-label">ПРОЦЕС BASIC AUTH</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Клієнт надсилає запит без облікових даних.</div><div class="flow-code">GET /api/orders HTTP/1.1</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div><div class="flow-body"><div class="flow-actor">СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Сервер відповідає 401 і вказує клієнту, яку схему використовувати.</div><div class="flow-code">401 Unauthorized
+WWW-Authenticate: Basic realm="MyApp"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (внутрішньо)</div><div class="flow-desc">Клієнт об'єднує логін і пароль через двокрапку, потім кодує результат у base64.</div><div class="flow-code">"alice:secret123" → base64 → "YWxpY2U6c2VjcmV0MTIz"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР (кожен запит)</div><div class="flow-desc">Клієнт включає заголовок Authorization у кожний наступний запит. Без кешування, без токена, без сесії — облікові дані передаються з кожним викликом.</div><div class="flow-code">GET /api/orders
+Authorization: Basic YWxpY2U6c2VjcmV0MTIz</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Сервер декодує значення з base64, розділяє по двокрапці, перевіряє пароль у базі даних. Повертає 200 (дійсний) або 401 (недійсний).</div><div class="flow-note">Сесія не створюється. Сервер не зберігає стан — перевірка виконується з нуля для кожного запиту.</div></div></div>
   </div>
-
-  <h3>Properties</h3>
+  <h3>Характеристики</h3>
   <table class="tbl">
-    <tr><th>Property</th><th>Detail</th></tr>
-    <tr><td>Stateless?</td><td>Yes — server holds no session. Credentials sent every request.</td></tr>
-    <tr><td>Credential encoding</td><td>Base64 (reversible, no key). NOT encryption, NOT a hash.</td></tr>
-    <tr><td>Safe without HTTPS?</td><td>No — base64 decodes instantly on interception.</td></tr>
-    <tr><td>Logout possible?</td><td>No standard mechanism. The browser may cache credentials until the tab/session closes.</td></tr>
-    <tr><td>Use today</td><td>Internal tooling, scripts, legacy APIs, CI/CD service accounts. Never for user-facing applications.</td></tr>
+    <tr><th>Властивість</th><th>Деталі</th></tr>
+    <tr><td>Без стану?</td><td>Так — сервер не зберігає сесію. Облікові дані надсилаються з кожним запитом.</td></tr>
+    <tr><td>Кодування облікових даних</td><td>Base64 (зворотне, без ключа). НЕ шифрування, НЕ хеш.</td></tr>
+    <tr><td>Безпечний без HTTPS?</td><td>Ні — base64 миттєво декодується при перехопленні.</td></tr>
+    <tr><td>Можливий вихід?</td><td>Стандартного механізму немає. Браузер може кешувати облікові дані до закриття вкладки/сесії.</td></tr>
+    <tr><td>Використання сьогодні</td><td>Внутрішні інструменти, скрипти, застарілі API, сервісні акаунти CI/CD. Ніколи для користувацьких застосунків.</td></tr>
   </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Valid credentials → 200. ② Wrong password → 401. ③ Missing Authorization header → 401. ④ Capture the header in Burp Suite → decode the base64 → you see plaintext credentials (document this). ⑤ Test over plain HTTP if available — confirm HTTPS is enforced. ⑥ Test special characters in passwords (colon in password breaks the format — server must handle this).</div></div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Дійсні облікові дані → 200. ② Неправильний пароль → 401. ③ Відсутній заголовок Authorization → 401. ④ Перехопити заголовок у Burp Suite → декодувати base64 → бачимо облікові дані відкритим текстом (задокументувати). ⑤ Тест через звичайний HTTP (якщо доступний) — підтвердити, що HTTPS обов'язковий. ⑥ Тест спеціальних символів у паролі (двокрапка в паролі ламає формат — сервер повинен це обробляти).</div></div>
 </div>
 
 <hr class="sep">
@@ -445,56 +370,34 @@ Authorization: Basic YWxpY2U6c2VjcmV0MTIz</div></div>
   <div class="section-head">
     <span class="section-num">02</span>
     <span class="section-title">Digest Authentication</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7616" target="_blank">RFC 7616</a>
   </div>
-
-  <div class="intro">
-    Digest Auth (RFC 7616) was designed to fix Basic Auth's main weakness: <strong>the password is never sent over the wire</strong>. Instead, the client sends a hash of the password combined with a server-generated random value (a <strong>nonce</strong>). Even if intercepted, the hash cannot be reversed to get the original password.
-  </div>
-
-  <h3>Key concept: the nonce</h3>
-  <p>A <strong>nonce</strong> (number used once) is a random string generated fresh by the server for each authentication challenge. The client mixes the password with this nonce before hashing. Because the nonce changes every challenge, capturing a valid response and replaying it against a different request won't work — the nonce won't match.</p>
-
+  <div class="intro">Digest Auth (RFC 7616) розроблено для усунення головної слабкості Basic Auth: <strong>пароль ніколи не передається мережею</strong>. Натомість клієнт надсилає хеш пароля, об'єднаного з випадковим значенням, згенерованим сервером (<strong>nonce</strong>). Навіть якщо перехопити — хеш не можна відновити до вихідного пароля.</div>
+  <h3>Ключова концепція: nonce</h3>
+  <p><strong>Nonce</strong> (число, що використовується один раз) — випадковий рядок, який сервер генерує для кожного запиту автентифікації. Клієнт змішує пароль з цим nonce перед хешуванням. Оскільки nonce змінюється з кожним запитом, перехоплена відповідь не спрацює в іншому запиті.</p>
   <div class="flow">
-    <div class="flow-label">DIGEST AUTH FLOW</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">Client sends request with no credentials.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div>
-      <div class="flow-body"><div class="flow-actor">SERVER → CLIENT (challenge)</div><div class="flow-desc">Server responds with 401 and includes a fresh nonce in the header.</div><div class="flow-code">401 Unauthorized
-WWW-Authenticate: Digest realm="MyApp", nonce="abc123xyz"</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client hashes the credentials combined with the nonce using MD5 (or SHA-256 in newer versions).</div><div class="flow-code">HA1 = MD5("alice:MyApp:secret123")
+    <div class="flow-label">ПРОЦЕС DIGEST AUTH</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Клієнт надсилає запит без облікових даних.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div><div class="flow-body"><div class="flow-actor">СЕРВЕР → КЛІЄНТ (виклик)</div><div class="flow-desc">Сервер відповідає 401 і включає свіжий nonce в заголовок.</div><div class="flow-code">401 Unauthorized
+WWW-Authenticate: Digest realm="MyApp", nonce="abc123xyz"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (внутрішньо)</div><div class="flow-desc">Клієнт хешує облікові дані разом із nonce, використовуючи MD5 (або SHA-256 в новіших версіях).</div><div class="flow-code">HA1 = MD5("alice:MyApp:secret123")
 HA2 = MD5("GET:/api/orders")
-response = MD5(HA1 + ":" + nonce + ":" + HA2)</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">Client sends the hash (called "response") — never the password.</div><div class="flow-code">Authorization: Digest username="alice", nonce="abc123xyz",
-  response="6f3a..."</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Server performs the same hash calculation with its stored password and the nonce it issued. Compares result. If they match → 200.</div><div class="flow-note">The password is never transmitted. If the channel is intercepted, the hash alone cannot be reversed.</div></div>
-    </div>
+response = MD5(HA1 + ":" + nonce + ":" + HA2)</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Клієнт надсилає хеш (так звану "response") — але не пароль.</div><div class="flow-code">Authorization: Digest username="alice", nonce="abc123xyz",
+  response="6f3a..."</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Сервер виконує те саме хешування зі збереженим паролем і виданим nonce. Порівнює результати. Якщо збігаються → 200.</div><div class="flow-note">Пароль ніколи не передається. Якщо канал перехоплено, хеш сам по собі не можна відновити.</div></div></div>
   </div>
-
-  <h3>Digest vs Basic — comparison</h3>
+  <h3>Digest vs Basic — порівняння</h3>
   <table class="tbl">
-    <tr><th>Property</th><th>Basic Auth</th><th>Digest Auth</th></tr>
-    <tr><td>Password sent?</td><td>Yes (base64-encoded)</td><td>No — only a hash is sent</td></tr>
-    <tr><td>Replay protection?</td><td>None</td><td>Yes — nonce changes per request</td></tr>
-    <tr><td>Safe without HTTPS?</td><td>No</td><td>Better (password not sent), but still weak (hash can be brute-forced)</td></tr>
-    <tr><td>Hash algorithm</td><td>None (base64)</td><td>MD5 or SHA-256</td></tr>
-    <tr><td>Status today</td><td>Legacy but still used</td><td>Largely obsolete — replaced by token-based auth over HTTPS</td></tr>
+    <tr><th>Властивість</th><th>Basic Auth</th><th>Digest Auth</th></tr>
+    <tr><td>Пароль передається?</td><td>Так (у base64-кодуванні)</td><td>Ні — передається лише хеш</td></tr>
+    <tr><td>Захист від replay?</td><td>Відсутній</td><td>Так — nonce змінюється з кожним запитом</td></tr>
+    <tr><td>Безпечний без HTTPS?</td><td>Ні</td><td>Краще (пароль не передається), але все одно слабкий (хеш можна брутфорсити)</td></tr>
+    <tr><td>Алгоритм хешування</td><td>Немає (base64)</td><td>MD5 або SHA-256</td></tr>
+    <tr><td>Статус сьогодні</td><td>Застарілий, але ще використовується</td><td>Здебільшого замінений токенною автентифікацією через HTTPS</td></tr>
   </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Verify the nonce is unique per challenge (nonce reuse enables replay attacks). ② Verify HTTPS is still enforced — Digest Auth does not replace transport security. ③ If encountered: document as an outdated mechanism and recommend migration to Bearer Token over HTTPS. ④ Test with valid credentials → 200; wrong password → 401; missing nonce → 400/401.</div></div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Перевірити, що nonce унікальний для кожного запиту (повторне використання nonce уможливлює replay-атаки). ② Перевірити, що HTTPS все одно обов'язковий. ③ Якщо зустрічається: задокументувати як застарілий механізм і рекомендувати міграцію на Bearer Token через HTTPS. ④ Тест з дійсними даними → 200; неправильний пароль → 401; відсутній nonce → 400/401.</div></div>
 </div>
 
 <hr class="sep">
@@ -503,59 +406,37 @@ response = MD5(HA1 + ":" + nonce + ":" + HA2)</div></div>
 <div class="section" id="s03">
   <div class="section-head">
     <span class="section-num">03</span>
-    <span class="section-title">API Keys</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
-    <a class="spec-ref" href="https://swagger.io/docs/specification/v3_0/authentication/api-keys/" target="_blank">No RFC — vendor convention</a>
+    <span class="section-title">API-ключі</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
+    <a class="spec-ref" href="https://swagger.io/docs/specification/v3_0/authentication/api-keys/" target="_blank">Без RFC — вендорна конвенція</a>
   </div>
-
-  <div class="intro">
-    An API Key is a static string — generated by the server and given to the client — that acts as an identity credential. Unlike Basic Auth, the client does not send a username/password. It sends the key. The server looks the key up in a database to identify the client and retrieve its permissions.
-  </div>
-
-  <h3>How API key auth works</h3>
+  <div class="intro">API-ключ — статичний рядок, згенерований сервером і наданий клієнту, який слугує обліковими даними для ідентифікації. На відміну від Basic Auth, клієнт не надсилає логін/пароль — він надсилає ключ. Сервер шукає ключ у базі даних для ідентифікації клієнта та отримання його прав.</div>
+  <h3>Як працює автентифікація через API-ключ</h3>
   <div class="flow">
-    <div class="flow-label">API KEY FLOW (from Image 4 in your screenshots)</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → API SERVER</div><div class="flow-desc">Client sends request with the API key — either in a custom header or as a query parameter.</div><div class="flow-code">GET /api/users
+    <div class="flow-label">ПРОЦЕС API KEY</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → API СЕРВЕР</div><div class="flow-desc">Клієнт надсилає запит з API-ключем — у кастомному заголовку або як query-параметр.</div><div class="flow-code">GET /api/users
 Authorization: ApiKey abc123xyz456
-<span class="cm">— or —</span>
-X-API-Key: abc123xyz456</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div>
-      <div class="flow-body"><div class="flow-actor">API SERVER → DATABASE</div><div class="flow-desc">Server looks up the key hash in the database to find which user/client it belongs to and what permissions it has.</div><div class="flow-code">SELECT user_id, scopes, active FROM api_keys
-WHERE key_hash = hash(request_key)</div><div class="flow-note">The key is stored as a hash — the plain key is never stored on the server.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">2a — key valid</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Key exists, is active, and has the required scope → authorize the request → return 200 with data.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2b — key invalid</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Key not found or marked inactive.</div><div class="flow-code">401 Unauthorized</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2c — key missing</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">No API key in the request at all.</div><div class="flow-code">400 Bad Request (API key required)</div></div>
-    </div>
+<span class="cm">— або —</span>
+X-API-Key: abc123xyz456</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">API СЕРВЕР → БАЗА ДАНИХ</div><div class="flow-desc">Сервер шукає хеш ключа в базі даних, щоб знайти, якому користувачу/клієнту він належить і які у нього права.</div><div class="flow-code">SELECT user_id, scopes, active FROM api_keys
+WHERE key_hash = hash(request_key)</div><div class="flow-note">Ключ зберігається у вигляді хешу — відкритий ключ ніколи не зберігається на сервері.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2a — ключ дійсний</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Ключ існує, активний і має необхідний scope → авторизувати запит → повернути 200 з даними.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2b — ключ недійсний</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Ключ не знайдено або позначено як неактивний.</div><div class="flow-code">401 Unauthorized</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2c — ключ відсутній</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">API-ключ у запиті відсутній взагалі.</div><div class="flow-code">400 Bad Request (API key required)</div></div></div>
   </div>
-
-  <h3>Where API keys are sent</h3>
+  <h3>Де передаються API-ключі</h3>
   <table class="tbl">
-    <tr><th>Location</th><th>Example</th><th>Risk</th></tr>
-    <tr><td>Custom header</td><td><code>X-API-Key: abc123</code></td><td>Low — doesn't appear in URLs or browser history</td></tr>
-    <tr><td>Authorization header</td><td><code>Authorization: ApiKey abc123</code></td><td>Low</td></tr>
-    <tr><td>Query parameter</td><td><code>GET /data?api_key=abc123</code></td><td>High — appears in server logs, browser history, Referer headers</td></tr>
-    <tr><td>Request body</td><td><code>{"api_key": "abc123"}</code></td><td>Medium — only for POST requests</td></tr>
+    <tr><th>Місце</th><th>Приклад</th><th>Ризик</th></tr>
+    <tr><td>Кастомний заголовок</td><td><code>X-API-Key: abc123</code></td><td>Низький — не потрапляє в URL чи історію браузера</td></tr>
+    <tr><td>Заголовок Authorization</td><td><code>Authorization: ApiKey abc123</code></td><td>Низький</td></tr>
+    <tr><td>Query-параметр</td><td><code>GET /data?api_key=abc123</code></td><td>Високий — потрапляє в логи сервера, історію браузера, заголовки Referer</td></tr>
+    <tr><td>Тіло запиту</td><td><code>{"api_key": "abc123"}</code></td><td>Середній — лише для POST-запитів</td></tr>
   </table>
-
   <div class="callout callout-warn">
-    <div class="callout-label">API KEYS ARE STATEFUL</div>
-    <p>Unlike JWT, an API key has no expiry embedded in itself. Validity is determined by a database lookup on every request. This means: API keys require server-side storage, they can be instantly revoked (delete from DB), but they also add latency (DB call per request).</p>
+    <div class="callout-label">API-КЛЮЧІ ЗБЕРІГАЮТЬ СТАН</div>
+    <p>На відміну від JWT, API-ключ не має вбудованого часу закінчення дії. Дійсність визначається через запит до бази даних при кожному зверненні. Це означає: API-ключі потребують серверного зберігання, їх можна миттєво відкликати (видалити з БД), але вони додають затримку (запит до БД при кожному зверненні).</p>
   </div>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Key in query parameter → check server logs for key exposure. ② Revoke a key via admin panel → immediately test if it still works (must return 401). ③ Test rate limiting per key. ④ Test with a key that belongs to a different user's scope. ⑤ Verify the plain key is not stored in the database (only a hash should be stored). ⑥ Check whether HTTPS is enforced — keys in headers are still plaintext at the transport layer without TLS.</div></div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Ключ у query-параметрі → перевірити логи сервера на наявність витоку ключа. ② Відкликати ключ через адмін-панель → одразу перевірити, чи він все ще працює (має повертати 401). ③ Тест rate limiting для ключа. ④ Тест з ключем, що належить іншому scope. ⑤ Перевірити, що відкритий ключ не зберігається в БД (лише хеш). ⑥ Перевірити, чи обов'язковий HTTPS — ключі в заголовках все одно є відкритим текстом на транспортному рівні без TLS.</div></div>
 </div>
 
 <hr class="sep">
@@ -564,57 +445,33 @@ WHERE key_hash = hash(request_key)</div><div class="flow-note">The key is stored
 <div class="section" id="s04">
   <div class="section-head">
     <span class="section-num">04</span>
-    <span class="section-title">Session-Based Authentication</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6265" target="_blank">RFC 6265 (Cookies)</a>
+    <span class="section-title">Сесійна автентифікація</span>
+    <span class="tag tag-authn">МЕТОД AUTHN</span>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6265" target="_blank">RFC 6265 (Cookie)</a>
   </div>
-
-  <div class="intro">
-    Session-based auth is the classic web authentication model. After the user logs in once with credentials, the server creates a <strong>session record</strong> in its database and gives the client a <strong>session ID</strong> (stored in a cookie). Every subsequent request sends that session ID — the server looks it up to identify the user. The session state lives on the server.
-  </div>
-
+  <div class="intro">Сесійна автентифікація — класична модель веб-автентифікації. Після одноразового входу з обліковими даними сервер створює <strong>запис сесії</strong> у своїй базі даних і видає клієнту <strong>ідентифікатор сесії</strong> (зберігається у cookie). Кожен наступний запит надсилає цей ідентифікатор — сервер шукає його для ідентифікації користувача. Стан сесії зберігається на сервері.</div>
   <div class="flow">
-    <div class="flow-label">SESSION AUTH FLOW</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">User submits login form with credentials.</div><div class="flow-code">POST /login
-Body: { username: "alice", password: "secret123" }</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div>
-      <div class="flow-body"><div class="flow-actor">SERVER (internal)</div><div class="flow-desc">Server verifies credentials. If valid: creates a session record in the session store (database/Redis), generates a unique random session ID.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div>
-      <div class="flow-body"><div class="flow-actor">SERVER → CLIENT</div><div class="flow-desc">Server sends the session ID to the client in a Set-Cookie header.</div><div class="flow-code">Set-Cookie: session_id=xK9mR3...;
-  HttpOnly; Secure; SameSite=Strict</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER (every request)</div><div class="flow-desc">Browser automatically sends the cookie on every matching request.</div><div class="flow-code">GET /api/orders
-Cookie: session_id=xK9mR3...</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Server looks up the session ID in the session store. Retrieves user data and permissions. Processes the request.</div><div class="flow-note">Requires a database lookup on every request. Stateful — the server must store sessions.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6 — logout</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">On logout: server deletes the session record from the store. The session ID cookie becomes useless — even if captured, it will not match any session.</div></div>
-    </div>
+    <div class="flow-label">ПРОЦЕС СЕСІЙНОЇ АВТЕНТИФІКАЦІЇ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР</div><div class="flow-desc">Користувач відправляє форму входу з обліковими даними.</div><div class="flow-code">POST /login
+Body: { username: "alice", password: "secret123" }</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">СЕРВЕР (внутрішньо)</div><div class="flow-desc">Сервер перевіряє облікові дані. Якщо дійсні: створює запис сесії у сховищі (база даних/Redis), генерує унікальний випадковий ідентифікатор сесії.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Сервер надсилає ідентифікатор сесії клієнту через заголовок Set-Cookie.</div><div class="flow-code">Set-Cookie: session_id=xK9mR3...;
+  HttpOnly; Secure; SameSite=Strict</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → СЕРВЕР (кожен запит)</div><div class="flow-desc">Браузер автоматично надсилає cookie з кожним відповідним запитом.</div><div class="flow-code">GET /api/orders
+Cookie: session_id=xK9mR3...</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">Сервер шукає ідентифікатор сесії у сховищі. Отримує дані та права користувача. Обробляє запит.</div><div class="flow-note">Потрібен запит до бази даних при кожному зверненні. Зберігає стан — сервер повинен зберігати сесії.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6 — вихід</div><div class="flow-body"><div class="flow-actor">СЕРВЕР</div><div class="flow-desc">При виході: сервер видаляє запис сесії зі сховища. Cookie з ідентифікатором сесії стає марним — навіть якщо перехоплений, він не відповідатиме жодній сесії.</div></div></div>
   </div>
-
-  <h3>Session vs JWT — key difference</h3>
+  <h3>Сесія vs JWT — ключова відмінність</h3>
   <table class="tbl">
-    <tr><th>Property</th><th>Session-based</th><th>JWT-based</th></tr>
-    <tr><td>State location</td><td>Server (session store)</td><td>Client (the token itself)</td></tr>
-    <tr><td>Server DB lookup?</td><td>Yes — every request</td><td>No — validates cryptographically</td></tr>
-    <tr><td>Scalability</td><td>Harder (sessions must be shared across servers)</td><td>Easier (stateless — any server can verify)</td></tr>
-    <tr><td>Revocation</td><td>Instant — delete session record</td><td>Hard — token valid until exp</td></tr>
-    <tr><td>Logout works?</td><td>Yes — server deletes session</td><td>Only if blacklist or short TTL used</td></tr>
+    <tr><th>Властивість</th><th>Сесійна автентифікація</th><th>JWT-автентифікація</th></tr>
+    <tr><td>Розташування стану</td><td>Сервер (сховище сесій)</td><td>Клієнт (сам токен)</td></tr>
+    <tr><td>Запит до БД?</td><td>Так — при кожному зверненні</td><td>Ні — валідація криптографічна</td></tr>
+    <tr><td>Масштабованість</td><td>Складніша (сесії потрібно ділити між серверами)</td><td>Легша (без стану — будь-який сервер може верифікувати)</td></tr>
+    <tr><td>Відкликання</td><td>Миттєве — видалити запис сесії</td><td>Складне — токен дійсний до exp</td></tr>
+    <tr><td>Вихід працює?</td><td>Так — сервер видаляє сесію</td><td>Лише якщо використовується блокліст або короткий TTL</td></tr>
   </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Log out → immediately use old session cookie → must return 401 (session deleted server-side). ② Check cookie attributes: HttpOnly (no JS access), Secure (HTTPS only), SameSite=Strict (CSRF protection). ③ Test session fixation: can you set your own session ID before login? ④ Test concurrent sessions: two logins for the same user — are both sessions valid or does login invalidate previous? ⑤ Test session timeout — does the server expire idle sessions?</div></div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Вийти → одразу використати старий cookie сесії → має повернути 401 (сесія видалена на сервері). ② Перевірити атрибути cookie: HttpOnly (без доступу через JS), Secure (лише HTTPS), SameSite=Strict (захист від CSRF). ③ Тест session fixation: чи можна встановити свій ідентифікатор сесії до входу? ④ Тест одночасних сесій: два входи для одного користувача — чи обидві сесії дійсні, чи вхід анулює попередню? ⑤ Тест тайм-ауту сесії — чи закінчуються неактивні сесії?</div></div>
 </div>
 
 <hr class="sep">
@@ -623,96 +480,75 @@ Cookie: session_id=xK9mR3...</div></div>
 <div class="section" id="s05">
   <div class="section-head">
     <span class="section-num">05</span>
-    <span class="section-title">Bearer Tokens &amp; JWT</span>
-    <span class="tag tag-token">TOKEN</span>
+    <span class="section-title">Bearer-токени та JWT</span>
+    <span class="tag tag-token">ТОКЕН</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6750" target="_blank">RFC 6750 (Bearer)</a>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank">RFC 7519 (JWT)</a>
   </div>
-
-  <div class="intro">
-    A <strong>Bearer Token</strong> is an access token where possession alone grants access — "whoever bears this token gets in." The most common format is <strong>JWT (JSON Web Token)</strong>. Unlike sessions, JWTs are <strong>self-contained</strong> — all validation data is inside the token. No database lookup needed to verify a JWT.
-  </div>
-
-  <h3>What "Bearer" means</h3>
-  <p>Bearer is the <em>scheme name</em> in the Authorization header. It means: "the holder of this token is authorized." The server grants access to whoever presents a valid token — it does not verify that the presenter is the original recipient. This is why token theft is a serious risk.</p>
-
+  <div class="intro"><strong>Bearer-токен</strong> — токен доступу, де сам факт його наявності надає доступ: "хто пред'являє цей токен — той входить". Найпоширеніший формат — <strong>JWT (JSON Web Token)</strong>. На відміну від сесій, JWT є <strong>самодостатнім</strong> — всі дані для валідації містяться всередині токена. Для верифікації JWT запит до бази даних не потрібен.</div>
+  <h3>Що означає "Bearer"</h3>
+  <p>Bearer — <em>назва схеми</em> в заголовку Authorization. Вона означає: "пред'явник цього токена авторизований". Сервер надає доступ тому, хто пред'являє дійсний токен — не перевіряючи, чи це початковий отримувач. Саме тому крадіжка токена є серйозним ризиком.</p>
   <div class="code">
-    <div class="code-label">HOW THE TOKEN IS SENT</div>
+    <div class="code-label">ЯК ПЕРЕДАЄТЬСЯ ТОКЕН</div>
     <pre>GET /api/orders HTTP/1.1
 <span class="key">Authorization</span>: <span class="kw">Bearer</span> <span class="str">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIn0.SflKxw...</span></pre>
   </div>
-
-  <h3>JWT structure — three parts</h3>
+  <h3>Структура JWT — три частини</h3>
   <div class="callout callout-info">
-    <div class="callout-label">IMPORTANT PRECISION</div>
-    <p>All three parts are <strong>base64url-encoded for transport</strong>. But the header and payload are readable JSON (encoding only). The signature is a cryptographic output (produced by a signing algorithm) that is then base64url-encoded — it cannot be decoded to anything meaningful without the key, and it cannot be forged without the signing key.</p>
+    <div class="callout-label">ВАЖЛИВА ТОЧНІСТЬ</div>
+    <p>Всі три частини <strong>кодуються в base64url для передачі</strong>. Але заголовок і payload — читабельний JSON (лише кодування). Підпис — криптографічний результат (алгоритму підпису), закодований у base64url. Декодувати до чогось значущого без ключа неможливо, підробити без ключа підпису — також.</p>
   </div>
-
   <div class="code">
-    <div class="code-label">JWT DECODED — ALL THREE PARTS</div>
-    <pre><span class="cm">// PART 1: HEADER — identifies algorithm and token type</span>
-<span class="cm">// (base64url-encoded JSON — readable by anyone)</span>
+    <div class="code-label">JWT ДЕКОДОВАНИЙ — ВСІ ТРИ ЧАСТИНИ</div>
+    <pre><span class="cm">// ЧАСТИНА 1: ЗАГОЛОВОК — алгоритм і тип токена</span>
 {
-  <span class="key">"alg"</span>: <span class="str">"RS256"</span>,  <span class="cm">// signing algorithm</span>
+  <span class="key">"alg"</span>: <span class="str">"RS256"</span>,
   <span class="key">"typ"</span>: <span class="str">"JWT"</span>
 }
 
-<span class="cm">// PART 2: PAYLOAD — the claims (data about the subject)</span>
-<span class="cm">// (base64url-encoded JSON — readable by anyone — NOT secret)</span>
+<span class="cm">// ЧАСТИНА 2: PAYLOAD — claim'и (дані про суб'єкт)</span>
+<span class="cm">// (base64url-кодований JSON — читабельний для будь-кого — НЕ секретний)</span>
 {
-  <span class="key">"sub"</span>: <span class="str">"user-123"</span>,         <span class="cm">// subject: who this is about</span>
-  <span class="key">"iss"</span>: <span class="str">"https://auth.co.com"</span>,<span class="cm">// issuer: who created the token</span>
-  <span class="key">"aud"</span>: <span class="str">"api.co.com"</span>,        <span class="cm">// audience: who should accept it</span>
-  <span class="key">"iat"</span>: <span class="num">1744996400</span>,          <span class="cm">// issued at (Unix timestamp)</span>
-  <span class="key">"exp"</span>: <span class="num">1745000000</span>,          <span class="cm">// expiry (Unix timestamp)</span>
-  <span class="key">"jti"</span>: <span class="str">"uuid-abc-123"</span>,      <span class="cm">// unique token ID (for revocation)</span>
-  <span class="key">"scope"</span>: <span class="str">"orders:read"</span>      <span class="cm">// what this token is allowed to do</span>
+  <span class="key">"sub"</span>: <span class="str">"user-123"</span>,
+  <span class="key">"iss"</span>: <span class="str">"https://auth.co.com"</span>,
+  <span class="key">"aud"</span>: <span class="str">"api.co.com"</span>,
+  <span class="key">"iat"</span>: <span class="num">1744996400</span>,
+  <span class="key">"exp"</span>: <span class="num">1745000000</span>,
+  <span class="key">"jti"</span>: <span class="str">"uuid-abc-123"</span>,
+  <span class="key">"scope"</span>: <span class="str">"orders:read"</span>
 }
 
-<span class="cm">// PART 3: SIGNATURE — proves the token was not tampered with</span>
-<span class="cm">// Formula: base64url( sign(base64url(header)+"."+base64url(payload), key) )</span>
-<span class="cm">// The signing algorithm output (raw bytes) is base64url-encoded for transport.</span>
-<span class="cm">// It is NOT readable — it is a cryptographic fingerprint.</span>
+<span class="cm">// ЧАСТИНА 3: ПІДПИС — доводить, що токен не було підроблено</span>
 SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
   </div>
-
-  <h3>HS256 vs RS256 — signing algorithms</h3>
+  <h3>HS256 vs RS256 — алгоритми підпису</h3>
   <div class="grid2">
-    <div class="card">
-      <div class="card-title" style="color:var(--purple)">HS256 — SYMMETRIC (HMAC-SHA256)</div>
-      <div class="card-body">One shared secret key for both signing and verification. Any service that needs to verify tokens must know the secret. If any verifier is compromised, the signing secret is exposed — attacker can forge tokens.<br><br><strong>Good for:</strong> single-service setups, internal tools.</div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--cyan)">RS256 — ASYMMETRIC (RSA-SHA256)</div>
-      <div class="card-body">Private key signs (auth server only, never shared). Public key verifies (any service can have it). A compromised verifier cannot forge tokens — it only knows the public key.<br><br><strong>Good for:</strong> microservices, distributed systems, multi-team architectures.</div>
-    </div>
+    <div class="card"><div class="card-title" style="color:var(--purple)">HS256 — СИМЕТРИЧНИЙ (HMAC-SHA256)</div><div class="card-body">Один спільний секретний ключ для підпису та верифікації. Будь-який сервіс, що верифікує токени, повинен знати секрет. Якщо будь-який верифікатор скомпрометовано — секрет підпису розкрито, зловмисник може підробляти токени.<br><br><strong>Підходить для:</strong> односервісних застосунків, внутрішніх інструментів.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--cyan)">RS256 — АСИМЕТРИЧНИЙ (RSA-SHA256)</div><div class="card-body">Приватний ключ підписує (лише auth-сервер, ніколи не передається). Публічний ключ верифікує (будь-який сервіс може його мати). Скомпрометований верифікатор не може підробляти токени.<br><br><strong>Підходить для:</strong> мікросервісів, розподілених систем, мультикомандних архітектур.</div></div>
   </div>
-
-  <h3>JWT validation — what the server checks on every request</h3>
+  <h3>Валідація JWT — що сервер перевіряє при кожному запиті</h3>
   <div class="flow">
-    <div class="flow-label">JWT VALIDATION SEQUENCE</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-desc"><strong>Signature</strong> — recalculate the expected signature from the received header+payload using the key. Compare to the signature in the token. If they don't match → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-desc"><strong>Expiry (exp)</strong> — is the current time before the exp timestamp? If expired → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-desc"><strong>Issuer (iss)</strong> — does the issuer match what this service expects? Prevents tokens from other systems. If mismatch → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-desc"><strong>Audience (aud)</strong> — is this token intended for this service? Prevents token replay across services. If mismatch → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-desc"><strong>Algorithm (alg)</strong> — is the algorithm what the server expects? Reject "none". Reject unexpected algorithms. If unexpected → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-desc">All checks pass → extract claims from payload → proceed to authorization.</div></div></div>
+    <div class="flow-label">ПОСЛІДОВНІСТЬ ВАЛІДАЦІЇ JWT</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-desc"><strong>Підпис</strong> — перерахувати очікуваний підпис з отриманого заголовка+payload. Порівняти з підписом у токені. Якщо не збігається → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-desc"><strong>Час закінчення (exp)</strong> — чи поточний час до мітки exp? Якщо прострочено → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-desc"><strong>Видавець (iss)</strong> — чи збігається видавець з очікуваним? Якщо невідповідність → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-desc"><strong>Аудиторія (aud)</strong> — чи призначений цей токен для цього сервісу? Якщо невідповідність → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-desc"><strong>Алгоритм (alg)</strong> — чи алгоритм очікуваний сервером? Відхилити "none". Якщо несподіваний → 401.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-desc">Всі перевірки пройдено → витягти claim'и з payload → перейти до авторизації.</div></div></div>
   </div>
-
   <div class="callout callout-warn">
-    <div class="callout-label">CRITICAL ATTACK — alg:none</div>
-    <p>If a JWT library accepts <code>"alg": "none"</code>, it skips signature verification entirely. An attacker sets alg to none, modifies the payload (e.g. changes role to admin), removes the signature, and sends it. The server accepts it with no verification. Test: send a token with alg:none — must return 401.</p>
+    <div class="callout-label">КРИТИЧНА АТАКА — alg:none</div>
+    <p>Якщо JWT-бібліотека приймає <code>"alg": "none"</code>, вона повністю пропускає верифікацію підпису. Зловмисник встановлює alg в none, змінює payload (наприклад, роль на admin), видаляє підпис і надсилає токен. Сервер приймає його без верифікації. Тест: надіслати токен з alg:none — має повертати 401.</p>
   </div>
-
-  <h3>The revocation problem</h3>
-  <p>JWT is stateless — once issued, there is no database record to delete. If a token is stolen or a user is suspended, the token remains valid until <code>exp</code> passes. Mitigations:</p>
+  <h3>Проблема відкликання</h3>
+  <p>JWT не зберігає стан — після видачі жодного запису в базі даних немає. Якщо токен вкрадено або користувача заблоковано, токен залишається дійсним до закінчення <code>exp</code>. Заходи протидії:</p>
   <ul>
-    <li><strong>Short TTL</strong> — access tokens should expire in 5–15 minutes.</li>
-    <li><strong>jti blocklist</strong> — store revoked token IDs in Redis. Check on every request.</li>
-    <li><strong>Refresh token rotation</strong> — see section 06.</li>
+    <li><strong>Короткий TTL</strong> — access-токени мають закінчуватись через 5–15 хвилин.</li>
+    <li><strong>Refresh-токени</strong> — довгострокові токени для отримання нових access-токенів без повторного входу.</li>
+    <li><strong>Блокліст jti</strong> — зберігати відкликані jti у Redis із TTL рівним часу закінчення дії токена.</li>
+    <li><strong>Rotation refresh-токенів</strong> — кожне використання скасовує старий і видає новий.</li>
   </ul>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Corrupt the signature (change last 5 chars) → must return 401. ② Use an expired token (exp in the past) → must return 401. ③ Send alg:none → must return 401. ④ Decode the payload at jwt.io — audit for PII, internal infrastructure details, unnecessary claims. ⑤ Send a token for Service A to Service B → must return 401 (aud mismatch). ⑥ Send a token from a different issuer → must return 401.</div></div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Змінити payload вручну (наприклад, sub або role) → збережений підпис більше не збігається → має повертати 401. ② Відправити прострочений токен → 401. ③ Відправити токен з alg:none → 401 (критичний тест). ④ Відправити токен з невідповідним aud → 401. ⑤ Відправити токен з невідповідним iss → 401. ⑥ Декодувати payload на jwt.io — чи містить він зайві чутливі дані?</div></div>
 </div>
 
 <hr class="sep">
@@ -721,20 +557,22 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
 <div class="section" id="s06">
   <div class="section-head">
     <span class="section-num">06</span>
-    <span class="section-title">Access &amp; Refresh Tokens</span>
-    <span class="tag tag-token">TOKEN PAIR</span>
+    <span class="section-title">Access та Refresh токени</span>
+    <span class="tag tag-token">ПАРА ТОКЕНІВ</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749#section-1.4" target="_blank">RFC 6749 §1.4</a>
   </div>
-
-  <div class="intro">
-    Most modern auth systems issue two tokens together: a short-lived <strong>access token</strong> for API calls, and a long-lived <strong>refresh token</strong> to get a new access token when the old one expires. This balances security (short window if stolen) with user experience (no re-login every 15 minutes).
-  </div>
-
+  <div class="intro">Access та refresh токени вирішують протиріччя між безпекою і зручністю. Короткий access-токен обмежує вікно витоку. Довгий refresh-токен дозволяє отримувати нові access-токени без повторного входу.</div>
   <div class="grid2">
-    <div class="card"><div class="card-title" style="color:var(--blue)">ACCESS TOKEN</div><div class="card-body"><strong>TTL:</strong> 5–60 minutes<br><strong>Format:</strong> usually JWT<br><strong>Sent to:</strong> every API endpoint<br><strong>Validated by:</strong> API server (cryptographically)<br><strong>Stolen?</strong> Attacker has a short window only.</div></div>
-    <div class="card"><div class="card-title" style="color:var(--purple)">REFRESH TOKEN</div><div class="card-body"><strong>TTL:</strong> days to weeks (or longer)<br><strong>Format:</strong> opaque string (random, no structure) or JWE (encrypted JWT — 5 parts)<br><strong>Sent to:</strong> ONLY the /token endpoint (refresh token endpoint)<br><strong>Validated by:</strong> auth server (via database lookup)<br><strong>Stolen?</strong> Attacker has long-term access — high risk.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--blue)">ACCESS TOKEN</div><div class="card-body"><strong>TTL:</strong> хвилини (зазвичай 5–15 хв)<br><strong>Формат:</strong> зазвичай JWT (самодостатній)<br><strong>Куди передається:</strong> до кожного захищеного API-ендпоінта<br><strong>Зберігається:</strong> в пам'яті (SPA) або httpOnly cookie<br><strong>При закінченні:</strong> клієнт використовує refresh-токен для отримання нового</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">REFRESH TOKEN</div><div class="card-body"><strong>TTL:</strong> дні-тижні (або довше)<br><strong>Формат:</strong> непрозорий рядок (випадковий, без структури) або JWE (зашифрований JWT — 5 частин)<br><strong>Куди передається:</strong> ЛИШЕ до /token ендпоінта (refresh token endpoint)<br><strong>Зберігається:</strong> httpOnly + Secure + SameSite cookie<br><strong>При використанні:</strong> видається новий access-токен; при rotation — також новий refresh-токен</div></div>
   </div>
-
+  <h3>Чому refresh-токен не є JWT (зазвичай)</h3>
+  <p>JWT самодостатній — будь-хто може його прочитати і перевірити без запиту до бази даних. Refresh-токен <strong>повинен</strong> бути відкличним: якщо він скомпрометований або користувач виходить — він має негайно стати недійсним. Непрозорий рядок вимагає пошуку в БД при кожному використанні, що уможливлює миттєве відкликання. JWE є альтернативою: зашифрований (лише auth-сервер може розшифрувати), але все одно потребує перевірки в БД для rotation та виявлення повторного використання.</p>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ЗНАХІДКА ПРИ ТЕСТУВАННІ</div>
+    <p>Якщо refresh-токен не декодується на jwt.io — це <strong>правильна поведінка</strong>, не баг. Непрозорий токен не має структури. JWE зашифрований — лише auth-сервер може його розшифрувати. Застосовуйте <strong>поведінкове тестування</strong> (що робить система при його використанні?), а не тестування вмісту.</p>
+  </div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Після виходу: POST refresh-токена до /token → має повертати 401 (тест зомбі-сесії). ② Rotation + повторне використання: зберегти R1 → використати → отримати R2 → використати R1 знову → і R1, і R2 мають бути недійсними. ③ Підміна типу: надіслати refresh-токен до /api/users/me як Bearer → має повертати 401. ④ TTL: тест через 7/14/30 днів — коли він закінчується? ⑤ Прив'язка client_id: використати refresh-токен з іншим client_id → має повертати 401. ⑥ Зберігання: у DevTools → перевірити, що refresh-токен у httpOnly+Secure+SameSite cookie, а не в localStorage. ⑦ Паралельні сесії: два входи → два refresh-токени → обидва мають працювати незалежно.</div></div>
 </div>
 
 <hr class="sep">
@@ -744,38 +582,32 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
   <div class="section-head">
     <span class="section-num">07</span>
     <span class="section-title">OAuth 1.0</span>
-    <span class="tag tag-framework">AUTHZ FRAMEWORK</span>
+    <span class="tag tag-framework">ФРЕЙМВОРК AUTHZ</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc5849" target="_blank">RFC 5849</a>
   </div>
-
-  <div class="intro">
-    OAuth 1.0 (RFC 5849, 2010) was the first standardized protocol for <strong>delegated access</strong> — per RFC 5849, it provides "a method for clients to access server resources on behalf of a resource owner… without sharing their credentials." It is largely replaced by OAuth 2.0 but still appears in some older APIs (Twitter/X classic API, some payment systems).
-  </div>
-
+  <div class="intro">OAuth 1.0 (RFC 5849, 2010) — перший стандартизований протокол <strong>делегованого доступу</strong>: сторонній застосунок отримує доступ до ресурсів користувача, не отримуючи його облікових даних. Здебільшого витіснений OAuth 2.0, але ще трапляється у старих API (Twitter/X classic API, деякі платіжні шлюзи).</div>
   <div class="callout callout-note">
-    <div class="callout-label">WHAT "AUTHORIZATION FRAMEWORK" MEANS</div>
-    <p>OAuth is <strong>not an authentication method</strong>. It is a <strong>framework</strong> — a set of rules for how a third-party application can obtain limited access to resources. The user authenticates to the authorization server (using whatever auth method that server requires). OAuth then defines the protocol by which the third-party receives a token representing that granted access.</p>
+    <div class="callout-label">ЩО ОЗНАЧАЄ "ФРЕЙМВОРК АВТОРИЗАЦІЇ"</div>
+    <p>OAuth — це <strong>не метод автентифікації</strong>. Це <strong>фреймворк</strong> — набір правил про те, як сторонній застосунок може отримати обмежений доступ до ресурсів. Користувач автентифікується на сервері авторизації будь-яким методом, який той вимагає. OAuth визначає протокол, за яким сторонній застосунок отримує токен, що представляє наданий доступ.</p>
   </div>
-
-  <h3>How OAuth 1.0 works</h3>
+  <h3>Як працює OAuth 1.0</h3>
   <div class="flow">
-    <div class="flow-label">OAUTH 1.0 FLOW — 3-LEGGED AUTH</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client requests a temporary "Request Token" using its Consumer Key and Consumer Secret.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">Returns a Request Token (temporary, not yet authorized).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">3</div><div class="flow-body"><div class="flow-actor">CLIENT redirects USER → AUTH SERVER</div><div class="flow-desc">User is sent to the auth server to log in and approve the access request.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">4</div><div class="flow-body"><div class="flow-actor">USER approves → AUTH SERVER redirects back</div><div class="flow-desc">Auth server redirects user back to client's callback URL with a verifier code.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client exchanges: Request Token + Verifier + Consumer Secret → Access Token.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE SERVER</div><div class="flow-desc">Client uses Access Token to make signed requests. Every request is signed using HMAC-SHA1 with both the Consumer Secret and Token Secret.</div><div class="flow-note">Request signing is the key complexity of OAuth 1.0 — every request body is part of the signature. This is why OAuth 2.0 dropped it in favor of HTTPS.</div></div></div>
+    <div class="flow-label">ПРОЦЕС OAUTH 1.0 — 3-СТОРОННЯ АВТЕНТИФІКАЦІЯ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР</div><div class="flow-desc">Клієнт запитує тимчасовий "Request Token", використовуючи свій Consumer Key і Consumer Secret.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Повертає Request Token (тимчасовий, ще не авторизований).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">3</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ перенаправляє КОРИСТУВАЧА → AUTH СЕРВЕР</div><div class="flow-desc">Користувача переспрямовують на auth-сервер для входу і підтвердження доступу.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">4</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ підтверджує → AUTH СЕРВЕР перенаправляє назад</div><div class="flow-desc">Auth-сервер повертає користувача на callback URL клієнта з кодом верифікації.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР</div><div class="flow-desc">Клієнт обмінює: Request Token + Verifier + Consumer Secret → Access Token.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → RESOURCE СЕРВЕР</div><div class="flow-desc">Клієнт використовує Access Token для підписаних запитів. Кожен запит підписується HMAC-SHA1 із використанням Consumer Secret і Token Secret.</div><div class="flow-note">Підпис запитів — ключова складність OAuth 1.0. Саме тому OAuth 2.0 відмовився від цього на користь HTTPS.</div></div></div>
   </div>
-
-  <h3>OAuth 1.0 vs OAuth 2.0 — key differences</h3>
+  <h3>OAuth 1.0 vs OAuth 2.0 — ключові відмінності</h3>
   <table class="tbl">
-    <tr><th>Property</th><th>OAuth 1.0</th><th>OAuth 2.0</th></tr>
-    <tr><td>Request signing</td><td>Yes — every request signed with HMAC</td><td>No — relies on HTTPS for transport security</td></tr>
-    <tr><td>Token type</td><td>Opaque tokens only</td><td>JWT (or opaque), refresh tokens</td></tr>
-    <tr><td>Complexity</td><td>High — signature implementation error-prone</td><td>Lower — standardized flows</td></tr>
-    <tr><td>Mobile/SPA support</td><td>Poor</td><td>Good — PKCE extension</td></tr>
-    <tr><td>Status</td><td>Legacy — mostly replaced</td><td>Current standard</td></tr>
+    <tr><th>Властивість</th><th>OAuth 1.0</th><th>OAuth 2.0</th></tr>
+    <tr><td>Підпис запитів</td><td>Так — кожен запит підписується HMAC</td><td>Ні — покладається на HTTPS для транспортної безпеки</td></tr>
+    <tr><td>Тип токена</td><td>Лише непрозорі токени</td><td>JWT (або непрозорі), refresh-токени</td></tr>
+    <tr><td>Складність</td><td>Висока — реалізація підпису схильна до помилок</td><td>Нижча — стандартизовані потоки</td></tr>
+    <tr><td>Підтримка mobile/SPA</td><td>Погана</td><td>Гарна — розширення PKCE</td></tr>
+    <tr><td>Статус</td><td>Застарілий — здебільшого замінений</td><td>Поточний стандарт</td></tr>
   </table>
 </div>
 
@@ -786,76 +618,66 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
   <div class="section-head">
     <span class="section-num">08</span>
     <span class="section-title">OAuth 2.0</span>
-    <span class="tag tag-framework">AUTHZ FRAMEWORK</span>
+    <span class="tag tag-framework">ФРЕЙМВОРК AUTHZ</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank">RFC 6749</a>
   </div>
-
-  <div class="intro">
-    Per RFC 6749, OAuth 2.0 is an authorization framework that <strong>"enables a third-party application to obtain limited access to an HTTP service, either on behalf of a resource owner… or by allowing the third-party application to obtain access on its own behalf."</strong> OAuth 2.0 itself handles <strong>authorization only</strong>. It does not define authentication (that is what OIDC adds on top — see section 09). Note: when a client acts on its own behalf (Client Credentials grant), there is no user or delegation involved — just direct token issuance to the client.
-  </div>
-
+  <div class="intro">OAuth 2.0 (RFC 6749) — фреймворк авторизації: він визначає, як сторонній застосунок може отримати обмежений доступ до HTTP-сервісу — або від імені користувача, або від власного імені (без користувача взагалі). OAuth 2.0 відповідає виключно за <strong>авторизацію</strong> — він не визначає, хто є користувач. Це робить OIDC поверх нього (розділ 09). Коли клієнт діє від власного імені (Client Credentials grant) — жодного користувача чи делегування немає, лише пряма видача токена сервісу.</div>
   <div class="callout callout-warn">
-    <div class="callout-label">OAUTH 2.0 IS NOT AN AUTHENTICATION METHOD</div>
-    <p>OAuth 2.0 tells you what a user has permitted a client to do. It does <strong>not</strong> tell you who the user is. When you "log in with Google," OAuth 2.0 grants the app access to your Google data. OpenID Connect (built on top of OAuth 2.0) provides the identity — who you are.</p>
+    <div class="callout-label">OAUTH 2.0 — НЕ МЕТОД АВТЕНТИФІКАЦІЇ</div>
+    <p>OAuth 2.0 вказує, що користувач дозволив клієнту робити. Він <strong>не</strong> вказує, хто є цим користувачем. Коли ви "входите через Google", OAuth 2.0 надає застосунку доступ до ваших даних Google. OpenID Connect (поверх OAuth 2.0) надає ідентичність — хто ви є.</p>
   </div>
-
-  <h3>The four roles in OAuth 2.0</h3>
+  <h3>Чотири ролі в OAuth 2.0</h3>
   <div class="grid2">
-    <div class="card"><div class="card-title">RESOURCE OWNER</div><div class="card-body">The user who owns the protected data and grants access.</div></div>
-    <div class="card"><div class="card-title">CLIENT</div><div class="card-body">The third-party application that wants access to the user's resources.</div></div>
-    <div class="card"><div class="card-title">AUTHORIZATION SERVER</div><div class="card-body">Issues tokens after authenticating the user and getting consent. (e.g. Google Auth, AWS Cognito)</div></div>
-    <div class="card"><div class="card-title">RESOURCE SERVER</div><div class="card-body">The API that holds the protected data. Accepts and validates access tokens.</div></div>
+    <div class="card"><div class="card-title">ВЛАСНИК РЕСУРСУ</div><div class="card-body">Користувач, якому належать захищені дані і який надає до них доступ.</div></div>
+    <div class="card"><div class="card-title">КЛІЄНТ</div><div class="card-body">Сторонній застосунок, який хоче отримати доступ до ресурсів користувача.</div></div>
+    <div class="card"><div class="card-title">СЕРВЕР АВТОРИЗАЦІЇ</div><div class="card-body">Видає токени після автентифікації користувача та отримання згоди. (наприклад, Google Auth, AWS Cognito)</div></div>
+    <div class="card"><div class="card-title">RESOURCE СЕРВЕР</div><div class="card-body">API, що зберігає захищені дані. Приймає та валідує access-токени.</div></div>
   </div>
-
-  <h3>Flow 1: Authorization Code (user-facing apps)</h3>
-  <p>Used when a user must be present to authenticate and grant consent.</p>
+  <h3>Потік 1: Authorization Code (застосунки з користувачем)</h3>
+  <p>Використовується, коли користувач повинен бути присутнім для автентифікації та надання згоди.</p>
   <div class="flow">
-    <div class="flow-label">AUTHORIZATION CODE FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client redirects user to auth server's /authorize endpoint.</div><div class="flow-code">GET /authorize?response_type=code
+    <div class="flow-label">ПОТІК AUTHORIZATION CODE</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР</div><div class="flow-desc">Клієнт перенаправляє користувача до ендпоінта /authorize auth-сервера.</div><div class="flow-code">GET /authorize?response_type=code
   &amp;client_id=myapp
   &amp;redirect_uri=https://app.com/callback
   &amp;scope=orders:read
   &amp;state=random_csrf_token</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">USER (at auth server)</div><div class="flow-desc">User logs in and approves the requested scopes.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT (redirect)</div><div class="flow-desc">Auth server redirects to the redirect_uri with a short-lived authorization code and the same state value.</div><div class="flow-code">GET https://app.com/callback?code=AUTH_CODE&amp;state=random_csrf_token</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client verifies the state matches what it sent (CSRF protection).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (back channel)</div><div class="flow-desc">Client exchanges code + client_secret for tokens. This is server-to-server — tokens never touch the browser URL.</div><div class="flow-code">POST /token
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ (на auth-сервері)</div><div class="flow-desc">Користувач входить і підтверджує запитувані scope.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → КЛІЄНТ (redirect)</div><div class="flow-desc">Auth-сервер перенаправляє на redirect_uri з короткостроковим кодом авторизації та тим самим значенням state.</div><div class="flow-code">GET https://app.com/callback?code=AUTH_CODE&amp;state=random_csrf_token</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (внутрішньо)</div><div class="flow-desc">Клієнт перевіряє, що state збігається з надісланим (захист від CSRF).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР (зворотній канал)</div><div class="flow-desc">Клієнт обмінює code + client_secret на токени. Це сервер-до-сервера — токени ніколи не потрапляють в URL браузера.</div><div class="flow-code">POST /token
 grant_type=authorization_code&amp;code=AUTH_CODE
 &amp;client_id=myapp&amp;client_secret=SECRET
 &amp;redirect_uri=https://app.com/callback</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">Returns access_token and refresh_token.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → КЛІЄНТ</div><div class="flow-desc">Повертає access_token та refresh_token.</div></div></div>
   </div>
-
-  <h3>Flow 2: Authorization Code + PKCE (mobile/SPA)</h3>
-  <p>PKCE (Proof Key for Code Exchange) extends Auth Code flow for <strong>public clients</strong> that cannot safely store a client_secret (mobile apps, SPAs). Without PKCE, a malicious app on the same device can intercept the authorization code and exchange it for tokens.</p>
+  <h3>Потік 2: Authorization Code + PKCE (mobile/SPA)</h3>
+  <p>PKCE розширює потік Authorization Code для <strong>публічних клієнтів</strong>, які не можуть безпечно зберігати client_secret (мобільні застосунки, SPA).</p>
   <div class="flow">
-    <div class="flow-label">PKCE ADDITIONS TO AUTH CODE FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">CLIENT (before step 1)</div><div class="flow-desc">Client generates a random <strong>code_verifier</strong> string, then hashes it to produce a <strong>code_challenge</strong>.</div><div class="flow-code">code_verifier = random_string(64 chars)
+    <div class="flow-label">ДОПОВНЕННЯ PKCE ДО ПОТОКУ AUTH CODE</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ (до кроку 1)</div><div class="flow-desc">Клієнт генерує випадковий рядок <strong>code_verifier</strong>, потім хешує його для отримання <strong>code_challenge</strong>.</div><div class="flow-code">code_verifier = random_string(64 chars)
 code_challenge = base64url(SHA256(code_verifier))</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">B</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (step 1 modified)</div><div class="flow-desc">Client includes code_challenge in the authorization request.</div><div class="flow-code">GET /authorize?...&amp;code_challenge=HASH&amp;code_challenge_method=S256</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">C</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (step 5 modified)</div><div class="flow-desc">At token exchange, client sends the original code_verifier (not the hash). Auth server hashes the verifier and compares to the stored challenge. Only the original requester has the verifier.</div><div class="flow-code">POST /token
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">B</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР (крок 1 змінено)</div><div class="flow-desc">Клієнт включає code_challenge до запиту авторизації.</div><div class="flow-code">GET /authorize?...&amp;code_challenge=HASH&amp;code_challenge_method=S256</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">C</div><div class="flow-body"><div class="flow-actor">КЛІЄНТ → AUTH СЕРВЕР (крок 5 змінено)</div><div class="flow-desc">При обміні токена клієнт надсилає вихідний code_verifier (не хеш). Auth-сервер хешує verifier і порівнює зі збереженим challenge.</div><div class="flow-code">POST /token
 ...&amp;code_verifier=ORIGINAL_RANDOM_STRING</div></div></div>
   </div>
-
-  <h3>Flow 3: Client Credentials (machine-to-machine)</h3>
-  <p>Used when there is no user involved — a service authenticates as itself.</p>
+  <h3>Потік 3: Client Credentials (машина-до-машини)</h3>
+  <p>Використовується, коли користувач відсутній — сервіс автентифікується від свого власного імені.</p>
   <div class="flow">
-    <div class="flow-label">CLIENT CREDENTIALS FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">SERVICE → AUTH SERVER</div><div class="flow-desc">Service sends its own client_id and client_secret directly to the /token endpoint. No user redirect, no consent.</div><div class="flow-code">POST /token
+    <div class="flow-label">ПОТІК CLIENT CREDENTIALS</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">СЕРВІС → AUTH СЕРВЕР</div><div class="flow-desc">Сервіс надсилає свій client_id і client_secret безпосередньо до ендпоінта /token. Без перенаправлення користувача, без згоди.</div><div class="flow-code">POST /token
 grant_type=client_credentials
 &amp;client_id=my-service&amp;client_secret=SERVICE_SECRET
 &amp;scope=data:ingest</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → SERVICE</div><div class="flow-desc">Returns an access_token representing the service (not any user). No refresh token — the service can re-authenticate at any time.</div><div class="flow-note">The token's sub claim is the service's client_id — not a user ID.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">AUTH СЕРВЕР → СЕРВІС</div><div class="flow-desc">Повертає access_token, що представляє сервіс (а не будь-якого користувача). Без refresh-токена.</div><div class="flow-note">Claim sub у токені — це client_id сервісу, а не ID користувача.</div></div></div>
   </div>
-
   <table class="tbl">
-    <tr><th>Flow</th><th>When to use</th><th>User present?</th><th>client_secret needed?</th></tr>
-    <tr><td>Auth Code</td><td>Web apps with a backend</td><td>Yes</td><td>Yes</td></tr>
-    <tr><td>Auth Code + PKCE</td><td>Mobile apps, SPAs</td><td>Yes</td><td>No (PKCE replaces it)</td></tr>
-    <tr><td>Client Credentials</td><td>Service-to-service, background jobs</td><td>No</td><td>Yes</td></tr>
+    <tr><th>Потік</th><th>Коли використовувати</th><th>Користувач присутній?</th><th>client_secret потрібен?</th></tr>
+    <tr><td>Auth Code</td><td>Веб-застосунки з бекендом</td><td>Так</td><td>Так</td></tr>
+    <tr><td>Auth Code + PKCE</td><td>Мобільні застосунки, SPA</td><td>Так</td><td>Ні (PKCE замінює його)</td></tr>
+    <tr><td>Client Credentials</td><td>Сервіс-до-сервісу, фонові задачі</td><td>Ні</td><td>Так</td></tr>
   </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Modify redirect_uri → auth server must reject (code interception risk). ② Remove state param → server must still validate state on callback (CSRF test). ③ Auth Code: try to reuse the authorization code a second time → must return error. ④ PKCE: send token exchange without code_verifier → must be rejected. ⑤ Client Credentials token → send to user-specific endpoint → must return 403 (wrong subject type). ⑥ Verify code_challenge_method=S256, not plain.</div></div>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Змінити redirect_uri → auth-сервер має відхилити (ризик перехоплення коду). ② Прибрати параметр state → сервер має все одно валідувати state на callback (тест CSRF). ③ Auth Code: спробувати повторно використати код авторизації → має повертати помилку. ④ PKCE: надіслати обмін токена без code_verifier → має бути відхилено. ⑤ Токен Client Credentials → надіслати до ендпоінта для конкретного користувача → має повернути 403. ⑥ Перевірити code_challenge_method=S256, а не plain.</div></div>
 </div>
 
 <hr class="sep">
@@ -865,39 +687,31 @@ grant_type=client_credentials
   <div class="section-head">
     <span class="section-num">09</span>
     <span class="section-title">OpenID Connect (OIDC)</span>
-    <span class="tag tag-proto">AUTHN PROTOCOL</span>
+    <span class="tag tag-proto">ПРОТОКОЛ AUTHN</span>
     <a class="spec-ref" href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OIDC Core 1.0</a>
   </div>
-
-  <div class="intro">
-    Per the <a href="https://openid.net/specs/openid-connect-core-1_0.html" style="color:var(--cyan)">OpenID Connect Core 1.0 specification</a>: <strong>"OpenID Connect 1.0 is a simple identity layer on top of the OAuth 2.0 protocol."</strong> More precisely, it is an <strong>authentication protocol</strong> — it defines how a client verifies the identity of an end-user based on authentication performed by an Authorization Server. OAuth 2.0 answers "what can this client do?" OIDC answers "who is this user?" It adds the <strong>id_token</strong> (a JWT containing identity claims) and the <strong>UserInfo endpoint</strong> to the OAuth 2.0 framework. It is not an authorization framework — it is a protocol built <em>on top of</em> one.
-  </div>
-
+  <div class="intro">Згідно зі <a href="https://openid.net/specs/openid-connect-core-1_0.html" style="color:var(--cyan)">специфікацією OpenID Connect Core 1.0</a>: <strong>"OpenID Connect 1.0 — простий рівень ідентичності поверх протоколу OAuth 2.0."</strong> Точніше — це <strong>протокол автентифікації</strong>, який визначає, як клієнт верифікує особу кінцевого користувача на основі автентифікації, виконаної сервером авторизації. OAuth 2.0 відповідає на "що може цей клієнт?" OIDC відповідає на "хто цей користувач?" Він додає <strong>id_token</strong> (JWT з claim'ами ідентичності) та <strong>ендпоінт UserInfo</strong> до фреймворку OAuth 2.0. Це не фреймворк авторизації — це протокол, побудований <em>поверх</em> нього.</div>
   <div class="callout callout-warn">
-    <div class="callout-label">COMMON MISTAKE</div>
-    <p>OIDC is often grouped with OAuth 2.0 under "authorization frameworks" because they share flows and endpoints. This is incorrect. OAuth 2.0 is an authorization framework. OIDC is an authentication protocol that uses OAuth 2.0 as its transport layer. Confusing these two is a frequent interview error.</p>
+    <div class="callout-label">ПОШИРЕНА ПОМИЛКА</div>
+    <p>OIDC часто групують з OAuth 2.0 під "фреймворками авторизації", оскільки вони спільно використовують потоки та ендпоінти. Це неправильно. OAuth 2.0 — фреймворк авторизації. OIDC — протокол автентифікації, що використовує OAuth 2.0 як транспортний рівень.</p>
   </div>
-
-  <h3>id_token vs access_token — critical distinction</h3>
+  <h3>id_token vs access_token — критична відмінність</h3>
   <div class="grid2">
-    <div class="card"><div class="card-title" style="color:var(--blue)">ID_TOKEN</div><div class="card-body"><strong>Who it's for:</strong> the client application.<br><strong>Contains:</strong> identity claims — name, email, profile.<br><strong>Purpose:</strong> tells the client who the user is.<br><strong>Send to API?</strong> No — it is NOT for API authorization.<br><strong>Audience:</strong> the client_id.</div></div>
-    <div class="card"><div class="card-title" style="color:var(--green)">ACCESS_TOKEN</div><div class="card-body"><strong>Who it's for:</strong> the resource server (API).<br><strong>Contains:</strong> authorization claims — scopes, subject.<br><strong>Purpose:</strong> tells the API what the user is allowed to do.<br><strong>Send to API?</strong> Yes — in Authorization: Bearer header.<br><strong>Audience:</strong> the API resource server.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--blue)">ID_TOKEN</div><div class="card-body"><strong>Для кого:</strong> клієнтський застосунок.<br><strong>Містить:</strong> claim'и ідентичності — ім'я, email, профіль.<br><strong>Мета:</strong> повідомляє клієнту, хто є користувач.<br><strong>Надсилати до API?</strong> Ні — НЕ для авторизації API.<br><strong>Аудиторія:</strong> client_id.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">ACCESS_TOKEN</div><div class="card-body"><strong>Для кого:</strong> resource-сервер (API).<br><strong>Містить:</strong> claim'и авторизації — scope, subject.<br><strong>Мета:</strong> повідомляє API, що дозволено робити користувачу.<br><strong>Надсилати до API?</strong> Так — в заголовку Authorization: Bearer.<br><strong>Аудиторія:</strong> API resource-сервер.</div></div>
   </div>
-
-  <h3>Standard OIDC scopes</h3>
+  <h3>Стандартні scope OIDC</h3>
   <table class="tbl">
-    <tr><th>Scope</th><th>Claims returned</th></tr>
-    <tr><td>openid</td><td>sub (required — enables OIDC)</td></tr>
+    <tr><th>Scope</th><th>Claim'и, що повертаються</th></tr>
+    <tr><td>openid</td><td>sub (обов'язковий — вмикає OIDC)</td></tr>
     <tr><td>profile</td><td>name, given_name, family_name, picture, locale</td></tr>
     <tr><td>email</td><td>email, email_verified</td></tr>
     <tr><td>phone</td><td>phone_number, phone_number_verified</td></tr>
-    <tr><td>address</td><td>address (structured JSON)</td></tr>
+    <tr><td>address</td><td>address (структурований JSON)</td></tr>
   </table>
-
-  <h3>The nonce claim — replay attack prevention</h3>
-  <p>The client generates a random <strong>nonce</strong>, sends it in the authorization request, and the auth server embeds it in the id_token. The client verifies that the nonce in the received id_token matches what it sent. Without nonce: a captured id_token can be replayed to authenticate as the victim for its entire TTL.</p>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Decode id_token → check for PII beyond what the application needs. ② Send id_token to a resource API endpoint (instead of access_token) → must return 401/403. ③ Call /userinfo with expired access_token → must return 401. ④ Test nonce: replay a captured id_token in a second login → must be rejected. ⑤ AWS Cognito finding: iss claim contains the full user pool URL — infrastructure disclosure, medium severity.</div></div>
+  <h3>Claim nonce — захист від replay-атак</h3>
+  <p>Клієнт генерує випадковий <strong>nonce</strong>, надсилає його в запиті авторизації, а auth-сервер вбудовує його в id_token. Клієнт перевіряє, що nonce в отриманому id_token збігається з надісланим. Без nonce: перехоплений id_token може бути використаний повторно для автентифікації жертви протягом усього її TTL.</p>
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA</div><div class="qa-a">① Декодувати id_token → перевірити наявність PII понад потреби застосунку. ② Надіслати id_token до ендпоінта resource API (замість access_token) → має повертати 401/403. ③ Викликати /userinfo з простроченим access_token → має повертати 401. ④ Тест nonce: повторно надіслати перехоплений id_token при другому вході → має бути відхилено. ⑤ Знахідка AWS Cognito: claim iss містить повну URL user pool — розкриття інфраструктури, середня критичність.</div></div>
 </div>
 
 <hr class="sep">
@@ -907,26 +721,21 @@ grant_type=client_credentials
   <div class="section-head">
     <span class="section-num">10</span>
     <span class="section-title">Single Sign-On (SSO)</span>
-    <span class="tag tag-concept">UX PATTERN / SCHEME</span>
+    <span class="tag tag-concept">UX-ПАТЕРН / СХЕМА</span>
     <a class="spec-ref" href="https://en.wikipedia.org/wiki/Single_sign-on" target="_blank">Wikipedia</a>
   </div>
-
-  <div class="intro">
-    SSO is an <strong>authentication scheme and UX pattern</strong> — not a protocol. Wikipedia defines it as <em>"an authentication scheme that allows a user to log in with a single ID to access several related, yet independent, software systems."</em> It describes the <em>user experience and architecture</em> of centralised authentication. The underlying mechanisms are actual protocols: <strong>SAML</strong> (enterprise), <strong>OIDC</strong> (modern web/mobile), or Kerberos (network). SSO sits above the protocol layer — it defines the goal; the protocols define how it is achieved.
-  </div>
-
+  <div class="intro">SSO — це <strong>схема автентифікації та UX-патерн</strong>, а не протокол. Wikipedia визначає його як <em>"схему автентифікації, що дозволяє користувачу входити з одним ID для доступу до кількох пов'язаних, але незалежних програмних систем."</em> Він описує <em>досвід користувача та архітектуру</em> централізованої автентифікації. Базовими механізмами є реальні протоколи: <strong>SAML</strong> (корпоративний), <strong>OIDC</strong> (сучасний веб/мобайл), або Kerberos (мережевий). SSO знаходиться вище протокольного рівня — він визначає мету; протоколи визначають, як її досягти.</div>
   <div class="callout callout-note">
-    <div class="callout-label">SSO IS NOT AN AUTHENTICATION METHOD</div>
-    <p>SSO describes the <em>user experience and architecture</em> of centralized authentication. The underlying mechanisms are protocols: SAML, OIDC, or proprietary implementations. SSO sits above the auth method layer — it determines how sessions are shared across applications.</p>
+    <div class="callout-label">SSO — НЕ МЕТОД АВТЕНТИФІКАЦІЇ</div>
+    <p>SSO описує <em>досвід користувача та архітектуру</em> централізованої автентифікації. Базовими механізмами є протоколи: SAML, OIDC або власні реалізації. SSO знаходиться вище рівня методу автентифікації — він визначає, як сесії спільно використовуються між застосунками.</p>
   </div>
-
   <div class="flow">
-    <div class="flow-label">SSO FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">USER → APP A</div><div class="flow-desc">User tries to access App A. App A has no session for this user.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">APP A → IDENTITY PROVIDER</div><div class="flow-desc">App A redirects user to the central IdP (e.g. Okta, Google Workspace, ADFS).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">USER authenticates at IdP</div><div class="flow-desc">User logs in once with their corporate credentials. IdP establishes a session for this user.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">4</div><div class="flow-body"><div class="flow-actor">IDP → APP A</div><div class="flow-desc">IdP sends an assertion (SAML) or token (OIDC) back to App A. App A establishes its own local session.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">USER → APP B (later)</div><div class="flow-desc">User tries to access App B. App B redirects to IdP. IdP checks its session — user is already authenticated. Sends assertion to App B immediately — no login prompt.</div></div></div>
+    <div class="flow-label">ПРОЦЕС SSO</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ → ЗАСТОСУНОК A</div><div class="flow-desc">Користувач намагається отримати доступ до застосунку A. Застосунок A не має сесії для цього користувача.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">ЗАСТОСУНОК A → IDENTITY PROVIDER</div><div class="flow-desc">Застосунок A перенаправляє користувача до центрального IdP (наприклад, Okta, Google Workspace, ADFS).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ автентифікується в IdP</div><div class="flow-desc">Користувач входить один раз з корпоративними обліковими даними. IdP встановлює сесію для цього користувача.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">4</div><div class="flow-body"><div class="flow-actor">IDP → ЗАСТОСУНОК A</div><div class="flow-desc">IdP надсилає підтвердження (SAML) або токен (OIDC) до застосунку A. Застосунок A встановлює власну локальну сесію.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">КОРИСТУВАЧ → ЗАСТОСУНОК B (пізніше)</div><div class="flow-desc">Користувач намагається отримати доступ до застосунку B. Застосунок B перенаправляє до IdP. IdP перевіряє свою сесію — користувач вже автентифікований. Одразу надсилає підтвердження до застосунку B — без запиту входу.</div></div></div>
   </div>
 </div>
 
@@ -937,21 +746,17 @@ grant_type=client_credentials
   <div class="section-head">
     <span class="section-num">11</span>
     <span class="section-title">SAML</span>
-    <span class="tag tag-proto">IDENTITY PROTOCOL</span>
+    <span class="tag tag-proto">ПРОТОКОЛ ІДЕНТИЧНОСТІ</span>
     <a class="spec-ref" href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf" target="_blank">OASIS SAML 2.0</a>
   </div>
-
-  <div class="intro">
-    SAML (Security Assertion Markup Language) is an XML-based protocol for SSO, primarily used in enterprise environments (corporate login, B2B integrations). It predates OAuth/OIDC and uses XML-signed assertions instead of JWT tokens. Common in: Okta, ADFS, Salesforce, enterprise portals.
-  </div>
-
+  <div class="intro">SAML (Security Assertion Markup Language) — XML-базований протокол для SSO, що використовується переважно в корпоративних середовищах (корпоративний вхід, B2B-інтеграції). Він передує OAuth/OIDC і використовує XML-підписані підтвердження замість JWT-токенів. Поширений у: Okta, ADFS, Salesforce, корпоративних порталах.</div>
   <table class="tbl">
-    <tr><th>Property</th><th>SAML</th><th>OIDC</th></tr>
-    <tr><td>Format</td><td>XML assertions</td><td>JWT tokens</td></tr>
-    <tr><td>Transport</td><td>HTTP redirects (POST/Redirect binding)</td><td>HTTP redirects + API calls</td></tr>
-    <tr><td>Primary use</td><td>Enterprise SSO, B2B</td><td>Consumer apps, APIs, mobile</td></tr>
-    <tr><td>Complexity</td><td>High — XML, signatures, metadata exchange</td><td>Lower — JSON, standardized</td></tr>
-    <tr><td>Mobile support</td><td>Poor</td><td>Good</td></tr>
+    <tr><th>Властивість</th><th>SAML</th><th>OIDC</th></tr>
+    <tr><td>Формат</td><td>XML-підтвердження</td><td>JWT-токени</td></tr>
+    <tr><td>Транспорт</td><td>HTTP-перенаправлення (POST/Redirect binding)</td><td>HTTP-перенаправлення + API-виклики</td></tr>
+    <tr><td>Основне використання</td><td>Корпоративний SSO, B2B</td><td>Споживчі застосунки, API, мобайл</td></tr>
+    <tr><td>Складність</td><td>Висока — XML, підписи, обмін метаданими</td><td>Нижча — JSON, стандартизований</td></tr>
+    <tr><td>Підтримка мобайл</td><td>Погана</td><td>Гарна</td></tr>
   </table>
 </div>
 
@@ -961,52 +766,49 @@ grant_type=client_credentials
 <div class="section" id="s12">
   <div class="section-head">
     <span class="section-num">12</span>
-    <span class="section-title">Postman auth types — what each one is</span>
-    <span class="tag tag-concept">TESTING TOOL</span>
+    <span class="section-title">Типи автентифікації у Postman — що це таке</span>
+    <span class="tag tag-concept">ІНСТРУМЕНТ ТЕСТУВАННЯ</span>
     <a class="spec-ref" href="https://learning.postman.com/docs/sending-requests/authorization/authorization-types/" target="_blank">Postman Docs</a>
   </div>
-
-  <div class="intro">
-    Postman groups auth types into categories. Understanding which category each option belongs to prevents the common mistake of treating all Postman auth options as equivalent. This directly maps to Image 3 in your screenshots.
-  </div>
+  <div class="intro">Postman групує типи автентифікації за категоріями. Розуміння категорії кожного варіанта запобігає поширеній помилці — ставленню до всіх опцій автентифікації Postman як рівнозначних.</div>
 
   <div class="postman-group">
-    <div class="postman-group-head" style="background:var(--blue-d);color:var(--blue)">AUTHENTICATION METHODS — the client proves its identity on each request</div>
+    <div class="postman-group-head" style="background:var(--blue-d);color:var(--blue)">МЕТОДИ АВТЕНТИФІКАЦІЇ — клієнт підтверджує особу при кожному запиті</div>
     <div class="postman-group-body">
-      <div class="postman-item"><span class="postman-item-name">Basic Auth</span><span class="postman-item-desc">Encodes username:password as Base64, sends in every request. Credentials travel with every call.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Bearer Token</span><span class="postman-item-desc">You paste a pre-generated token. Postman sends it as <code>Authorization: Bearer &lt;token&gt;</code>. No signing.</span></div>
-      <div class="postman-item"><span class="postman-item-name">JWT Bearer</span><span class="postman-item-desc">Postman constructs and signs the JWT locally using your provided algorithm, key, and claims. Useful for testing specific claim combinations in dev environments where you know the signing key.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Digest Auth</span><span class="postman-item-desc">Implements the Digest challenge-response handshake. Sends a hash, not the password.</span></div>
-      <div class="postman-item"><span class="postman-item-name">NTLM Authentication</span><span class="postman-item-desc">Windows authentication protocol. Challenge-response based. Used for corporate network resources.</span></div>
-      <div class="postman-item"><span class="postman-item-name">API Key</span><span class="postman-item-desc">Sends a static key in a header or query parameter. You specify the key name and value.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Basic Auth</span><span class="postman-item-desc">Кодує username:password у Base64, надсилає з кожним запитом. Облікові дані передаються з кожним викликом.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Bearer Token</span><span class="postman-item-desc">Ви вставляєте попередньо згенерований токен. Postman надсилає його як <code>Authorization: Bearer &lt;token&gt;</code>. Без підпису.</span></div>
+      <div class="postman-item"><span class="postman-item-name">JWT Bearer</span><span class="postman-item-desc">Postman локально конструює та підписує JWT, використовуючи вказані алгоритм, ключ і claim'и. Корисно для тестування конкретних комбінацій claim'ів у dev-середовищах, де відомий ключ підпису.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Digest Auth</span><span class="postman-item-desc">Реалізує Digest challenge-response обмін. Надсилає хеш, а не пароль.</span></div>
+      <div class="postman-item"><span class="postman-item-name">NTLM Authentication</span><span class="postman-item-desc">Протокол автентифікації Windows. Базується на challenge-response. Використовується для корпоративних мережевих ресурсів.</span></div>
+      <div class="postman-item"><span class="postman-item-name">API Key</span><span class="postman-item-desc">Надсилає статичний ключ у заголовку або query-параметрі. Ви вказуєте назву та значення ключа.</span></div>
     </div>
   </div>
 
   <div class="postman-group">
-    <div class="postman-group-head" style="background:var(--green-d);color:var(--green)">AUTHORIZATION FRAMEWORKS — protocol flows for limited resource access</div>
+    <div class="postman-group-head" style="background:var(--green-d);color:var(--green)">ФРЕЙМВОРКИ АВТОРИЗАЦІЇ — протокольні потоки для обмеженого доступу до ресурсів</div>
     <div class="postman-group-body">
-      <div class="postman-item"><span class="postman-item-name">OAuth 1.0</span><span class="postman-item-desc">Implements the OAuth 1.0 3-legged flow with request signing. For legacy APIs.</span></div>
-      <div class="postman-item"><span class="postman-item-name">OAuth 2.0</span><span class="postman-item-desc">Implements OAuth 2.0 flows (Auth Code, Client Credentials, etc.). Postman handles the redirect and token exchange. Stores the resulting access token for use in requests.</span></div>
+      <div class="postman-item"><span class="postman-item-name">OAuth 1.0</span><span class="postman-item-desc">Реалізує 3-сторонній потік OAuth 1.0 з підписом запитів. Для застарілих API.</span></div>
+      <div class="postman-item"><span class="postman-item-name">OAuth 2.0</span><span class="postman-item-desc">Реалізує потоки OAuth 2.0 (Auth Code, Client Credentials тощо). Postman обробляє redirect і обмін токенів. Зберігає отриманий access-токен для використання в запитах.</span></div>
     </div>
   </div>
 
   <div class="postman-group">
-    <div class="postman-group-head" style="background:var(--amber-d);color:var(--amber)">VENDOR-SPECIFIC IMPLEMENTATIONS</div>
+    <div class="postman-group-head" style="background:var(--amber-d);color:var(--amber)">ВЕНДОРНІ РЕАЛІЗАЦІЇ</div>
     <div class="postman-group-body">
-      <div class="postman-item"><span class="postman-item-name">AWS Signature</span><span class="postman-item-desc">Implements AWS SigV4 signing for direct calls to AWS services (DynamoDB, SQS, SNS, S3). You provide your Access Key ID, Secret Access Key, region, and service. Every request is signed with a hash of the request content + timestamp. Use for testing AWS services directly — bypassing the application layer.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Hawk Authentication</span><span class="postman-item-desc">MAC-based request signing similar to OAuth 1.0. Each request is signed. Used by some Mozilla and legacy APIs.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Akamai EdgeGrid</span><span class="postman-item-desc">Akamai's proprietary request signing for their CDN management APIs.</span></div>
-      <div class="postman-item"><span class="postman-item-name">ASAP (Atlassian)</span><span class="postman-item-desc">Atlassian's internal service-to-service auth. JWT-based with asymmetric keys. Used for Jira, Confluence integrations.</span></div>
+      <div class="postman-item"><span class="postman-item-name">AWS Signature</span><span class="postman-item-desc">Реалізує AWS SigV4 підпис для прямих викликів до AWS-сервісів (DynamoDB, SQS, SNS, S3). Ви вказуєте Access Key ID, Secret Access Key, регіон і сервіс. Кожен запит підписується хешем вмісту запиту + часова мітка. Використовуйте для тестування AWS-сервісів безпосередньо — оминаючи рівень застосунку.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Hawk Authentication</span><span class="postman-item-desc">MAC-базований підпис запитів, схожий на OAuth 1.0. Кожен запит підписується. Використовується деякими Mozilla та застарілими API.</span></div>
+      <div class="postman-item"><span class="postman-item-name">Akamai EdgeGrid</span><span class="postman-item-desc">Власний підпис запитів Akamai для їхніх API управління CDN.</span></div>
+      <div class="postman-item"><span class="postman-item-name">ASAP (Atlassian)</span><span class="postman-item-desc">Внутрішня сервіс-до-сервісу автентифікація Atlassian. JWT-базована з асиметричними ключами. Використовується для інтеграцій Jira, Confluence.</span></div>
     </div>
   </div>
 
   <div class="callout callout-qa">
-    <div class="callout-label">WHEN TO USE WHICH IN QA WORK</div>
-    <p><strong>Testing a REST API with JWT:</strong> Bearer Token (paste the token) or JWT Bearer (if you have the key).<br>
-    <strong>Testing DynamoDB/SQS/SNS directly:</strong> AWS Signature (SigV4).<br>
-    <strong>Testing a full OAuth2 login flow end-to-end:</strong> OAuth 2.0 helper.<br>
-    <strong>Testing a legacy internal API:</strong> Basic Auth or Digest Auth.<br>
-    <strong>Testing an IoT sensor API:</strong> API Key (usually in custom header).</p>
+    <div class="callout-label">КОЛИ ЩО ВИКОРИСТОВУВАТИ В QA-РОБОТІ</div>
+    <p><strong>Тестування REST API з JWT:</strong> Bearer Token (вставити токен) або JWT Bearer (якщо є ключ).<br>
+    <strong>Тестування DynamoDB/SQS/SNS напряму:</strong> AWS Signature (SigV4).<br>
+    <strong>Тестування повного OAuth2 потоку входу наскрізно:</strong> OAuth 2.0 helper.<br>
+    <strong>Тестування застарілого внутрішнього API:</strong> Basic Auth або Digest Auth.<br>
+    <strong>Тестування IoT sensor API:</strong> API Key (зазвичай у кастомному заголовку).</p>
   </div>
 </div>
 
@@ -1016,57 +818,52 @@ grant_type=client_credentials
 <div class="section" id="s13">
   <div class="section-head">
     <span class="section-num">13</span>
-    <span class="section-title">Common mistakes — what NOT to say in an interview</span>
-    <span class="tag tag-concept">INTERVIEW CRITICAL</span>
+    <span class="section-title">Типові помилки — що НЕ слід говорити</span>
+    <span class="tag tag-concept">КРИТИЧНО ВАЖЛИВО</span>
     <a class="spec-ref" href="https://owasp.org/www-project-top-ten/" target="_blank">OWASP Top 10</a>
   </div>
 
-  <div class="intro">
-    Common mistakes when describing authentication and authorization concepts.
-  </div>
+  <div class="intro">Поширені помилки при описі концепцій автентифікації та авторизації.</div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Calling OAuth 2.0 an authentication method.</strong><br>OAuth 2.0 is an authorization framework, not an authentication method. It handles obtaining limited access to resources. OIDC, built on top of OAuth 2.0, handles authentication.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Називати OAuth 2.0 методом автентифікації.</strong><br>OAuth 2.0 — фреймворк авторизації, а не метод автентифікації. Він обробляє отримання обмеженого доступу до ресурсів. OIDC, побудований поверх OAuth 2.0, обробляє автентифікацію.</div></div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Grouping SSO alongside authentication methods.</strong><br>SSO is an architectural pattern, not a method. It is implemented using protocols — OIDC, SAML, or Kerberos. The pattern describes the goal; the protocol describes how it is achieved.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Групувати SSO разом з методами автентифікації.</strong><br>SSO — архітектурний патерн, а не метод. Він реалізується за допомогою протоколів — OIDC, SAML або Kerberos. Патерн описує мету; протокол описує, як її досягти.</div></div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Using JWT and Bearer Token as interchangeable terms.</strong><br>Bearer is the HTTP scheme name in the Authorization header. JWT is a token format. A bearer token can be an opaque string. A JWT can be used as a bearer token. They are different concepts at different layers.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Використовувати JWT і Bearer Token як взаємозамінні поняття.</strong><br>Bearer — назва HTTP-схеми в заголовку Authorization. JWT — формат токена. Bearer-токен може бути непрозорим рядком. JWT може використовуватися як Bearer-токен. Це різні концепції на різних рівнях.</div></div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Referring to JWT as an authentication type.</strong><br>JWT is a token format defined in RFC 7519 — a data structure with specific encoding and signing. It is used within authentication schemes and authorization frameworks, but is not itself either.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Називати JWT типом автентифікації.</strong><br>JWT — формат токена, визначений у RFC 7519: структура даних із конкретним кодуванням і підписом. Він використовується в межах схем автентифікації та фреймворків авторизації, але сам по собі не є ні тим, ні іншим.</div></div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Confusing authentication and authorization.</strong><br>Authentication answers "who are you?" — verifying identity. Authorization answers "what are you allowed to do?" — verifying permissions. They are separate steps, have separate failure codes (401 vs 403), and operate at different layers. Authentication must succeed before authorization is checked.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Плутати автентифікацію і авторизацію.</strong><br>Автентифікація відповідає на "хто ти?" — перевірка особи. Авторизація відповідає на "що тобі дозволено?" — перевірка прав. Це окремі кроки з окремими кодами помилок (401 vs 403), що діють на різних рівнях. Автентифікація завжди передує авторизації.</div></div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Saying JWT is encrypted.</strong><br>Standard JWT (JWS) is not encrypted — the payload is base64url-encoded and readable by anyone. The signature provides tamper detection, not confidentiality. JWE is the encrypted variant and has 5 parts instead of 3.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Стверджувати, що JWT зашифрований.</strong><br>Стандартний JWT (JWS) не зашифрований — payload кодується в base64url і читабельний для будь-кого. Підпис забезпечує виявлення підробки, а не конфіденційність. JWE — зашифрований варіант з 5 частинами замість 3.</div></div>
 
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Assuming Basic Auth credentials are protected because they are base64-encoded.</strong><br>Base64 is an encoding scheme, not encryption — it is fully reversible with no key. The only protection in Basic Auth comes from HTTPS encrypting the transport layer.</div></div>
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Вважати, що облікові дані Basic Auth захищені через base64-кодування.</strong><br>Base64 — схема кодування, а не шифрування: повністю зворотна без ключа. Єдиний захист в Basic Auth — шифрування транспортного рівня через HTTPS.</div></div>
 
   <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
 
-  <h3>The correct mental model — three layers</h3>
+  <h3>Правильна ментальна модель — три рівні</h3>
   <div class="grid3">
     <div class="card">
-      <div class="card-title" style="color:var(--blue)">LAYER 1: AUTH METHODS</div>
-      <div class="card-body">How a client proves identity on a request.<br><br><span class="pill pill-blue">Basic Auth</span><span class="pill pill-blue">Digest Auth</span><span class="pill pill-blue">API Key</span><span class="pill pill-blue">Session cookie</span><span class="pill pill-blue">Bearer Token</span></div>
+      <div class="card-title" style="color:var(--blue)">РІВЕНЬ 1: МЕТОДИ AUTHN</div>
+      <div class="card-body">Як клієнт підтверджує особу в запиті.<br><br><span class="pill pill-blue">Basic Auth</span><span class="pill pill-blue">Digest Auth</span><span class="pill pill-blue">API Key</span><span class="pill pill-blue">Session cookie</span><span class="pill pill-blue">Bearer Token</span></div>
     </div>
     <div class="card">
-      <div class="card-title" style="color:var(--green)">LAYER 2: AUTHZ FRAMEWORKS</div>
-      <div class="card-body">Protocols for obtaining limited access to resources on behalf of a resource owner, or on the client's own behalf.<br><br><span class="pill pill-green">OAuth 1.0</span><span class="pill pill-green">OAuth 2.0</span></div>
+      <div class="card-title" style="color:var(--green)">РІВЕНЬ 2: ФРЕЙМВОРКИ AUTHZ</div>
+      <div class="card-body">Протоколи для отримання обмеженого доступу до ресурсів від імені власника або від власного імені клієнта.<br><br><span class="pill pill-green">OAuth 1.0</span><span class="pill pill-green">OAuth 2.0</span></div>
     </div>
     <div class="card">
-      <div class="card-title" style="color:var(--cyan)">LAYER 3: IDENTITY PROTOCOLS</div>
-      <div class="card-body">Protocols that add identity (authentication) on top of or alongside authorization frameworks.<br><br><span class="pill pill-cyan">OIDC</span><span class="pill pill-cyan">SAML</span><span class="pill pill-cyan">SSO (pattern)</span></div>
+      <div class="card-title" style="color:var(--cyan)">РІВЕНЬ 3: ПРОТОКОЛИ ІДЕНТИЧНОСТІ</div>
+      <div class="card-body">Протоколи, що додають ідентичність (автентифікацію) поверх або поряд з фреймворками авторизації.<br><br><span class="pill pill-cyan">OIDC</span><span class="pill pill-cyan">SAML</span><span class="pill pill-cyan">SSO (патерн)</span></div>
     </div>
   </div>
 
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>JWT is a token format</strong> used within Bearer auth and within OAuth 2.0 access tokens. Not an auth method.</div></div>
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>OAuth 2.0 is an authorization framework</strong> — it handles obtaining limited access to resources, not identity. OIDC handles identity.</div></div>
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>SSO is an architectural pattern</strong> — implemented via OIDC or SAML. Not a method or framework itself.</div></div>
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Bearer ≠ JWT</strong> — Bearer is the header scheme. JWT is the token format. A bearer token can be an opaque string.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>JWT — це формат токена</strong>, що використовується в Bearer-автентифікації та в access-токенах OAuth 2.0. Не метод автентифікації.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>OAuth 2.0 — фреймворк авторизації</strong> — обробляє отримання обмеженого доступу до ресурсів, а не ідентичність. Ідентичністю займається OIDC.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>SSO — архітектурний патерн</strong> — реалізується через OIDC або SAML. Сам по собі не є методом чи фреймворком.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Bearer ≠ JWT</strong> — Bearer — схема заголовка. JWT — формат токена. Bearer-токен може бути непрозорим рядком.</div></div>
 </div>
 
 </div><!-- end view-course -->
-
-
-
 </main>
 </div><!-- end layout -->
 
@@ -1121,7 +918,6 @@ function showTab(name, btn) {
   btn.classList.add('active');
 }
 
-// ── SIDEBAR NAV ──
 function goTo(id) {
   const el = document.getElementById(id);
   if(el) el.scrollIntoView({behavior:'smooth'});
@@ -1129,7 +925,6 @@ function goTo(id) {
   event.target.classList.add('active');
 }
 
-// ── INTERSECTION OBSERVER for sidebar highlight ──
 const observer = new IntersectionObserver((entries)=>{
   entries.forEach(e=>{
     if(e.isIntersecting){
@@ -1141,7 +936,6 @@ const observer = new IntersectionObserver((entries)=>{
   });
 },{rootMargin:'-10% 0px -80% 0px'});
 document.querySelectorAll('.section').forEach(s=>observer.observe(s));
-
 </script>
 </body>
 </html>
