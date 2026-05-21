@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔀</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client-Server Traffic Flow — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f0f;--surface:#161616;--surface2:#1e1e1e;--surface3:#252525;
+  --border:#2a2a2a;--border2:#383838;
+  --text:#e8e8e8;--text2:#b8b8b8;--text3:#909090;
+  --cyan:#00d4aa;--cyan-d:rgba(0,212,170,.1);--cyan-b:rgba(0,212,170,.2);
+  --blue:#4a9eff;--blue-d:rgba(74,158,255,.1);--blue-b:rgba(74,158,255,.2);
+  --amber:#f0a500;--amber-d:rgba(240,165,0,.1);--amber-b:rgba(240,165,0,.2);
+  --red:#e05c5c;--red-d:rgba(224,92,92,.1);--red-b:rgba(224,92,92,.2);
+  --green:#3ecf8e;--green-d:rgba(62,207,142,.1);--green-b:rgba(62,207,142,.2);
+  --purple:#9f7aea;--purple-d:rgba(159,122,234,.1);--purple-b:rgba(159,122,234,.2);
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+body.comic{--sans:'Comic Sans MS','Chalkboard SE',cursive;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.7}
+
+.disclaimer{background:var(--surface);border-bottom:1px solid var(--border);padding:7px 20px;font-size:11px;color:var(--text3);line-height:1.5;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.disclaimer strong{color:var(--text2);font-weight:500}
+.disclaimer a{color:var(--cyan);text-decoration:none}
+.disclaimer a:hover{text-decoration:underline}
+
+.topnav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch;scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.logo{font-family:var(--mono);font-size:11px;color:var(--cyan);padding:0 20px;display:flex;align-items:center;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0}
+.tab-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
+.tab-btn:hover{color:var(--text2);border-color:var(--border2)}
+.tab-btn.active{color:var(--cyan);border-color:var(--cyan)}
+.settings-wrap{margin-left:auto;position:relative;display:flex;border-left:1px solid var(--border)}
+.settings-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:14px;cursor:pointer;display:flex;align-items:center;transition:color .15s}
+.settings-btn:hover{color:var(--cyan)}
+.settings-btn.open{color:var(--cyan)}
+.settings-menu{display:none;position:absolute;top:44px;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:4px;min-width:200px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.settings-menu.open{display:block}
+.settings-section{padding:8px 0;border-bottom:1px solid var(--border)}
+.settings-section:last-child{border-bottom:none}
+.settings-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;padding:6px 14px 4px;display:block}
+.settings-opt{display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:12px;color:var(--text2);transition:background .1s}
+.settings-opt:hover{background:var(--surface2)}
+.settings-opt.active{color:var(--cyan)}
+.settings-opt-dot{width:6px;height:6px;border-radius:50%;border:1px solid var(--text3);flex-shrink:0;transition:all .15s}
+.settings-opt.active .settings-opt-dot{background:var(--cyan);border-color:var(--cyan)}
+
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:44px;height:calc(100vh - 44px);overflow-y:auto;padding:16px 0;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sidecat{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;padding:12px 16px 4px;text-transform:uppercase}
+.sidelink{display:block;padding:6px 16px;font-size:12px;color:var(--text3);text-decoration:none;cursor:pointer;transition:all .12s;border-left:2px solid transparent}
+.sidelink:hover{color:var(--text2);background:var(--surface2)}
+.sidelink.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,170,.05)}
+.main{flex:1;min-width:0;padding:32px 48px 80px}
+.view{display:none;max-width:960px}.view.active{display:block}
+
+.section{margin-bottom:56px;scroll-margin-top:60px}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.section-num{font-family:var(--mono);font-size:10px;color:var(--text3)}
+.section-title{font-size:20px;font-weight:500}
+.tag{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;margin-left:auto;letter-spacing:.06em}
+.tag-component{background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-b)}
+.tag-concept{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.tag-testing{background:var(--amber-d);color:var(--amber);border:1px solid var(--amber-b)}
+.tag-network{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}
+
+.intro{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.75}
+.intro strong{color:var(--text)}
+p{color:var(--text2);font-size:13px;margin-bottom:10px;line-height:1.7}
+h3{font-size:14px;font-weight:500;color:var(--text);margin:20px 0 8px}
+h4{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.08em;margin:16px 0 6px}
+ul,ol{padding-left:18px;margin-bottom:10px}
+li{font-size:13px;color:var(--text2);margin-bottom:4px;line-height:1.6}
+strong{color:var(--text);font-weight:500}
+code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--cyan)}
+
+.callout{border-radius:5px;padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.65}
+.callout-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;margin-bottom:5px;font-weight:500}
+.callout p{margin:0;font-size:13px}
+.callout-warn{background:var(--red-d);border-left:3px solid var(--red)}.callout-warn .callout-label{color:var(--red)}
+.callout-note{background:var(--blue-d);border-left:3px solid var(--blue)}.callout-note .callout-label{color:var(--blue)}
+.callout-good{background:var(--green-d);border-left:3px solid var(--green)}.callout-good .callout-label{color:var(--green)}
+.callout-qa{background:var(--amber-d);border-left:3px solid var(--amber)}.callout-qa .callout-label{color:var(--amber)}
+.callout-info{background:var(--cyan-d);border-left:3px solid var(--cyan)}.callout-info .callout-label{color:var(--cyan)}
+
+.flow{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px;overflow-x:auto}
+.flow-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:12px}
+.flow-step{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.flow-step:last-child{border-bottom:none;padding-bottom:0}
+.flow-n{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;margin-top:1px}
+.flow-body{flex:1}
+.flow-actor{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px}
+.flow-desc{font-size:13px;color:var(--text2);line-height:1.55}
+.flow-code{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--surface2);border-radius:3px;padding:4px 8px;display:inline-block;margin-top:4px;line-height:1.6;white-space:pre}
+.flow-note{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+
+.code{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:14px;overflow-x:auto}
+.code-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:10px}
+.code pre{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);white-space:pre}
+.kw{color:var(--cyan)}.str{color:var(--amber)}.cm{color:var(--text3);font-style:italic}.key{color:var(--purple)}.num{color:var(--green)}.val{color:var(--blue)}
+
+.tbl{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
+.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border2)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td:first-child{color:var(--text);font-weight:500}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px}
+.card-title{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em}
+.card-body{font-size:12px;color:var(--text2);line-height:1.6}
+.card-body strong{color:var(--text)}
+
+.mistake{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:5px;background:var(--red-d);border:1px solid var(--red-b);margin-bottom:8px}
+.mistake-x{color:var(--red);font-size:16px;flex-shrink:0;margin-top:1px}
+.mistake-body{font-size:13px;color:var(--text2);line-height:1.55}
+.mistake-body strong{color:var(--text)}
+.correct{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:5px;background:var(--green-d);border:1px solid var(--green-b);margin-bottom:8px}
+.correct-check{color:var(--green);font-size:16px;flex-shrink:0;margin-top:1px}
+.correct-body{font-size:13px;color:var(--text2);line-height:1.55}
+.correct-body strong{color:var(--text)}
+
+.qa-block{background:var(--amber-d);border:1px solid var(--amber-b);border-radius:5px;padding:12px 14px;margin-bottom:10px}
+.qa-q{font-size:12px;font-weight:500;color:var(--amber);margin-bottom:4px;font-family:var(--mono)}
+.qa-a{font-size:12px;color:var(--text2);line-height:1.6}
+
+.sep{border:none;border-top:1px solid var(--border);margin:32px 0}
+.spec-ref{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--text3);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:2px 8px;margin-left:auto;letter-spacing:.06em;transition:all .12s}
+.spec-ref:hover{color:var(--cyan);border-color:var(--cyan)}
+.spec-ref::before{content:'↗';font-size:9px}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;margin:2px 2px 2px 0}
+.pill-cyan{background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-b)}
+.pill-blue{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}
+.pill-red{background:var(--red-d);color:var(--red);border:1px solid var(--red-b)}
+.pill-green{background:var(--green-d);color:var(--green);border:1px solid var(--green-b)}
+.pill-amber{background:var(--amber-d);color:var(--amber);border:1px solid var(--amber-b)}
+.pill-purple{background:var(--purple-d);color:var(--purple);border:1px solid var(--purple-b)}
+.pill-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+
+.lang-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-left:1px solid var(--border);transition:all .15s;text-decoration:none;display:flex;align-items:center}
+.lang-btn:hover{color:var(--cyan)}
+.logo-link{text-decoration:none}
+.dia-wrap{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px 16px 12px;margin-bottom:16px;overflow-x:auto}
+.dia-hint{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:14px}
+.dia-comp{cursor:pointer;transition:opacity .12s}
+.dia-comp:hover{opacity:.82}
+.dia-comp.dia-active rect{stroke-width:1.5!important}
+
+.menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:none;color:var(--text3);font-size:18px;cursor:pointer;border-right:1px solid var(--border);flex-shrink:0;transition:color .15s}
+.menu-toggle:hover{color:var(--cyan)}
+.sidebar-overlay{display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.5)}
+.sidebar-overlay.open{display:block}
+
+@media(max-width:900px){
+  .menu-toggle{display:flex}
+  .sidebar{width:0;overflow:hidden;position:fixed;z-index:100;top:44px;height:calc(100vh - 44px);transition:width .2s}
+  .sidebar.open{width:240px;overflow-y:auto}
+  .main{padding:24px 28px 60px}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .main{padding:16px 14px 60px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .section-head{flex-wrap:wrap;gap:6px}
+  .spec-ref{margin-left:0}
+  .tbl{font-size:11px}
+  .tbl th,.tbl td{padding:6px 7px}
+  .view{max-width:100%}
+  .logo{font-size:10px;padding:0 12px}
+  .tab-btn{padding:0 10px;font-size:10px}
+  .settings-btn{padding:0 10px}
+}
+</style>
+</head>
+<body>
+
+<div class="disclaimer"><strong>Нотатки:</strong> Особисті навчальні нотатки — спрощено для ясності. Не є формальною специфікацією. Завжди перевіряйте поведінку на реальній системі.</div>
+
+<nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Меню">☰</button>
+  <a class="logo logo-link" href="home.html">QA STUDY NOTES</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (за замовчуванням)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+    </div>
+  </div>
+  <a class="lang-btn" href="csa.html" onclick="setCookie('ui_lang','en')">EN</a>
+</nav>
+
+<div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidecat">Архітектура</div>
+  <a class="sidelink" data-sec="s00" onclick="goTo('s00')">00 — Огляд потоку запитів</a>
+  <a class="sidelink" data-sec="s00b" onclick="goTo('s00b')">00b — Мережеві зони</a>
+
+  <div class="sidecat">Компоненти</div>
+  <a class="sidelink" data-sec="s01" onclick="goTo('s01')">01 — Зворотній проксі</a>
+  <a class="sidelink" data-sec="s02" onclick="goTo('s02')">02 — Балансувальник навантаження</a>
+  <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — API-шлюз</a>
+  <a class="sidelink" data-sec="s04" onclick="goTo('s04')">04 — Мікросервіси</a>
+
+  <div class="sidecat">QA та тестування</div>
+  <a class="sidelink" data-sec="s05" onclick="goTo('s05')">05 — Тестування кожного шару</a>
+  <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — Типові помилки</a>
+</nav>
+
+<main class="main">
+<div id="view-course" class="view active">
+
+<!-- ── 00 ── -->
+<div class="section" id="s00">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <span class="section-title">Огляд потоку запитів</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+
+  <div class="intro">
+    Запит клієнта не потрапляє напряму до мікросервісу. Він проходить через ланцюжок інфраструктурних компонентів, кожен із яких вирішує конкретну задачу і передає обробку наступному. <strong>Порядок має значення</strong> — кожен компонент покладається на те, що попередній вже зробив свою роботу. Натисніть на будь-який компонент діаграми, щоб перейти до відповідного розділу.
+  </div>
+
+  <div class="dia-wrap">
+    <div class="dia-hint">ПОТІК ЗАПИТУ — НАТИСНІТЬ НА БУДЬ-ЯКИЙ КОМПОНЕНТ</div>
+    <svg width="100%" viewBox="0 0 700 415" role="img" aria-label="Потік запиту: Клієнт → Зворотній проксі → Балансувальник навантаження → API-шлюз → Мікросервіси">
+
+      <g class="dia-comp" onclick="diaClick('s00',this)">
+        <rect x="240" y="18" width="220" height="38" rx="4"
+          fill="var(--surface2)" stroke="var(--border2)" stroke-width="1"/>
+        <text x="350" y="37" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--text)">Клієнт</text>
+      </g>
+      <text x="350" y="27" text-anchor="middle"
+        font-family="'IBM Plex Mono',monospace" font-size="9" fill="var(--text3)">браузер / мобільний застосунок</text>
+
+      <line x1="350" y1="56" x2="350" y2="86" stroke="var(--border2)" stroke-width="1" marker-end="url(#da)"/>
+      <text x="480" y="73" text-anchor="start" dominant-baseline="central"
+        font-family="'IBM Plex Mono',monospace" font-size="10" fill="var(--text3)">HTTPS</text>
+
+      <g class="dia-comp" onclick="diaClick('s01',this)">
+        <rect x="240" y="88" width="220" height="52" rx="4"
+          fill="var(--purple-d)" stroke="var(--purple-b)" stroke-width="1"/>
+        <text x="350" y="108" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--purple)">Зворотній проксі</text>
+        <text x="350" y="128" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="10" fill="var(--text3)">завершення TLS · кешування</text>
+      </g>
+
+      <line x1="350" y1="140" x2="350" y2="170" stroke="var(--border2)" stroke-width="1" marker-end="url(#da)"/>
+      <text x="480" y="157" text-anchor="start" dominant-baseline="central"
+        font-family="'IBM Plex Mono',monospace" font-size="10" fill="var(--text3)">чистий HTTP</text>
+
+      <g class="dia-comp" onclick="diaClick('s02',this)">
+        <rect x="240" y="172" width="220" height="52" rx="4"
+          fill="var(--blue-d)" stroke="var(--blue-b)" stroke-width="1"/>
+        <text x="350" y="192" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--blue)">Балансувальник</text>
+        <text x="350" y="212" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="10" fill="var(--text3)">розподіл · перевірка стану</text>
+      </g>
+
+      <line x1="350" y1="224" x2="350" y2="254" stroke="var(--border2)" stroke-width="1" marker-end="url(#da)"/>
+      <text x="480" y="241" text-anchor="start" dominant-baseline="central"
+        font-family="'IBM Plex Mono',monospace" font-size="10" fill="var(--text3)">маршрутизований запит</text>
+
+      <g class="dia-comp" onclick="diaClick('s03',this)">
+        <rect x="240" y="256" width="220" height="52" rx="4"
+          fill="var(--amber-d)" stroke="var(--amber-b)" stroke-width="1"/>
+        <text x="350" y="276" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--amber)">API-шлюз</text>
+        <text x="350" y="296" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="10" fill="var(--text3)">автентиф. · ліміти · маршрути</text>
+      </g>
+
+      <line x1="350" y1="308" x2="200" y2="343" stroke="var(--border2)" stroke-width="1" marker-end="url(#da)"/>
+      <line x1="350" y1="308" x2="350" y2="343" stroke="var(--border2)" stroke-width="1" marker-end="url(#da)"/>
+      <line x1="350" y1="308" x2="500" y2="343" stroke="var(--border2)" stroke-width="1" marker-end="url(#da)"/>
+
+      <g class="dia-comp" onclick="diaClick('s04',this)">
+        <rect x="130" y="345" width="140" height="38" rx="4"
+          fill="var(--cyan-d)" stroke="var(--cyan-b)" stroke-width="1"/>
+        <text x="200" y="364" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--cyan)">Автентиф.</text>
+      </g>
+      <g class="dia-comp" onclick="diaClick('s04',this)">
+        <rect x="280" y="345" width="140" height="38" rx="4"
+          fill="var(--cyan-d)" stroke="var(--cyan-b)" stroke-width="1"/>
+        <text x="350" y="364" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--cyan)">Замовлення</text>
+      </g>
+      <g class="dia-comp" onclick="diaClick('s04',this)">
+        <rect x="430" y="345" width="140" height="38" rx="4"
+          fill="var(--cyan-d)" stroke="var(--cyan-b)" stroke-width="1"/>
+        <text x="500" y="364" text-anchor="middle" dominant-baseline="central"
+          font-family="'IBM Plex Mono',monospace" font-size="12" font-weight="500" fill="var(--cyan)">Платежі</text>
+      </g>
+
+      <defs>
+        <marker id="da" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="var(--border2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="callout callout-note">
+    <div class="callout-label">ЧОМУ САМЕ ТАКИЙ ПОРЯДОК — ГОЛОВНЕ ПРАВИЛО</div>
+    <p>Кожен компонент вирішує свою задачу <strong>до</strong> передачі наступному. Зворотній проксі відповідає за транспорт (TLS, стискання). Балансувальник — за доступність (розподіл). API-шлюз — за політики API (автентифікація, ліміти). Мікросервіси — за бізнес-логіку. Зміна місцями будь-яких двох компонентів руйнує цей поділ відповідальності.</p>
+  </div>
+
+  <h3>Три зони</h3>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title" style="color:var(--text3)">ПУБЛІЧНА ЗОНА</div>
+      <div class="card-body">Відкритий інтернет. Клієнт знаходиться тут. Тільки зворотній проксі має публічну IP-адресу — решта інфраструктури для клієнта невидима.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">МЕЖОВА ЗОНА / DMZ</div>
+      <div class="card-body">Напів-довірена зона. Зворотній проксі та балансувальник. Приймає зовнішній трафік, завершує TLS, розподіляє до внутрішніх компонентів.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--cyan)">ВНУТРІШНЯ МЕРЕЖА</div>
+      <div class="card-body">Довірена зона. API-шлюз і мікросервіси. Трафік вже розшифрований і розподілений. Прямий публічний доступ неможливий.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 00b ── -->
+<div class="section" id="s00b">
+  <div class="section-head">
+    <span class="section-num">00b</span>
+    <span class="section-title">Мережеві зони</span>
+    <span class="tag tag-network">МЕРЕЖА</span>
+  </div>
+
+  <div class="intro">
+    Інфраструктура поділена на зони з різними рівнями довіри. Розуміння того, <strong>що де знаходиться і чому</strong>, є ключовим для визначення зони ураження у разі порушення безпеки, а також для розуміння, що тестувати на кожній межі.
+  </div>
+
+  <table class="tbl">
+    <tr><th>Зона</th><th>Компоненти</th><th>Рівень довіри</th><th>Прямий доступ з інтернету?</th></tr>
+    <tr><td>Публічний інтернет</td><td>Клієнт (браузер / застосунок)</td><td>Ненадійний — вважати ворожим</td><td>Так — це і є інтернет</td></tr>
+    <tr><td>Межова зона / DMZ</td><td>Зворотній проксі, CDN, WAF, балансувальник</td><td>Напів-довірений — отримує публічний трафік</td><td>Тільки вхідний (публічна IP тут)</td></tr>
+    <tr><td>Прикладний шар</td><td>API-шлюз</td><td>Довірений — трафік вже відфільтровано на межі</td><td>Ні — доступний тільки з балансувальника</td></tr>
+    <tr><td>Внутрішня мережа</td><td>Мікросервіси, бази даних, черги повідомлень</td><td>Довірений — захищений шлюзом</td><td>Ні — не маршрутизується з інтернету</td></tr>
+  </table>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">ТЕСТ МЕЖІ БЕЗПЕКИ — ЗАВЖДИ ВИКОНУВАТИ</div>
+    <p>Спробуйте підключитися до IP-адреси та порту внутрішнього сервісу безпосередньо ззовні VPC або приватної мережі. Очікуваний результат — тайм-аут або відмова у з'єднанні, <strong>але не</strong> відповідь 200 або 401. Якщо відповідь повертається — мережевий периметр налаштований неправильно. Це критична знахідка при будь-якому тестуванні безпеки.</p>
+  </div>
+
+  <h3>Що перетинає кожну межу</h3>
+  <table class="tbl">
+    <tr><th>Межа</th><th>Протокол</th><th>Що змінюється</th></tr>
+    <tr><td>Клієнт → Зворотній проксі</td><td>HTTPS (з шифруванням TLS)</td><td>TLS завершується тут. Запит стає чистим HTTP всередині.</td></tr>
+    <tr><td>Зворотній проксі → Балансувальник</td><td>HTTP</td><td>IP клієнта переноситься до заголовка X-Forwarded-For. Запит нормалізується.</td></tr>
+    <tr><td>Балансувальник → API-шлюз</td><td>HTTP</td><td>Розподіляється до одного з N екземплярів шлюзу.</td></tr>
+    <tr><td>API-шлюз → Мікросервіс</td><td>HTTP / gRPC</td><td>Автентифікацію перевірено. Ліміт запитів перевірено. Маршрут визначено до конкретного сервісу.</td></tr>
+    <tr><td>Сервіс → Сервіс</td><td>HTTP / gRPC / AMQP</td><td>Внутрішній виклик — обходить шлюз повністю. Довіра вважається встановленою.</td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<!-- ── 01 ── -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Зворотній проксі</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <div class="intro">
+    <strong>Перший серверний компонент</strong>, до якого потрапляє запит клієнта. Стоїть перед усією інфраструктурою. Головне завдання: завершити TLS-з'єднання, нормалізувати запит і передати чистий HTTP всередину. Клієнти спілкуються тільки зі зворотнім проксі — вони ніколи не бачать внутрішні IP бекенду.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">ЧОМУ ДО БАЛАНСУВАЛЬНИКА</div>
+    <p>Завершення TLS централізоване тут — всі наступні компоненти працюють з уже розшифрованим HTTP. Якби TLS завершувався після балансувальника, кожен його екземпляр потребував би власного сертифіката, що подвоює операційну складність. Один сертифікат тут — і решта стає простішою.</p>
+  </div>
+
+  <h3>Основні функції</h3>
+  <table class="tbl">
+    <tr><th>Функція</th><th>Що робить</th><th>Що перевіряти QA</th></tr>
+    <tr><td>Завершення TLS/SSL</td><td>Розшифровує HTTPS. Далі йде чистий HTTP.</td><td>Дійсність та термін дії сертифіката. Підтвердити відхилення TLS 1.0/1.1.</td></tr>
+    <tr><td>Редирект HTTP → HTTPS</td><td>301 або 302 для запитів по HTTP.</td><td>Перевірити кожен HTTP-ендпоінт. Редирект не має бути відкритим.</td></tr>
+    <tr><td>Роздача статичних файлів</td><td>Повертає HTML, CSS, зображення напряму — без звернення до бекенду.</td><td>Заголовки кешування: Cache-Control, ETag, Last-Modified присутні та коректні.</td></tr>
+    <tr><td>Стискання відповіді</td><td>Gzip або Brotli для тіла відповіді.</td><td>Заголовок Content-Encoding присутній. Розмір менший за нестиснений еталон.</td></tr>
+    <tr><td>Маскування IP</td><td>Замінює IP клієнта на заголовок X-Forwarded-For далі по ланцюгу.</td><td>Перевірити, що X-Forwarded-For містить реальний IP клієнта, а не IP проксі.</td></tr>
+    <tr><td>Заголовки безпеки</td><td>Додає HSTS, X-Frame-Options, CSP тощо у відповідь.</td><td>Перевірити наявність заголовків у всіх відповідях. Перевірити значення max-age для HSTS.</td></tr>
+  </table>
+
+  <h3>Покроковий потік</h3>
+  <div class="flow">
+    <div class="flow-label">ПОТІК ЧЕРЕЗ ЗВОРОТНІЙ ПРОКСІ</div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
+      <div class="flow-body">
+        <div class="flow-actor">КЛІЄНТ → ЗВОРОТНІЙ ПРОКСІ</div>
+        <div class="flow-desc">Клієнт надсилає HTTPS-запит. Встановлюється TCP-з'єднання; TLS-рукостискання відбувається на проксі.</div>
+        <div class="flow-code">GET /api/orders HTTP/1.1
+Host: api.example.com  (транспорт зашифровано TLS)</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--purple-d);color:var(--purple)">2</div>
+      <div class="flow-body">
+        <div class="flow-actor">ЗВОРОТНІЙ ПРОКСІ (внутрішньо)</div>
+        <div class="flow-desc">Розшифровує запит. Повертає з кешу, якщо є. Інакше — додає X-Forwarded-For з IP клієнта і передає як чистий HTTP.</div>
+        <div class="flow-code">X-Forwarded-For: 203.0.113.42
+X-Real-IP: 203.0.113.42</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div>
+      <div class="flow-body">
+        <div class="flow-actor">ЗВОРОТНІЙ ПРОКСІ → БАЛАНСУВАЛЬНИК</div>
+        <div class="flow-desc">Передає розшифрований запит у внутрішню мережу. Бекенд ніколи не бачить оригінальну TLS-сесію.</div>
+        <div class="flow-note">IP балансувальника — приватний, не маршрутизується з інтернету.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--green-d);color:var(--green)">4</div>
+      <div class="flow-body">
+        <div class="flow-actor">ЗВОРОТНІЙ ПРОКСІ → КЛІЄНТ (відповідь)</div>
+        <div class="flow-desc">Отримує відповідь від бекенду, додає заголовки безпеки, за потреби стискає, повертає клієнту через TLS-з'єднання.</div>
+        <div class="flow-code">Strict-Transport-Security: max-age=31536000; includeSubDomains
+Content-Encoding: gzip</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Поширені реалізації</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">ПРИКЛАДИ</div>
+      <div class="card-body">
+        <span class="pill pill-gray">Nginx</span>
+        <span class="pill pill-gray">Traefik</span>
+        <span class="pill pill-gray">HAProxy</span>
+        <span class="pill pill-gray">Caddy</span>
+        <span class="pill pill-gray">Apache httpd</span>
+        <span class="pill pill-gray">AWS CloudFront</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">ВАЖЛИВО — ПЕРЕТИН З БАЛАНСУВАЛЬНИКОМ</div>
+      <div class="card-body">Nginx може одночасно бути і зворотнім проксі, і балансувальником. У хмарних середовищах (AWS ALB, GCP HTTPS LB) обидві ролі об'єднано в один керований сервіс. <strong>Логічне розмежування залишається</strong> — вони вирішують різні задачі, навіть якщо один процес реалізує обидві.</div>
+    </div>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">КУТИ ТЕСТУВАННЯ QA — ЗВОРОТНІЙ ПРОКСІ</div>
+    <div class="qa-a">
+      ① Редирект HTTP → HTTPS: надіслати чистий HTTP-запит → очікується 301 або 302 на https://. Перевірити, що Location у редиректі не є відкритим редиректом.<br>
+      ② TLS-сертифікат: перевірити дійсність, що не прострочений, відповідає домену (включно з піддоменами для wildcard). Автоматизувати перевірку терміну дії в моніторингу.<br>
+      ③ Відхилення старих версій TLS: спробувати TLS 1.0 / 1.1 рукостискання → очікується відмова у з'єднанні. Ручна перевірка: <code>openssl s_client -tls1 -connect host:443</code><br>
+      ④ X-Forwarded-For: перевірити, що заголовок доходить до прикладного шару з реальним IP клієнта, а не IP проксі.<br>
+      ⑤ Заголовки безпеки відповіді: HSTS, X-Frame-Options, Content-Security-Policy, X-Content-Type-Options — наявність та коректні значення у всіх відповідях.<br>
+      ⑥ Стискання: запит з <code>Accept-Encoding: gzip</code> → відповідь має містити <code>Content-Encoding: gzip</code> і стиснуте тіло.
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 02 ── -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Балансувальник навантаження</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <div class="intro">
+    Отримує вже розшифрований HTTP-трафік від зворотнього проксі. Розподіляє запити між <strong>кількома запущеними екземплярами</strong> наступного компонента (кластер API-шлюзу). Постійно перевіряє стан екземплярів і автоматично виключає непрацездатні з ротації.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">ЧОМУ ДО API-ШЛЮЗУ</div>
+    <p>API-шлюз — stateless-сервіс, який може і повинен працювати як кілька екземплярів. Балансувальник це забезпечує: розподіляє трафік по кластеру шлюзів, тому якщо один екземпляр впаде, трафік перенаправляється в межах одного інтервалу health check. Без балансувальника єдиний екземпляр шлюзу є єдиною точкою відмови.</p>
+  </div>
+
+  <h3>Рівень 4 проти рівня 7</h3>
+  <table class="tbl">
+    <tr><th>Тип</th><th>Працює на рівні</th><th>Рішення про маршрутизацію</th><th>Може аналізувати HTTP?</th></tr>
+    <tr><td>Балансувальник L4</td><td>TCP / UDP (транспортний рівень)</td><td>Тільки IP-адреса та порт</td><td>Ні — трафік непрозорий</td></tr>
+    <tr><td>Балансувальник L7</td><td>HTTP (прикладний рівень)</td><td>URL-шлях, заголовки, cookies, content-type</td><td>Так — повна видимість запиту</td></tr>
+  </table>
+
+  <p>В архітектурах мікросервісів стандартом є <strong>балансувальник L7</strong>. Він може маршрутизувати <code>/api/orders/*</code> до кластеру замовлень, а <code>/api/payments/*</code> до кластеру платежів — але на практиці ця маршрутизація за шляхом зазвичай виконується API-шлюзом, що стоїть за ним.</p>
+
+  <h3>Алгоритми розподілу</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">КРУГОВА ЧЕРГА (ROUND-ROBIN)</div>
+      <div class="card-body">Запити розподіляються послідовно: Екземпляр 1, 2, 3, 1… Простий, не потребує стану. За замовчуванням для більшості балансувальників. <strong>Слабкість:</strong> ігнорує поточне навантаження — повільний екземпляр отримує стільки ж запитів, як і швидкий.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">МІНІМУМ З'ЄДНАНЬ</div>
+      <div class="card-body">Наступний запит іде до екземпляра з найменшою кількістю відкритих з'єднань. Краще за кругову чергу для запитів різної тривалості. <strong>Вимагає</strong> відстеження кількості з'єднань балансувальником.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">ХЕШ ЗА IP</div>
+      <div class="card-body">IP клієнта хешується для визначення, який екземпляр обробляє всі запити від цього клієнта — sticky-сесії без cookies. <strong>Ризик:</strong> один популярний IP (напр., за NAT) може перевантажити один екземпляр.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">КРУГОВА З ВАГАМИ</div>
+      <div class="card-body">Екземплярам призначаються ваги (напр., 4-ядерний отримує вагу 4, 2-ядерний — 2). Пропорційний розподіл. Використовується для поступового переключення трафіку при деплоях (canary / blue-green).</div>
+    </div>
+  </div>
+
+  <h3>Перевірка стану (Health checks)</h3>
+  <div class="flow">
+    <div class="flow-label">ЦИКЛ ПЕРЕВІРКИ СТАНУ</div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
+      <div class="flow-body">
+        <div class="flow-actor">БАЛАНСУВАЛЬНИК → ЕКЗЕМПЛЯР (періодично)</div>
+        <div class="flow-desc">Балансувальник надсилає HTTP GET на спеціальний ендпоінт кожного екземпляра з налаштованим інтервалом (наприклад, кожні 5 секунд).</div>
+        <div class="flow-code">GET /health HTTP/1.1  →  200 OK {"status":"healthy"}</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2а</div>
+      <div class="flow-body">
+        <div class="flow-actor">ЕКЗЕМПЛЯР НЕ ПРОЙШОВ ПЕРЕВІРКУ</div>
+        <div class="flow-desc">Після N послідовних невдач (напр., 2–3) балансувальник позначає екземпляр непрацездатним і виключає з ротації. Нові запити туди не надходять.</div>
+        <div class="flow-note">Запити, що вже виконуються, можуть бути оброблені залежно від налаштувань drain.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--green-d);color:var(--green)">2б</div>
+      <div class="flow-body">
+        <div class="flow-actor">ЕКЗЕМПЛЯР ВІДНОВИВСЯ</div>
+        <div class="flow-desc">Після N послідовних успішних перевірок балансувальник повертає екземпляр до пулу.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">КУТИ ТЕСТУВАННЯ QA — БАЛАНСУВАЛЬНИК</div>
+    <div class="qa-a">
+      ① Розподіл трафіку: надіслати ~50 запитів і перевірити логи доступу по екземплярах — трафік має бути розподілений (при round-robin — приблизно рівномірно).<br>
+      ② Ендпоінт перевірки стану: GET /health → 200 з коректним тілом. Протестувати поведінку при недоступній залежності (БД) — чи відображає /health цей стан?<br>
+      ③ Перемикання при відмові: зупинити один екземпляр під час трафіку → переконатися, що запити продовжуються без помилок 5xx. Виміряти час від відмови до перемаршрутизації.<br>
+      ④ Sticky-сесії: якщо налаштовано IP hash або cookie, перевірити, що той самий клієнт стабільно потрапляє на той самий екземпляр.<br>
+      ⑤ X-Forwarded-For: підтвердити наявність заголовка з реальним IP клієнта (не перезаписаний IP балансувальника).
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 03 ── -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">API-шлюз</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <div class="intro">
+    <strong>Єдина примусова точка входу</strong> для всього API-трафіку мікросервісів. Отримує запити від балансувальника і застосовує набір політик — автентифікація, ліміти запитів, маршрутизація — до того, як запит потрапить до мікросервісу. Сервіси за шлюзом довіряють, що ці політики вже застосовані.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">ЧОМУ ДО МІКРОСЕРВІСІВ</div>
+    <p>Без шлюзу кожен мікросервіс мусить самостійно реалізовувати автентифікацію, ліміти запитів і логування — продубльована логіка в десятках сервісів, кожен зі своїми неузгодженостями. Шлюз централізує всі наскрізні задачі в одному місці. Відхилений запит (прострочений токен, перевищений ліміт) зупиняється тут і ніколи не навантажує бекенд.</p>
+  </div>
+
+  <h3>Основні функції</h3>
+  <table class="tbl">
+    <tr><th>Функція</th><th>Що перевіряє</th><th>Відповідь при помилці</th></tr>
+    <tr><td>Автентифікація</td><td>Перевіряє токен (підпис JWT + термін дії, OAuth2 introspection, пошук API-ключа). Визначає ідентичність.</td><td>401 Unauthorized</td></tr>
+    <tr><td>Авторизація</td><td>Перевіряє ролі/скоупи клієнта для запитуваного маршруту.</td><td>403 Forbidden</td></tr>
+    <tr><td>Ліміти запитів</td><td>Рахує запити від клієнта/IP у часовому вікні. Блокує надмірний трафік.</td><td>429 Too Many Requests + заголовок Retry-After</td></tr>
+    <tr><td>Маршрутизація запитів</td><td>Зіставляє вхідний шлях і метод з відповідним мікросервісом.</td><td>404 або 502</td></tr>
+    <tr><td>Трансформація запиту</td><td>Перезаписує заголовки, шлях, query-параметри перед передачею. Може вставляти user ID з токена в заголовок.</td><td>—</td></tr>
+    <tr><td>Логування та трасування</td><td>Кожен запит логується централізовано. Correlation ID вставляється для розподіленого трасування.</td><td>—</td></tr>
+  </table>
+
+  <h3>Потік запиту через шлюз</h3>
+  <div class="flow">
+    <div class="flow-label">КОНВЕЄР ПОЛІТИК API-ШЛЮЗУ</div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
+      <div class="flow-body">
+        <div class="flow-actor">БАЛАНСУВАЛЬНИК → ЕКЗЕМПЛЯР ШЛЮЗУ</div>
+        <div class="flow-desc">Запит надходить на шлюз. Заголовок авторизації витягується.</div>
+        <div class="flow-code">GET /api/orders/123
+Authorization: Bearer eyJhbGci...</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div>
+      <div class="flow-body">
+        <div class="flow-actor">ШЛЮЗ — ПЕРЕВІРКА ТОКЕНА</div>
+        <div class="flow-desc">Підпис токена верифікується за публічним ключем (JWT RS256) або HMAC-секретом. Перевіряється термін дії (поле exp). Якщо недійсний або прострочений → зупинка.</div>
+        <div class="flow-code">→ 401  { "error": "token_expired" }</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div>
+      <div class="flow-body">
+        <div class="flow-actor">ШЛЮЗ — ПЕРЕВІРКА ЛІМІТУ</div>
+        <div class="flow-desc">Перевіряється лічильник запитів для цього клієнта в поточному вікні (напр., 100 зап/хв). Лічильник збільшується. Якщо перевищено → зупинка.</div>
+        <div class="flow-code">→ 429  Retry-After: 47</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div>
+      <div class="flow-body">
+        <div class="flow-actor">ШЛЮЗ — МАРШРУТИЗАЦІЯ</div>
+        <div class="flow-desc">Шлях зіставляється з таблицею маршрутів. User ID з токена вставляється в заголовок для сервісу.</div>
+        <div class="flow-code">/api/orders/* → orders-service:8080
+X-User-Id: user_abc123  (вставлено з токена)</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div>
+      <div class="flow-body">
+        <div class="flow-actor">ШЛЮЗ → МІКРОСЕРВІС</div>
+        <div class="flow-desc">Перевірений, відфільтрований за лімітами, маршрутизований запит передається потрібному сервісу.</div>
+        <div class="flow-note">Мікросервіс довіряє, що всі запити, які до нього надходять, вже автентифіковано.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Порівняння: без шлюзу і зі шлюзом</h3>
+  <table class="tbl">
+    <tr><th>Задача</th><th>Без API-шлюзу</th><th>З API-шлюзом</th></tr>
+    <tr><td>Автентифікація</td><td>Кожен сервіс реалізує власну перевірку токена</td><td>Перевіряється один раз на шлюзі; сервіси отримують верифіковану ідентичність</td></tr>
+    <tr><td>Ліміти запитів</td><td>Кожен сервіс веде власні лічильники або незахищений</td><td>Єдиний лічильник на клієнта для всіх сервісів</td></tr>
+    <tr><td>Маршрутизація</td><td>Клієнт знає URL кожного сервісу окремо</td><td>Клієнт знає один URL; маршрутизація — деталь реалізації</td></tr>
+    <tr><td>Логування</td><td>Розрізнене по сервісах</td><td>Централізований лог запитів із correlation ID</td></tr>
+    <tr><td>Поверхня атаки</td><td>Кожен сервіс — потенційна точка входу</td><td>Одна захищена точка входу; сервіси приховані від інтернету</td></tr>
+  </table>
+
+  <h3>Поширені реалізації</h3>
+  <p><span class="pill pill-amber">Kong</span><span class="pill pill-amber">AWS API Gateway</span><span class="pill pill-amber">Netflix Zuul</span><span class="pill pill-amber">Apigee</span><span class="pill pill-amber">Nginx (API mode)</span><span class="pill pill-amber">Traefik</span><span class="pill pill-amber">Azure API Management</span></p>
+
+  <div class="qa-block">
+    <div class="qa-q">КУТИ ТЕСТУВАННЯ QA — API-ШЛЮЗ</div>
+    <div class="qa-a">
+      ① Відсутній токен → 401. Прострочений токен → 401. Пошкоджений токен (змінений payload) → 401.<br>
+      ② Дійсний токен, але недостатня роль/скоуп для маршруту → 403. Дійсний токен, правильна роль → 200.<br>
+      ③ Ліміт запитів: швидко надіслати N+1 запитів → (N+1)-й запит повертає 429 із заголовком Retry-After. Перевірити коректне скидання вікна після налаштованого інтервалу.<br>
+      ④ Правильна маршрутизація: GET /api/orders/* потрапляє до сервісу замовлень. GET /api/payments/* — до сервісу платежів. POST і GET на один шлях маршрутизуються незалежно.<br>
+      ⑤ Вставка токена: перевірити, що заголовок X-User-Id, вставлений шлюзом, містить правильне значення із поля sub токена.<br>
+      ⑥ Версіонування API: якщо реалізовано, /v1/ і /v2/ маршрутизуються до правильних версій сервісів незалежно.<br>
+      ⑦ Затримка шлюзу: виміряти p95/p99 часу відповіді — шлюз додає оверхед. Встановити базовий показник і сповіщати при деградації.
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 04 ── -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Мікросервіси</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <div class="intro">
+    Окремі сервіси, кожен з яких відповідає за свою <strong>бізнес-домен</strong>. Реалізують бізнес-логіку, читають і пишуть до власних виділених баз даних, спілкуються з іншими сервісами через внутрішні виклики. Прямий доступ з публічного інтернету неможливий — весь зовнішній трафік надходить через API-шлюз, де вже пройшов перевірку.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">ЧОМУ ЗА ШЛЮЗОМ</div>
+    <p>Сервіси реалізують чисту доменну логіку. Вони довіряють, що запити, які до них надходять, вже автентифіковані шлюзом. Такий поділ спрощує сервіси — їм не потрібно реалізовувати логіку безпекового периметру. <strong>Виклики між сервісами</strong> обходять шлюз повністю і йдуть напряму через внутрішню мережу — це правильно, оскільки такі виклики відбуваються в довіреному контексті.</p>
+  </div>
+
+  <h3>Ізоляція домену</h3>
+  <p>Кожен мікросервіс повністю «володіє» своїм доменом — включно з власною базою даних. Сервіс замовлень не має прямого доступу до бази платежів і навпаки. Дані передаються через API-виклики або події, а не через спільну базу. Ця ізоляція обмежує зону ураження: помилка в замовленнях не може пошкодити дані платежів.</p>
+
+  <table class="tbl">
+    <tr><th>Сервіс</th><th>Відповідає за</th><th>Спілкується через</th></tr>
+    <tr><td>Сервіс автентифікації</td><td>Облікові дані, токени, сесії</td><td>Викликається шлюзом для перевірки токенів; видає токени при логіні</td></tr>
+    <tr><td>Сервіс замовлень</td><td>Записи замовлень, статус замовлення</td><td>REST API; публікує події OrderCreated у чергу</td></tr>
+    <tr><td>Сервіс платежів</td><td>Записи платежів, стан транзакцій</td><td>REST API; підписується на події OrderCreated</td></tr>
+    <tr><td>Сервіс сповіщень</td><td>Шаблони сповіщень, стан доставки</td><td>Підписується на події від замовлень і платежів</td></tr>
+  </table>
+
+  <h3>Патерни внутрішньої комунікації</h3>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">СИНХРОННИЙ — REST</div>
+      <div class="card-body">Сервіс A викликає HTTP-ендпоінт сервісу B і чекає відповіді. Простий і зрозумілий. <strong>Зв'язаність:</strong> якщо сервіс B недоступний, запит сервісу A одразу відмовляє.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--purple)">СИНХРОННИЙ — gRPC</div>
+      <div class="card-body">Бінарний протокол поверх HTTP/2. Швидший за REST для внутрішніх викликів. Використовує Protocol Buffers для визначення схем. Поширений для високонавантажених міжсервісних викликів.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--green)">АСИНХРОННИЙ — ЧЕРГА ПОВІДОМЛЕНЬ</div>
+      <div class="card-body">Сервіс A публікує подію (Kafka, RabbitMQ). Сервіс B споживає, коли готовий. <strong>Розв'язаність:</strong> сервіс A не чекає; тимчасова недоступність B не призводить до втрати даних.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-note">
+    <div class="callout-label">ПАТЕРН «АВТОМАТИЧНИЙ ВИМИКАЧ» (CIRCUIT BREAKER)</div>
+    <p>Коли сервіс A залежить від сервісу B через REST, автоматичний вимикач відстежує частоту відмов. Якщо B відмовляє повторно, вимикач «відкривається» і A одразу повертає fallback-відповідь замість очікування тайм-ауту. Це запобігає каскадним відмовам по всій системі. <strong>Для QA:</strong> симулювати недоступність B і перевірити, що A повертає налаштований fallback, а не тайм-аут на 500.</p>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">КУТИ ТЕСТУВАННЯ QA — МІКРОСЕРВІСИ</div>
+    <div class="qa-a">
+      ① Мережева ізоляція: спробувати TCP-з'єднання до внутрішнього порту сервісу ззовні VPC/приватної мережі → тайм-аут або відмова у з'єднанні, не HTTP-відповідь.<br>
+      ② Інтеграційні тести: сервіс A викликає сервіс B → перевірити коректну відповідь, коректну обробку помилок при 4xx або 5xx від B.<br>
+      ③ Автоматичний вимикач: зупинити сервіс B під час запитів, що залежать від нього → перевірити, що A повертає налаштований fallback у межах тайм-ауту відкритого вимикача, а не каскад помилок 500.<br>
+      ④ Consumer-driven contract тести (Pact): очікування сервісу A щодо API сервісу B закодовані як контракт. Запустити контракт проти B незалежно. Виявляє зламні зміни API до інтеграції.<br>
+      ⑤ Ізоляція бази даних: перевірити, що сервіс A не може запитувати базу даних сервісу B напряму (тільки через API B).<br>
+      ⑥ Асинхронний потік: опублікувати подію в чергу → перевірити, що споживаючий сервіс її обробляє та виробляє очікуваний побічний ефект (у межах SLA за часом).
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 05 ── -->
+<div class="section" id="s05">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <span class="section-title">Тестування кожного шару</span>
+    <span class="tag tag-testing">ТЕСТУВАННЯ</span>
+  </div>
+
+  <div class="intro">
+    Кожен шар інфраструктури має власні режими відмов. Комплексне тестування охоплює всі чотири шари незалежно — <strong>не лише happy path через весь стек</strong>. Таблиця нижче відображає шари до конкретних сценаріїв і очікуваних результатів.
+  </div>
+
+  <h3>Матриця тестів по шарах</h3>
+  <table class="tbl">
+    <tr><th>Шар</th><th>Сценарій</th><th>Очікуваний результат</th><th>Як тестувати</th></tr>
+    <tr><td>Зворотній проксі</td><td>HTTP-запит на порт 80</td><td>301 редирект на HTTPS</td><td>curl -v http://api.example.com</td></tr>
+    <tr><td>Зворотній проксі</td><td>Рукостискання TLS 1.0</td><td>Відмова у з'єднанні або alert</td><td>openssl s_client -tls1 -connect host:443</td></tr>
+    <tr><td>Зворотній проксі</td><td>Термін дії сертифіката</td><td>Залишилося щонайменше 14 днів</td><td>echo | openssl s_client -connect host:443 2>/dev/null | openssl x509 -noout -dates</td></tr>
+    <tr><td>Зворотній проксі</td><td>Запит статичного ресурсу</td><td>Заголовок Cache-Control, 304 при повторному запиті</td><td>Два послідовних GET для одного статичного файлу</td></tr>
+    <tr><td>Балансувальник</td><td>50 запитів, аналіз логів</td><td>Трафік розподілений між екземплярами</td><td>Цикл curl; grep ID екземпляра з заголовків або логів доступу</td></tr>
+    <tr><td>Балансувальник</td><td>Зупинити один екземпляр</td><td>Трафік перемаршрутизується в межах health check інтервалу; без помилок 5xx</td><td>Зупинити екземпляр; моніторити частоту помилок</td></tr>
+    <tr><td>Балансувальник</td><td>GET /health на кожному екземплярі</td><td>200 з коректним тілом</td><td>Прямий HTTP-виклик до екземпляра (з внутрішньої мережі)</td></tr>
+    <tr><td>API-шлюз</td><td>Запит без токена</td><td>401 Unauthorized</td><td>curl без заголовка Authorization</td></tr>
+    <tr><td>API-шлюз</td><td>Запит з простроченим токеном</td><td>401 з причиною помилки</td><td>Використати токен з exp у минулому</td></tr>
+    <tr><td>API-шлюз</td><td>Токен з неправильним скоупом</td><td>403 Forbidden</td><td>Дійсний токен без потрібного скоупу для маршруту</td></tr>
+    <tr><td>API-шлюз</td><td>N+1 запитів (ліміт)</td><td>429 із заголовком Retry-After</td><td>Швидко циклічно надсилати запити до перевищення порогу</td></tr>
+    <tr><td>API-шлюз</td><td>Маршрут /api/orders/*</td><td>Запит надходить до сервісу замовлень</td><td>Перевірити логи сервісу / заголовки відповіді з ID сервісу</td></tr>
+    <tr><td>Мікросервіси</td><td>Прямий зовнішній доступ до порту сервісу</td><td>Тайм-аут / відмова у з'єднанні</td><td>nc -zv internal-service-ip 8080 ззовні мережі</td></tr>
+    <tr><td>Мікросервіси</td><td>Сервіс B недоступний (circuit breaker)</td><td>Сервіс A повертає fallback, не 500</td><td>Зупинити сервіс B; викликати ендпоінт сервісу A, що залежить від B</td></tr>
+    <tr><td>Мікросервіси</td><td>API-контракт</td><td>Усі assertions контракту проходять</td><td>Запустити Pact consumer-driven contract тести</td></tr>
+  </table>
+
+  <h3>Піраміда тестів для мікросервісних архітектур</h3>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title" style="color:var(--green)">ЮНІТ-ТЕСТИ (більшість)</div>
+      <div class="card-body">Тестують бізнес-логіку одного сервісу в ізоляції. Всі зовнішні залежності мокуються. Швидкі, дешеві, не потребують інфраструктури.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--amber)">КОНТРАКТ І ІНТЕГРАЦІЯ (середина)</div>
+      <div class="card-body">Тестують комунікацію між двома суміжними сервісами. Consumer-driven контракти (Pact) перевіряють сумісність інтерфейсів без розгортання повного стеку.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--red)">НАСКРІЗНІ ТЕСТИ (мінімум)</div>
+      <div class="card-body">Повний стек з реальною інфраструктурою. Тільки критичні користувацькі сценарії — дорогі, повільні, нестабільні. Покривають повний шлях від клієнта до бази даних і назад.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 06 ── -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">Типові помилки</span>
+    <span class="tag tag-testing">СПІВБЕСІДА</span>
+  </div>
+
+  <div class="intro">
+    Це найпоширеніші хибні твердження на співбесідах щодо цих компонентів. Сказати будь-яке з них — це миттєвий червоний прапор для ролі Senior QA або backend-інженера.
+  </div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Стверджувати, що балансувальник навантаження та зворотній проксі — одне й те саме.</strong><br>Вони вирішують різні задачі. Зворотній проксі відповідає за транспорт (TLS, кешування, статичні файли, маскування IP). Балансувальник — за доступність (розподіл, health checks, перемикання при відмові). Nginx може робити обидва одночасно, але це не робить їх одним концептом.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Казати, що API-шлюз — «просто маршрутизатор».</strong><br>Маршрутизація — лише одна з багатьох функцій. API-шлюз також забезпечує автентифікацію, авторизацію, ліміти запитів, трансформацію запитів/відповідей і централізоване логування. Назвати його «просто маршрутизатором» — означає не розуміти архітектурну причину його існування.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Казати, що TLS завершується на балансувальнику навантаження.</strong><br>У шаруватій архітектурі TLS завершується на зворотньому проксі — до балансувальника. Балансувальник отримує чистий HTTP. (Виняток: у деяких спрощених хмарних розгортаннях керований балансувальник також виконує роль зворотнього проксі. Ключовий момент — TLS завершується на першому серверному компоненті.)</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Казати, що до мікросервісів можна звернутися напряму «у разі крайньої необхідності».</strong><br>Це анулює модель безпеки. Якщо у мікросервісів є будь-який шлях прямого доступу, цей шлях буде використаний, неправильно налаштований і зрештою скомпрометований. Правило абсолютне: жодного публічного маршруту до внутрішніх сервісів. Надзвичайні ситуації вирішуються через шлюз або внутрішній адмін-інструментарій у приватній мережі.</div></div>
+
+  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Казати, що «шлюз перевіряє автентифікацію, тому сервісам перевірка не потрібна».</strong><br>Сервіси все одно мають перевіряти, що заголовок X-User-Id (або аналогічний), вставлений шлюзом, присутній і відповідає запитуваному ресурсу (перевірка власника). Ніколи не варто вважати, що запит прийшов через шлюз лише тому, що він у внутрішній мережі. Принцип глибокого захисту (defense in depth) залишається актуальним.</div></div>
+
+  <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+
+  <h3>Правильна ментальна модель — чотири шари, одна задача кожен</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:var(--purple)">ШАР 1: ЗВОРОТНІЙ ПРОКСІ</div>
+      <div class="card-body">Вирішує транспортні задачі: TLS, стискання, кешування, статичні файли. <strong>Задача:</strong> «Як зашифрований трафік з інтернету стає чистим внутрішнім HTTP?»</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">ШАР 2: БАЛАНСУВАЛЬНИК</div>
+      <div class="card-body">Вирішує задачі доступності: розподіл, перемикання при відмові, health checks. <strong>Задача:</strong> «Як один URL обслуговує трафік з кількох запущених екземплярів?»</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--amber)">ШАР 3: API-ШЛЮЗ</div>
+      <div class="card-body">Вирішує задачі API-політик: автентифікація, ліміти, маршрутизація, логування. <strong>Задача:</strong> «Як наскрізні API-задачі виконуються без дублювання коду в кожному сервісі?»</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--cyan)">ШАР 4: МІКРОСЕРВІСИ</div>
+      <div class="card-body">Вирішують задачі бізнес-логіки: доменна обробка, управління даними. <strong>Задача:</strong> «Як складний застосунок будується як незалежно розгортувані, доменно-орієнтовані модулі?»</div>
+    </div>
+  </div>
+
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Зворотній проксі завершує TLS</strong> — перший серверний компонент, публічна IP, сертифікати тут.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Балансувальник розподіляє по екземплярах шлюзу</strong> — шлюз працює як кластер, балансувальник розподіляє до нього.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>API-шлюз — виконавець політик</strong> — кожен зовнішній запит проходить через єдину точку перевірки автентифікації та лімітів до потрапляння в бізнес-логіку.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Виклики між сервісами обходять шлюз</strong> — йдуть напряму по внутрішній мережі. Це правильно і навмисно.</div></div>
+  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Кожен шар тестується незалежно</strong> — TLS на проксі, розподіл на балансувальнику, автентифікація на шлюзі, бізнес-логіка на сервісі — без розгортання повного стеку для кожного тесту.</div></div>
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+function setCookie(name, value) {
+  const d = new Date();
+  d.setTime(d.getTime() + 365*24*60*60*1000);
+  document.cookie = name+'='+value+';expires='+d.toUTCString()+';path=/;SameSite=Lax';
+}
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(?:^|; )'+name+'=([^;]*)'));
+  return match ? match[1] : null;
+}
+function toggleSettings(e) {
+  e.stopPropagation();
+  const btn = document.getElementById('settings-btn');
+  const menu = document.getElementById('settings-menu');
+  const open = menu.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.settings-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('settings-menu').classList.remove('open');
+    document.getElementById('settings-btn').classList.remove('open');
+  }
+});
+function setFont(font, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('comic', font === 'comic');
+  document.getElementById('opt-normal').classList.toggle('active', font === 'normal');
+  document.getElementById('opt-comic').classList.toggle('active', font === 'comic');
+  setCookie('ui_font', font);
+  document.getElementById('settings-menu').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+(function(){
+  const saved = getCookie('ui_font');
+  if (saved) setFont(saved);
+})();
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const open = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', open);
+}
+function showTab(name, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+function goTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.sidelink').forEach(l=>l.classList.remove('active'));
+  const link = document.querySelector('.sidelink[data-sec="'+id+'"]');
+  if (link) link.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+function diaClick(sectionId, el) {
+  document.querySelectorAll('.dia-comp').forEach(g=>g.classList.remove('dia-active'));
+  el.classList.add('dia-active');
+  const sec = document.getElementById(sectionId);
+  if (sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('.sidelink').forEach(l=>l.classList.remove('active'));
+  const link = document.querySelector('.sidelink[data-sec="'+sectionId+'"]');
+  if (link) link.classList.add('active');
+}
+const observer = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      document.querySelectorAll('.sidelink').forEach(l=>{
+        l.classList.toggle('active', l.getAttribute('data-sec')===id);
+      });
+    }
+  });
+},{rootMargin:'-10% 0px -80% 0px'});
+document.querySelectorAll('.section').forEach(s=>observer.observe(s));
+</script>
+</body>
+</html>
