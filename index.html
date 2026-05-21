@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auth Fundamentals</title>
+<title>QA Study Notes</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -19,29 +19,17 @@
   --purple:#9f7aea;--purple-d:rgba(159,122,234,.1);--purple-b:rgba(159,122,234,.2);
   --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
 }
-body.comic{
-  --sans:'Comic Sans MS','Chalkboard SE',cursive;}
+body.comic{--sans:'Comic Sans MS','Chalkboard SE',cursive;}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.7}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.7;min-height:100vh}
 
-/* DISCLAIMER BANNER */
-.disclaimer{background:var(--surface);border-bottom:1px solid var(--border);padding:7px 20px;font-size:11px;color:var(--text3);line-height:1.5;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
-.disclaimer strong{color:var(--text2);font-weight:500}
-.disclaimer a{color:var(--cyan);text-decoration:none}
-.disclaimer a:hover{text-decoration:underline}
-.topnav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch;scrollbar-width:none}
-.topnav::-webkit-scrollbar{display:none}
-.logo{font-family:var(--mono);font-size:11px;color:var(--cyan);padding:0 20px;display:flex;align-items:center;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0}
-.tab-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
-.tab-btn:hover{color:var(--text2);border-color:var(--border2)}
-.tab-btn.active{color:var(--cyan);border-color:var(--cyan)}
-
-.lang-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-left:1px solid var(--border);transition:all .15s;text-decoration:none;display:flex;align-items:center}
-.lang-btn:hover{color:var(--cyan)}
+/* NAV */
+.topnav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:stretch}
+.logo{font-family:var(--mono);font-size:11px;color:var(--cyan);padding:0 20px;display:flex;align-items:center;border-right:1px solid var(--border);white-space:nowrap;height:44px}
+.nav-label{padding:0 20px;height:44px;display:flex;align-items:center;font-family:var(--mono);font-size:11px;color:var(--text3)}
 .settings-wrap{margin-left:auto;position:relative;display:flex;border-left:1px solid var(--border)}
 .settings-btn{padding:0 16px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:14px;cursor:pointer;display:flex;align-items:center;transition:color .15s}
-.settings-btn:hover{color:var(--cyan)}
-.settings-btn.open{color:var(--cyan)}
+.settings-btn:hover,.settings-btn.open{color:var(--cyan)}
 .settings-menu{display:none;position:absolute;top:44px;right:0;background:var(--surface);border:1px solid var(--border2);border-radius:4px;min-width:200px;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .settings-menu.open{display:block}
 .settings-section{padding:8px 0;border-bottom:1px solid var(--border)}
@@ -54,175 +42,83 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .settings-opt.active .settings-opt-dot{background:var(--cyan);border-color:var(--cyan)}
 
 /* LAYOUT */
-.layout{display:flex;min-height:100vh}
-.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:44px;height:calc(100vh - 44px);overflow-y:auto;padding:16px 0;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
-.sidebar::-webkit-scrollbar{width:3px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.sidecat{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.12em;padding:12px 16px 4px;text-transform:uppercase}
-.sidelink{display:block;padding:6px 16px;font-size:12px;color:var(--text3);text-decoration:none;cursor:pointer;transition:all .12s;border-left:2px solid transparent}
-.sidelink:hover{color:var(--text2);background:var(--surface2)}
-.sidelink.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,170,.05)}
-.main{flex:1;min-width:0;padding:32px 48px 80px}
-.view{display:none;max-width:960px}.view.active{display:block}
+.page{max-width:860px;margin:0 auto;padding:48px 32px 80px}
 
-/* SECTION */
-.section{margin-bottom:56px;scroll-margin-top:60px}
-.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.section-num{font-family:var(--mono);font-size:10px;color:var(--text3)}
-.section-title{font-size:20px;font-weight:500}
-.tag{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;margin-left:auto;letter-spacing:.06em}
-.tag-authn{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}
-.tag-token{background:var(--purple-d);color:var(--purple);border:1px solid var(--purple-b)}
-.tag-authz{background:var(--green-d);color:var(--green);border:1px solid var(--green-b)}
-.tag-framework{background:var(--amber-d);color:var(--amber);border:1px solid var(--amber-b)}
-.tag-proto{background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-b)}
-.tag-concept{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+/* HERO */
+.hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+.hero-eyebrow{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.12em;margin-bottom:12px}
+.hero-title{font-size:28px;font-weight:500;color:var(--text);line-height:1.3;margin-bottom:12px}
+.hero-title .hl{color:var(--cyan)}
+.hero-desc{font-size:14px;color:var(--text2);line-height:1.75;max-width:580px}
+.hero-meta{display:flex;gap:20px;margin-top:20px;flex-wrap:wrap}
+.hero-stat{display:flex;align-items:baseline;gap:6px}
+.hero-stat-n{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--cyan)}
+.hero-stat-l{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.06em}
 
-/* TEXT */
-.intro{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:6px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.75}
-.intro strong{color:var(--text)}
-p{color:var(--text2);font-size:13px;margin-bottom:10px;line-height:1.7}
-h3{font-size:14px;font-weight:500;color:var(--text);margin:20px 0 8px}
-h4{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.08em;margin:16px 0 6px}
-ul,ol{padding-left:18px;margin-bottom:10px}
-li{font-size:13px;color:var(--text2);margin-bottom:4px;line-height:1.6}
-strong{color:var(--text);font-weight:500}
+/* SECTION LABEL */
+.cat-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.14em;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
 
-/* CALLOUTS */
-.callout{border-radius:5px;padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.65}
-.callout-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;margin-bottom:5px;font-weight:500}
-.callout p{margin:0;font-size:13px}
-.callout-warn{background:var(--red-d);border-left:3px solid var(--red)}.callout-warn .callout-label{color:var(--red)}
-.callout-note{background:var(--blue-d);border-left:3px solid var(--blue)}.callout-note .callout-label{color:var(--blue)}
-.callout-good{background:var(--green-d);border-left:3px solid var(--green)}.callout-good .callout-label{color:var(--green)}
-.callout-qa{background:var(--amber-d);border-left:3px solid var(--amber)}.callout-qa .callout-label{color:var(--amber)}
-.callout-info{background:var(--cyan-d);border-left:3px solid var(--cyan)}.callout-info .callout-label{color:var(--cyan)}
-
-/* FLOW */
-.flow{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px;overflow-x:auto}
-.flow-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:12px}
-.flow-step{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
-.flow-step:last-child{border-bottom:none;padding-bottom:0}
-.flow-n{flex-shrink:0;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;margin-top:1px}
-.flow-body{flex:1}
-.flow-actor{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:2px}
-.flow-desc{font-size:13px;color:var(--text2);line-height:1.55}
-.flow-code{font-family:var(--mono);font-size:11px;color:var(--cyan);background:var(--surface2);border-radius:3px;padding:4px 8px;display:inline-block;margin-top:4px;line-height:1.6;white-space:pre}
-.flow-note{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
-
-/* CODE BLOCK */
-.code{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:14px;overflow-x:auto}
-.code-label{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:10px}
-.code pre{font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text2);white-space:pre}
-.kw{color:var(--cyan)}.str{color:var(--amber)}.cm{color:var(--text3);font-style:italic}.key{color:var(--purple)}.num{color:var(--green)}.val{color:var(--blue)}
-
-/* TABLES */
-.tbl{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:12px}
-.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border2)}
-.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5}
-.tbl tr:last-child td{border-bottom:none}
-.tbl td:first-child{color:var(--text);font-weight:500}
-
-/* GRID */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
-@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px}
-.card-title{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:.06em}
-.card-body{font-size:12px;color:var(--text2);line-height:1.6}
-.card-body strong{color:var(--text)}
-
-/* POSTMAN GROUPS */
-.postman-group{border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden}
-.postman-group-head{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;font-weight:500}
-.postman-group-body{padding:10px 14px;background:var(--surface);font-size:12px;color:var(--text2);line-height:1.7}
-.postman-item{padding:4px 0;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid var(--border)}
-.postman-item:last-child{border-bottom:none}
-.postman-item-name{font-family:var(--mono);font-size:11px;color:var(--text);min-width:140px}
-.postman-item-desc{font-size:12px;color:var(--text2)}
-
-/* MISTAKES */
-.mistake{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:5px;background:var(--red-d);border:1px solid var(--red-b);margin-bottom:8px}
-.mistake-x{color:var(--red);font-size:16px;flex-shrink:0;margin-top:1px}
-.mistake-body{font-size:13px;color:var(--text2);line-height:1.55}
-.mistake-body strong{color:var(--text)}
-.correct{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:5px;background:var(--green-d);border:1px solid var(--green-b);margin-bottom:8px}
-.correct-check{color:var(--green);font-size:16px;flex-shrink:0;margin-top:1px}
-.correct-body{font-size:13px;color:var(--text2);line-height:1.55}
-.correct-body strong{color:var(--text)}
-
-/* QA BLOCK */
-.qa-block{background:var(--amber-d);border:1px solid var(--amber-b);border-radius:5px;padding:12px 14px;margin-bottom:10px}
-.qa-q{font-size:12px;font-weight:500;color:var(--amber);margin-bottom:4px;font-family:var(--mono)}
-.qa-a{font-size:12px;color:var(--text2);line-height:1.6}
-
-/* Separator */
-.sep{border:none;border-top:1px solid var(--border);margin:32px 0}
-
-/* Spec reference link */
-.spec-ref{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--text3);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:2px 8px;margin-left:auto;letter-spacing:.06em;transition:all .12s}
-.spec-ref:hover{color:var(--cyan);border-color:var(--cyan)}
-.spec-ref::before{content:'↗';font-size:9px}
-
-/* Pill */
-.pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;margin:2px 2px 2px 0}
-.pill-cyan{background:var(--cyan-d);color:var(--cyan);border:1px solid var(--cyan-b)}
-.pill-blue{background:var(--blue-d);color:var(--blue);border:1px solid var(--blue-b)}
-.pill-red{background:var(--red-d);color:var(--red);border:1px solid var(--red-b)}
-.pill-green{background:var(--green-d);color:var(--green);border:1px solid var(--green-b)}
-.pill-amber{background:var(--amber-d);color:var(--amber);border:1px solid var(--amber-b)}
-.pill-purple{background:var(--purple-d);color:var(--purple);border:1px solid var(--purple-b)}
+/* TOPIC CARD */
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:16px;overflow:hidden;transition:border-color .15s}
+.topic-card:hover{border-color:var(--border2)}
+.topic-card-head{display:flex;align-items:flex-start;gap:16px;padding:20px 22px 16px}
+.topic-icon{width:40px;height:40px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;margin-top:2px}
+.topic-meta{flex:1;min-width:0}
+.topic-num{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-bottom:4px}
+.topic-title{font-size:18px;font-weight:500;color:var(--text);margin-bottom:6px;line-height:1.3}
+.topic-desc{font-size:13px;color:var(--text2);line-height:1.65}
+.topic-sections{padding:12px 22px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.topic-sections-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em;margin-right:4px;flex-shrink:0}
+.pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:3px;margin:0}
 .pill-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
 
-/* encoding explainer */
-.enc-row{display:grid;grid-template-columns:auto 24px 1fr;gap:6px 10px;align-items:center;margin-bottom:6px;font-size:12px}
-.enc-label{font-family:var(--mono);color:var(--text3);font-size:10px}
-.enc-arrow{color:var(--text3);text-align:center}
-.enc-result{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:3px}
+/* LANGUAGE LINKS ROW */
+.topic-links{padding:14px 22px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.topic-links-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.08em;margin-right:4px}
+.lang-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:500;padding:6px 14px;border-radius:4px;text-decoration:none;transition:all .15s;border:1px solid}
+.lang-link:hover{opacity:.85}
+.lang-link-en{background:var(--blue-d);color:var(--blue);border-color:var(--blue-b)}
+.lang-link-ua{background:var(--amber-d);color:var(--amber);border-color:var(--amber-b)}
+.lang-link svg{width:13px;height:13px;flex-shrink:0}
+.topic-status{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.06em;display:flex;align-items:center;gap:5px}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
 
-/* ── RESPONSIVE ── */
+/* COMING SOON CARD */
+.topic-card.soon{opacity:.5;pointer-events:none}
+.topic-card.soon .topic-links{display:none}
+.soon-badge{font-family:var(--mono);font-size:9px;color:var(--text3);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:2px 8px;letter-spacing:.06em;margin-left:auto}
 
-/* Sidebar toggle button — hidden by default, shown on tablet/mobile */
-.menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:none;background:none;color:var(--text3);font-size:18px;cursor:pointer;border-right:1px solid var(--border);flex-shrink:0;transition:color .15s}
-.menu-toggle:hover{color:var(--cyan)}
-.sidebar-overlay{display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.5)}
-.sidebar-overlay.open{display:block}
+/* FOOTER */
+.footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.footer-sep{color:var(--border2)}
 
-/* Tablet ≤900px */
-@media(max-width:900px){
-  .menu-toggle{display:flex}
-  .sidebar{width:0;overflow:hidden;position:fixed;z-index:100;top:44px;height:calc(100vh - 44px);transition:width .2s}
-  .sidebar.open{width:240px;overflow-y:auto}
-  .main{padding:24px 28px 60px}
-  .grid3{grid-template-columns:1fr 1fr}
-}
+.lang-btn{padding:0 14px;height:44px;border:none;background:none;color:var(--text3);font-family:var(--mono);font-size:11px;cursor:pointer;white-space:nowrap;border-left:1px solid var(--border);transition:all .15s;text-decoration:none;display:flex;align-items:center}
+.lang-btn:hover{color:var(--text2)}
+.lang-btn.active{color:var(--cyan)}
+.logo-link{text-decoration:none}
+body.lang-ua .lang-link-en{opacity:.45}
+body.lang-en .lang-link-ua{opacity:.45}
+.t-ua{display:none}
+body.lang-ua .t-ua{display:inline}
+body.lang-ua .t-en{display:none}
+.topic-card-head{cursor:pointer}
+.topic-card-head:hover .topic-title{color:var(--cyan);transition:color .15s}
 
-/* Mobile ≤600px */
+/* RESPONSIVE */
 @media(max-width:600px){
-  .main{padding:16px 14px 60px}
-  .grid2,.grid3{grid-template-columns:1fr}
-  .section-head{flex-wrap:wrap;gap:6px}
-  .spec-ref{margin-left:0}
-  .tbl{font-size:11px}
-  .tbl th,.tbl td{padding:6px 7px}
-  .flow-n{width:24px;height:24px;font-size:9px}
-  .postman-item{flex-direction:column;gap:3px}
-  .postman-item-name{min-width:unset}
-  .view{max-width:100%}
+  .page{padding:28px 16px 60px}
+  .hero-title{font-size:22px}
+  .topic-card-head{flex-direction:column;gap:10px}
+  .topic-icon{width:32px;height:32px;font-size:15px}
   .logo{font-size:10px;padding:0 12px}
-  .tab-btn{padding:0 10px;font-size:10px}
-  .lang-btn{padding:0 10px}
-  .settings-btn{padding:0 10px}
 }
 </style>
 </head>
 <body>
 
-<div class="disclaimer"><strong>Disclaimer:</strong> This is a reference web page — not a formal specification. Content is simplified for clarity and practical use. Always verify against official sources linked in each section.</div>
 <nav class="topnav">
-  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
-  <div class="logo">AUTH FUNDAMENTALS</div>
-  <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <a class="logo logo-link" href="index.html">QA STUDY NOTES</a>
+  <span class="nav-label"><span class="t-en">topic index</span><span class="t-ua">індекс тем</span></span>
   <div class="settings-wrap">
     <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
     <div class="settings-menu" id="settings-menu">
@@ -233,893 +129,103 @@ strong{color:var(--text);font-weight:500}
       </div>
     </div>
   </div>
-  <a class="lang-btn" href="authn_v4_uk.html">UA</a>
+  <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" id="lang-ua" onclick="setLang('ua')">UA</button>
 </nav>
 
-<div class="layout">
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="page">
 
-<!-- SIDEBAR (course only) -->
-<nav class="sidebar" id="sidebar">
-  <div class="sidecat">Foundations</div>
-  <a class="sidelink" onclick="goTo('s00')">00 — What is auth?</a>
-  <a class="sidelink" onclick="goTo('s00b')">00b — Encoding vs encryption vs hashing</a>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow"><span class="t-en">BACKEND &amp; MICROSERVICES · PERSONAL NOTES</span><span class="t-ua">BACKEND ТА МІКРОСЕРВІСИ · ОСОБИСТІ НОТАТКИ</span></div>
+    <h1 class="hero-title"><span class="t-en">QA Study Notes<br><span class="hl">topic library</span></span><span class="t-ua">QA Навчальні нотатки<br><span class="hl">бібліотека тем</span></span></h1>
+    <p class="hero-desc"><span class="t-en">Personal study notes on backend architecture, authentication, networking, and testing strategy. Simplified for clarity — not a formal specification. Each topic includes step-by-step flows, QA test angles, and a common mistakes section.</span><span class="t-ua">Особисті навчальні нотатки з архітектури бекенду, автентифікації, мереж та стратегії тестування. Спрощено для ясності — не є формальною специфікацією. Кожна тема містить покрокові потоки, кути тестування QA та розділ типових помилок.</span></p>
 
-  <div class="sidecat">Authentication methods</div>
-  <a class="sidelink" onclick="goTo('s01')">01 — Basic Auth</a>
-  <a class="sidelink" onclick="goTo('s02')">02 — Digest Auth</a>
-  <a class="sidelink" onclick="goTo('s03')">03 — API Keys</a>
-  <a class="sidelink" onclick="goTo('s04')">04 — Session-based Auth</a>
-
-  <div class="sidecat">Token-based auth</div>
-  <a class="sidelink" onclick="goTo('s05')">05 — Bearer tokens &amp; JWT</a>
-  <a class="sidelink" onclick="goTo('s06')">06 — Access &amp; Refresh tokens</a>
-
-  <div class="sidecat">Authorization frameworks</div>
-  <a class="sidelink" onclick="goTo('s07')">07 — OAuth 1.0</a>
-  <a class="sidelink" onclick="goTo('s08')">08 — OAuth 2.0</a>
-
-  <div class="sidecat">Identity protocols &amp; layers</div>
-  <a class="sidelink" onclick="goTo('s09')">09 — OpenID Connect</a>
-  <a class="sidelink" onclick="goTo('s11')">11 — SAML</a>
-
-  <div class="sidecat">UX patterns &amp; schemes</div>
-  <a class="sidelink" onclick="goTo('s10')">10 — SSO</a>
-
-  <div class="sidecat">Postman &amp; testing</div>
-  <a class="sidelink" onclick="goTo('s12')">12 — Postman auth types</a>
-  <a class="sidelink" onclick="goTo('s13')">13 — Common mistakes</a>
-</nav>
-
-<!-- MAIN CONTENT -->
-<main class="main">
-
-<!-- ═══════════ COURSE VIEW ═══════════ -->
-<div id="view-course" class="view active">
-
-<!-- ── 00 ── -->
-<div class="section" id="s00">
-  <div class="section-head">
-    <span class="section-num">00</span>
-    <span class="section-title">What is authentication vs authorization?</span>
-    <span class="tag tag-concept">CONCEPT</span>
   </div>
 
-  <div class="intro">
-    Before anything else, two terms that are always confused — and always asked in interviews. They are <strong>not</strong> the same thing and are never interchangeable.
-  </div>
+  <!-- AVAILABLE TOPICS -->
+  <div class="cat-label"><span class="t-en">AVAILABLE TOPICS</span><span class="t-ua">ДОСТУПНІ ТЕМИ</span></div>
 
-  <div class="grid2">
-    <div class="card">
-      <div class="card-title">AUTHENTICATION (authn)</div>
-      <div class="card-body"><strong>"Who are you?"</strong><br>Verifying that the entity making the request is who they claim to be.<br><br>Examples: checking username + password, validating a JWT signature, verifying a certificate.</div>
-    </div>
-    <div class="card">
-      <div class="card-title">AUTHORIZATION (authz)</div>
-      <div class="card-body"><strong>"What are you allowed to do?"</strong><br>Deciding what an already-authenticated entity is permitted to access or perform.<br><br>Examples: checking roles, scopes, permissions, ownership of a resource.</div>
-    </div>
-  </div>
-
-  <div class="callout callout-note">
-    <div class="callout-label">HTTP STATUS CODES — THE SHORTCUT</div>
-    <p><strong>401 Unauthorized</strong> = authentication failed (the name is misleading — it means "not authenticated").<br>
-    <strong>403 Forbidden</strong> = authenticated but not authorized (you are known, but not permitted).</p>
-  </div>
-
-  <h3>The order is always fixed</h3>
-  <div class="flow">
-    <div class="flow-label">EVERY PROTECTED REQUEST GOES THROUGH THIS SEQUENCE</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body">
-        <div class="flow-actor">AUTHENTICATION</div>
-        <div class="flow-desc">Verify identity. Is this token valid? Is the signature correct? Is it expired? Does the issuer match?</div>
-        <div class="flow-note">Failure → 401</div>
+  <!-- TOPIC 1 — CLIENT-SERVER TRAFFIC FLOW -->
+  <div class="topic-card" data-href-en="topics/front-back/uk.html" data-href-ua="topics/front-back/ua.html">
+    <div class="topic-card-head">
+      <div class="topic-icon" style="background:var(--cyan-d);border:1px solid var(--cyan-b)">🔀</div>
+      <div class="topic-meta">
+        <div class="topic-num"><span class="t-en">TOPIC 01</span><span class="t-ua">ТЕМА 01</span></div>
+        <div class="topic-title"><span class="t-en">Client-Server Traffic Flow</span><span class="t-ua">Потік запитів клієнт-сервер</span></div>
+        <div class="topic-desc"><span class="t-en">Covers the request journey from client to microservice: why the Reverse Proxy, Load Balancer, and API Gateway are placed in that exact order, what each component does, network zone boundaries, and how to test each layer independently. Includes a clickable interactive diagram.</span><span class="t-ua">Охоплює шлях запиту від клієнта до мікросервісу: чому Reverse Proxy, Load Balancer та API Gateway розташовані саме в такому порядку, що робить кожен компонент, межі мережевих зон та як тестувати кожен шар незалежно. Містить інтерактивну діаграму.</span></div>
       </div>
     </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div>
-      <div class="flow-body">
-        <div class="flow-actor">AUTHORIZATION</div>
-        <div class="flow-desc">Verify permissions. Does this user's role allow this action? Does this token have the required scope? Does the user own this resource?</div>
-        <div class="flow-note">Failure → 403</div>
+    <div class="topic-sections">
+      <span class="topic-sections-lbl"><span class="t-en">SECTIONS</span><span class="t-ua">РОЗДІЛИ</span></span>
+      <span class="pill pill-gray">Request flow overview</span>
+      <span class="pill pill-gray">Network zones</span>
+      <span class="pill pill-gray">Reverse Proxy</span>
+      <span class="pill pill-gray">Load Balancer</span>
+      <span class="pill pill-gray">API Gateway</span>
+      <span class="pill pill-gray">Microservices</span>
+      <span class="pill pill-gray">Testing each layer</span>
+      <span class="pill pill-gray">Common mistakes</span>
+    </div>
+  </div>
+
+  <!-- TOPIC 2 — AUTH -->
+  <div class="topic-card" data-href-en="topics/auth/ua.html" data-href-ua="topics/auth/uk.html">
+    <div class="topic-card-head">
+      <div class="topic-icon" style="background:var(--purple-d);border:1px solid var(--purple-b)">🔐</div>
+      <div class="topic-meta">
+        <div class="topic-num"><span class="t-en">TOPIC 02</span><span class="t-ua">ТЕМА 02</span></div>
+        <div class="topic-title"><span class="t-en">Authentication &amp; Authorization</span><span class="t-ua">Автентифікація та авторизація</span></div>
+        <div class="topic-desc"><span class="t-en">Covers every HTTP authentication method from Basic Auth to JWT Bearer tokens, authorization frameworks OAuth 2.0 and OIDC, identity protocols SAML and SSO, plus encoding vs encryption vs hashing. Includes Postman auth types and a full common-mistakes section.</span><span class="t-ua">Охоплює всі методи HTTP-автентифікації від Basic Auth до JWT Bearer токенів, фреймворки авторизації OAuth 2.0 та OIDC, протоколи ідентифікації SAML та SSO, а також різницю між кодуванням, шифруванням та хешуванням. Містить типи автентифікації Postman та розділ типових помилок.</span></div>
       </div>
     </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">3</div>
-      <div class="flow-body">
-        <div class="flow-actor">ACCESS GRANTED</div>
-        <div class="flow-desc">Both checks passed. Process the request and return 200.</div>
-      </div>
+    <div class="topic-sections">
+      <span class="topic-sections-lbl"><span class="t-en">SECTIONS</span><span class="t-ua">РОЗДІЛИ</span></span>
+      <span class="pill pill-gray">What is auth?</span>
+      <span class="pill pill-gray">Encoding / hashing</span>
+      <span class="pill pill-gray">Basic Auth</span>
+      <span class="pill pill-gray">Digest Auth</span>
+      <span class="pill pill-gray">API Keys</span>
+      <span class="pill pill-gray">Session-based</span>
+      <span class="pill pill-gray">JWT / Bearer</span>
+      <span class="pill pill-gray">Access &amp; Refresh tokens</span>
+      <span class="pill pill-gray">OAuth 2.0</span>
+      <span class="pill pill-gray">OIDC</span>
+      <span class="pill pill-gray">SAML</span>
+      <span class="pill pill-gray">SSO</span>
+      <span class="pill pill-gray">Postman auth types</span>
+      <span class="pill pill-gray">Common mistakes</span>
     </div>
   </div>
 
-  <h3>What counts as an "authentication method"?</h3>
-  <p>An <strong>authentication method</strong> is a specific mechanism by which a client proves its identity on a request. Examples: sending a password, sending an API key, sending a signed token.</p>
-  <p>An <strong>authorization framework</strong> (like OAuth 2.0) is a <em>protocol</em> that defines rules for how a third-party client obtains limited access to resources — it uses authentication methods as building blocks but is not itself an authentication method. This distinction is critical — see section 13 (common mistakes).</p>
-</div>
 
-<hr class="sep">
-
-<!-- ── 00b ── -->
-<div class="section" id="s00b">
-  <div class="section-head">
-    <span class="section-num">00b</span>
-    <span class="section-title">Encoding vs encryption vs hashing</span>
-    <span class="tag tag-concept">CONCEPT</span>
-  </div>
-
-  <div class="intro">
-    Three words that look similar but are fundamentally different. Getting these wrong in an interview is an immediate red flag. Every auth topic depends on understanding which of these three operations is happening.
-  </div>
-
-  <div class="grid3">
-    <div class="card">
-      <div class="card-title" style="color:var(--blue)">ENCODING</div>
-      <div class="card-body"><strong>Purpose:</strong> format transformation for transport compatibility.<br><strong>Reversible?</strong> Yes — no key needed.<br><strong>Secret?</strong> No — anyone can decode.<br><br>Examples: Base64, Base64url, URL encoding, hex.</div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--amber)">ENCRYPTION</div>
-      <div class="card-body"><strong>Purpose:</strong> hide data so only authorized parties can read it.<br><strong>Reversible?</strong> Yes — with the correct key.<br><strong>Secret?</strong> Yes — meaningless without the key.<br><br>Examples: AES-256, RSA (used for key exchange).</div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--green)">HASHING</div>
-      <div class="card-body"><strong>Purpose:</strong> produce a fixed-length fingerprint of data.<br><strong>Reversible?</strong> No — by design.<br><strong>Secret?</strong> N/A — different purpose.<br><br>Examples: SHA-256, bcrypt, MD5 (weak), HMAC-SHA256.</div>
-    </div>
-  </div>
-
-  <h3>How each is used in auth</h3>
-  <table class="tbl">
-    <tr><th>Operation</th><th>Where it appears</th><th>What it does</th></tr>
-    <tr><td>Base64 encoding</td><td>Basic Auth, JWT header &amp; payload</td><td>Makes binary/JSON safe for HTTP headers and URLs. Does NOT hide anything.</td></tr>
-    <tr><td>Base64url encoding</td><td>JWT all three parts for transport</td><td>Same as Base64 but URL-safe (uses - and _ instead of + and /). Still not secret.</td></tr>
-    <tr><td>Hashing (SHA-256)</td><td>Digest Auth, password storage, JWT signature (as part of HMAC)</td><td>Produces a fixed fingerprint. Cannot be reversed to original value.</td></tr>
-    <tr><td>HMAC (hash + secret key)</td><td>JWT signature (HS256)</td><td>Hash of data combined with a secret key. Proves both integrity and authenticity to anyone who knows the key.</td></tr>
-    <tr><td>RSA signing</td><td>JWT signature (RS256)</td><td>Private key produces signature; public key verifies. Not "encryption" in the hiding sense — it's used for signing.</td></tr>
-    <tr><td>Encryption (AES, RSA)</td><td>JWE (encrypted JWT), HTTPS transport</td><td>Actually hides the payload. JWE is rare — JWS (signed JWT) is the default.</td></tr>
-  </table>
-
-  <div class="callout callout-warn">
-    <div class="callout-label">CRITICAL — DO NOT SAY IN AN INTERVIEW</div>
-    <p>"JWT is encrypted" — it is <strong>not</strong> (unless JWE is specifically used).<br>
-    "Base64 is encrypted" — it is <strong>not</strong>. It is encoding. Anyone can decode it.<br>
-    "The JWT signature is encrypted" — the signature is a <strong>cryptographic output</strong> (HMAC or RSA digital signature) that is then base64url-encoded for transport. It is not "encrypted data".</p>
-  </div>
-
-  <h3>The JWT signature precisely explained</h3>
-  <div class="code">
-    <div class="code-label">WHAT ACTUALLY HAPPENS WHEN A JWT IS SIGNED</div>
-    <pre><span class="cm">// Step 1: encode the header (JSON → base64url)</span>
-<span class="kw">base64url</span>({ <span class="key">"alg"</span>: <span class="str">"RS256"</span>, <span class="key">"typ"</span>: <span class="str">"JWT"</span> })
-→ <span class="str">"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"</span>
-
-<span class="cm">// Step 2: encode the payload (JSON → base64url)</span>
-<span class="kw">base64url</span>({ <span class="key">"sub"</span>: <span class="str">"user123"</span>, <span class="key">"exp"</span>: <span class="num">1745000000</span> })
-→ <span class="str">"eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjoxNzQ1MDAwMDAwfQ"</span>
-
-<span class="cm">// Step 3: sign the concatenated encoded parts</span>
-signing_input = <span class="str">"eyJhbGci..."</span> + <span class="str">"."</span> + <span class="str">"eyJzdWIi..."</span>
-signature_bytes = <span class="kw">RS256_sign</span>(signing_input, private_key)
-<span class="cm">// → produces raw bytes (cryptographic output)</span>
-
-<span class="cm">// Step 4: base64url-encode the signature bytes for transport</span>
-<span class="kw">base64url</span>(signature_bytes) → <span class="str">"SflKxwRJSMe..."</span>
-
-<span class="cm">// Final JWT = header . payload . signature (all base64url-encoded)</span>
-<span class="str">"eyJhbGci..."</span> + <span class="str">"."</span> + <span class="str">"eyJzdWIi..."</span> + <span class="str">"."</span> + <span class="str">"SflKxwRJSMe..."</span></pre>
-  </div>
-
-  <div class="callout callout-info">
-    <div class="callout-label">PRECISE TERMINOLOGY</div>
-    <p>The JWT signature is the output of a signing algorithm applied to the encoded header + encoded payload using a key. That output (raw bytes) is then base64url-encoded for transport. The header and payload are base64url-encoded (readable by anyone). The signature is a cryptographic fingerprint — it cannot be "decoded" to anything meaningful, and it cannot be forged without the signing key.</p>
-  </div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 01 ── -->
-<div class="section" id="s01">
-  <div class="section-head">
-    <span class="section-num">01</span>
-    <span class="section-title">Basic Authentication</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7617" target="_blank">RFC 7617</a>
-  </div>
-
-  <div class="intro">
-    The simplest HTTP authentication method (RFC 7617). The client sends the username and password <strong>with every request</strong> — base64-encoded in the Authorization header. No tokens. No sessions. No state on the server.
-  </div>
-
-  <div class="callout callout-warn">
-    <div class="callout-label">ALWAYS CLARIFY IN INTERVIEWS</div>
-    <p>Base64 is <strong>encoding</strong>, not encryption. The value <code>YWxpY2U6c2VjcmV0</code> decodes instantly to <code>alice:secret</code> with no key. Basic Auth is only safe when <strong>HTTPS</strong> encrypts the entire connection. Without HTTPS, credentials are plaintext on the wire.</p>
-  </div>
-
-  <h3>Step-by-step flow</h3>
-  <div class="flow">
-    <div class="flow-label">BASIC AUTH FLOW</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">Client sends a request with no credentials.</div><div class="flow-code">GET /api/orders HTTP/1.1</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div>
-      <div class="flow-body"><div class="flow-actor">SERVER → CLIENT</div><div class="flow-desc">Server responds with 401 and tells the client which scheme to use.</div><div class="flow-code">401 Unauthorized
-WWW-Authenticate: Basic realm="MyApp"</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client concatenates username and password with a colon, then base64-encodes the result.</div><div class="flow-code">"alice:secret123" → base64 → "YWxpY2U6c2VjcmV0MTIz"</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER (every request)</div><div class="flow-desc">Client includes the Authorization header on every single subsequent request. No caching, no token, no session — the credentials travel with every call.</div><div class="flow-code">GET /api/orders
-Authorization: Basic YWxpY2U6c2VjcmV0MTIz</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Server base64-decodes the value, splits on the colon, verifies the password against its database. Returns 200 (valid) or 401 (invalid).</div><div class="flow-note">No session is created. The server is stateless — it verifies from scratch on every request.</div></div>
-    </div>
-  </div>
-
-  <h3>Properties</h3>
-  <table class="tbl">
-    <tr><th>Property</th><th>Detail</th></tr>
-    <tr><td>Stateless?</td><td>Yes — server holds no session. Credentials sent every request.</td></tr>
-    <tr><td>Credential encoding</td><td>Base64 (reversible, no key). NOT encryption, NOT a hash.</td></tr>
-    <tr><td>Safe without HTTPS?</td><td>No — base64 decodes instantly on interception.</td></tr>
-    <tr><td>Logout possible?</td><td>No standard mechanism. The browser may cache credentials until the tab/session closes.</td></tr>
-    <tr><td>Use today</td><td>Internal tooling, scripts, legacy APIs, CI/CD service accounts. Never for user-facing applications.</td></tr>
-  </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Valid credentials → 200. ② Wrong password → 401. ③ Missing Authorization header → 401. ④ Capture the header in Burp Suite → decode the base64 → you see plaintext credentials (document this). ⑤ Test over plain HTTP if available — confirm HTTPS is enforced. ⑥ Test special characters in passwords (colon in password breaks the format — server must handle this).</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 02 ── -->
-<div class="section" id="s02">
-  <div class="section-head">
-    <span class="section-num">02</span>
-    <span class="section-title">Digest Authentication</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7616" target="_blank">RFC 7616</a>
-  </div>
-
-  <div class="intro">
-    Digest Auth (RFC 7616) was designed to fix Basic Auth's main weakness: <strong>the password is never sent over the wire</strong>. Instead, the client sends a hash of the password combined with a server-generated random value (a <strong>nonce</strong>). Even if intercepted, the hash cannot be reversed to get the original password.
-  </div>
-
-  <h3>Key concept: the nonce</h3>
-  <p>A <strong>nonce</strong> (number used once) is a random string generated fresh by the server for each authentication challenge. The client mixes the password with this nonce before hashing. Because the nonce changes every challenge, capturing a valid response and replaying it against a different request won't work — the nonce won't match.</p>
-
-  <div class="flow">
-    <div class="flow-label">DIGEST AUTH FLOW</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">Client sends request with no credentials.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div>
-      <div class="flow-body"><div class="flow-actor">SERVER → CLIENT (challenge)</div><div class="flow-desc">Server responds with 401 and includes a fresh nonce in the header.</div><div class="flow-code">401 Unauthorized
-WWW-Authenticate: Digest realm="MyApp", nonce="abc123xyz"</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client hashes the credentials combined with the nonce using MD5 (or SHA-256 in newer versions).</div><div class="flow-code">HA1 = MD5("alice:MyApp:secret123")
-HA2 = MD5("GET:/api/orders")
-response = MD5(HA1 + ":" + nonce + ":" + HA2)</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">Client sends the hash (called "response") — never the password.</div><div class="flow-code">Authorization: Digest username="alice", nonce="abc123xyz",
-  response="6f3a..."</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Server performs the same hash calculation with its stored password and the nonce it issued. Compares result. If they match → 200.</div><div class="flow-note">The password is never transmitted. If the channel is intercepted, the hash alone cannot be reversed.</div></div>
-    </div>
-  </div>
-
-  <h3>Digest vs Basic — comparison</h3>
-  <table class="tbl">
-    <tr><th>Property</th><th>Basic Auth</th><th>Digest Auth</th></tr>
-    <tr><td>Password sent?</td><td>Yes (base64-encoded)</td><td>No — only a hash is sent</td></tr>
-    <tr><td>Replay protection?</td><td>None</td><td>Yes — nonce changes per request</td></tr>
-    <tr><td>Safe without HTTPS?</td><td>No</td><td>Better (password not sent), but still weak (hash can be brute-forced)</td></tr>
-    <tr><td>Hash algorithm</td><td>None (base64)</td><td>MD5 or SHA-256</td></tr>
-    <tr><td>Status today</td><td>Legacy but still used</td><td>Largely obsolete — replaced by token-based auth over HTTPS</td></tr>
-  </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Verify the nonce is unique per challenge (nonce reuse enables replay attacks). ② Verify HTTPS is still enforced — Digest Auth does not replace transport security. ③ If encountered: document as an outdated mechanism and recommend migration to Bearer Token over HTTPS. ④ Test with valid credentials → 200; wrong password → 401; missing nonce → 400/401.</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 03 ── -->
-<div class="section" id="s03">
-  <div class="section-head">
-    <span class="section-num">03</span>
-    <span class="section-title">API Keys</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
-    <a class="spec-ref" href="https://swagger.io/docs/specification/v3_0/authentication/api-keys/" target="_blank">No RFC — vendor convention</a>
-  </div>
-
-  <div class="intro">
-    An API Key is a static string — generated by the server and given to the client — that acts as an identity credential. Unlike Basic Auth, the client does not send a username/password. It sends the key. The server looks the key up in a database to identify the client and retrieve its permissions.
-  </div>
-
-  <h3>How API key auth works</h3>
-  <div class="flow">
-    <div class="flow-label">API KEY FLOW (from Image 4 in your screenshots)</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → API SERVER</div><div class="flow-desc">Client sends request with the API key — either in a custom header or as a query parameter.</div><div class="flow-code">GET /api/users
-Authorization: ApiKey abc123xyz456
-<span class="cm">— or —</span>
-X-API-Key: abc123xyz456</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div>
-      <div class="flow-body"><div class="flow-actor">API SERVER → DATABASE</div><div class="flow-desc">Server looks up the key hash in the database to find which user/client it belongs to and what permissions it has.</div><div class="flow-code">SELECT user_id, scopes, active FROM api_keys
-WHERE key_hash = hash(request_key)</div><div class="flow-note">The key is stored as a hash — the plain key is never stored on the server.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">2a — key valid</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Key exists, is active, and has the required scope → authorize the request → return 200 with data.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2b — key invalid</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Key not found or marked inactive.</div><div class="flow-code">401 Unauthorized</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--red-d);color:var(--red)">2c — key missing</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">No API key in the request at all.</div><div class="flow-code">400 Bad Request (API key required)</div></div>
-    </div>
-  </div>
-
-  <h3>Where API keys are sent</h3>
-  <table class="tbl">
-    <tr><th>Location</th><th>Example</th><th>Risk</th></tr>
-    <tr><td>Custom header</td><td><code>X-API-Key: abc123</code></td><td>Low — doesn't appear in URLs or browser history</td></tr>
-    <tr><td>Authorization header</td><td><code>Authorization: ApiKey abc123</code></td><td>Low</td></tr>
-    <tr><td>Query parameter</td><td><code>GET /data?api_key=abc123</code></td><td>High — appears in server logs, browser history, Referer headers</td></tr>
-    <tr><td>Request body</td><td><code>{"api_key": "abc123"}</code></td><td>Medium — only for POST requests</td></tr>
-  </table>
-
-  <div class="callout callout-warn">
-    <div class="callout-label">API KEYS ARE STATEFUL</div>
-    <p>Unlike JWT, an API key has no expiry embedded in itself. Validity is determined by a database lookup on every request. This means: API keys require server-side storage, they can be instantly revoked (delete from DB), but they also add latency (DB call per request).</p>
-  </div>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Key in query parameter → check server logs for key exposure. ② Revoke a key via admin panel → immediately test if it still works (must return 401). ③ Test rate limiting per key. ④ Test with a key that belongs to a different user's scope. ⑤ Verify the plain key is not stored in the database (only a hash should be stored). ⑥ Check whether HTTPS is enforced — keys in headers are still plaintext at the transport layer without TLS.</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 04 ── -->
-<div class="section" id="s04">
-  <div class="section-head">
-    <span class="section-num">04</span>
-    <span class="section-title">Session-Based Authentication</span>
-    <span class="tag tag-authn">AUTHN METHOD</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6265" target="_blank">RFC 6265 (Cookies)</a>
-  </div>
-
-  <div class="intro">
-    Session-based auth is the classic web authentication model. After the user logs in once with credentials, the server creates a <strong>session record</strong> in its database and gives the client a <strong>session ID</strong> (stored in a cookie). Every subsequent request sends that session ID — the server looks it up to identify the user. The session state lives on the server.
-  </div>
-
-  <div class="flow">
-    <div class="flow-label">SESSION AUTH FLOW</div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER</div><div class="flow-desc">User submits login form with credentials.</div><div class="flow-code">POST /login
-Body: { username: "alice", password: "secret123" }</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div>
-      <div class="flow-body"><div class="flow-actor">SERVER (internal)</div><div class="flow-desc">Server verifies credentials. If valid: creates a session record in the session store (database/Redis), generates a unique random session ID.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div>
-      <div class="flow-body"><div class="flow-actor">SERVER → CLIENT</div><div class="flow-desc">Server sends the session ID to the client in a Set-Cookie header.</div><div class="flow-code">Set-Cookie: session_id=xK9mR3...;
-  HttpOnly; Secure; SameSite=Strict</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div>
-      <div class="flow-body"><div class="flow-actor">CLIENT → SERVER (every request)</div><div class="flow-desc">Browser automatically sends the cookie on every matching request.</div><div class="flow-code">GET /api/orders
-Cookie: session_id=xK9mR3...</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">Server looks up the session ID in the session store. Retrieves user data and permissions. Processes the request.</div><div class="flow-note">Requires a database lookup on every request. Stateful — the server must store sessions.</div></div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6 — logout</div>
-      <div class="flow-body"><div class="flow-actor">SERVER</div><div class="flow-desc">On logout: server deletes the session record from the store. The session ID cookie becomes useless — even if captured, it will not match any session.</div></div>
-    </div>
-  </div>
-
-  <h3>Session vs JWT — key difference</h3>
-  <table class="tbl">
-    <tr><th>Property</th><th>Session-based</th><th>JWT-based</th></tr>
-    <tr><td>State location</td><td>Server (session store)</td><td>Client (the token itself)</td></tr>
-    <tr><td>Server DB lookup?</td><td>Yes — every request</td><td>No — validates cryptographically</td></tr>
-    <tr><td>Scalability</td><td>Harder (sessions must be shared across servers)</td><td>Easier (stateless — any server can verify)</td></tr>
-    <tr><td>Revocation</td><td>Instant — delete session record</td><td>Hard — token valid until exp</td></tr>
-    <tr><td>Logout works?</td><td>Yes — server deletes session</td><td>Only if blacklist or short TTL used</td></tr>
-  </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Log out → immediately use old session cookie → must return 401 (session deleted server-side). ② Check cookie attributes: HttpOnly (no JS access), Secure (HTTPS only), SameSite=Strict (CSRF protection). ③ Test session fixation: can you set your own session ID before login? ④ Test concurrent sessions: two logins for the same user — are both sessions valid or does login invalidate previous? ⑤ Test session timeout — does the server expire idle sessions?</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 05 ── -->
-<div class="section" id="s05">
-  <div class="section-head">
-    <span class="section-num">05</span>
-    <span class="section-title">Bearer Tokens &amp; JWT</span>
-    <span class="tag tag-token">TOKEN</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6750" target="_blank">RFC 6750 (Bearer)</a>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank">RFC 7519 (JWT)</a>
-  </div>
-
-  <div class="intro">
-    A <strong>Bearer Token</strong> is an access token where possession alone grants access — "whoever bears this token gets in." The most common format is <strong>JWT (JSON Web Token)</strong>. Unlike sessions, JWTs are <strong>self-contained</strong> — all validation data is inside the token. No database lookup needed to verify a JWT.
-  </div>
-
-  <h3>What "Bearer" means</h3>
-  <p>Bearer is the <em>scheme name</em> in the Authorization header. It means: "the holder of this token is authorized." The server grants access to whoever presents a valid token — it does not verify that the presenter is the original recipient. This is why token theft is a serious risk.</p>
-
-  <div class="code">
-    <div class="code-label">HOW THE TOKEN IS SENT</div>
-    <pre>GET /api/orders HTTP/1.1
-<span class="key">Authorization</span>: <span class="kw">Bearer</span> <span class="str">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIn0.SflKxw...</span></pre>
-  </div>
-
-  <h3>JWT structure — three parts</h3>
-  <div class="callout callout-info">
-    <div class="callout-label">IMPORTANT PRECISION</div>
-    <p>All three parts are <strong>base64url-encoded for transport</strong>. But the header and payload are readable JSON (encoding only). The signature is a cryptographic output (produced by a signing algorithm) that is then base64url-encoded — it cannot be decoded to anything meaningful without the key, and it cannot be forged without the signing key.</p>
-  </div>
-
-  <div class="code">
-    <div class="code-label">JWT DECODED — ALL THREE PARTS</div>
-    <pre><span class="cm">// PART 1: HEADER — identifies algorithm and token type</span>
-<span class="cm">// (base64url-encoded JSON — readable by anyone)</span>
-{
-  <span class="key">"alg"</span>: <span class="str">"RS256"</span>,  <span class="cm">// signing algorithm</span>
-  <span class="key">"typ"</span>: <span class="str">"JWT"</span>
-}
-
-<span class="cm">// PART 2: PAYLOAD — the claims (data about the subject)</span>
-<span class="cm">// (base64url-encoded JSON — readable by anyone — NOT secret)</span>
-{
-  <span class="key">"sub"</span>: <span class="str">"user-123"</span>,         <span class="cm">// subject: who this is about</span>
-  <span class="key">"iss"</span>: <span class="str">"https://auth.co.com"</span>,<span class="cm">// issuer: who created the token</span>
-  <span class="key">"aud"</span>: <span class="str">"api.co.com"</span>,        <span class="cm">// audience: who should accept it</span>
-  <span class="key">"iat"</span>: <span class="num">1744996400</span>,          <span class="cm">// issued at (Unix timestamp)</span>
-  <span class="key">"exp"</span>: <span class="num">1745000000</span>,          <span class="cm">// expiry (Unix timestamp)</span>
-  <span class="key">"jti"</span>: <span class="str">"uuid-abc-123"</span>,      <span class="cm">// unique token ID (for revocation)</span>
-  <span class="key">"scope"</span>: <span class="str">"orders:read"</span>      <span class="cm">// what this token is allowed to do</span>
-}
-
-<span class="cm">// PART 3: SIGNATURE — proves the token was not tampered with</span>
-<span class="cm">// Formula: base64url( sign(base64url(header)+"."+base64url(payload), key) )</span>
-<span class="cm">// The signing algorithm output (raw bytes) is base64url-encoded for transport.</span>
-<span class="cm">// It is NOT readable — it is a cryptographic fingerprint.</span>
-SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
-  </div>
-
-  <h3>HS256 vs RS256 — signing algorithms</h3>
-  <div class="grid2">
-    <div class="card">
-      <div class="card-title" style="color:var(--purple)">HS256 — SYMMETRIC (HMAC-SHA256)</div>
-      <div class="card-body">One shared secret key for both signing and verification. Any service that needs to verify tokens must know the secret. If any verifier is compromised, the signing secret is exposed — attacker can forge tokens.<br><br><strong>Good for:</strong> single-service setups, internal tools.</div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--cyan)">RS256 — ASYMMETRIC (RSA-SHA256)</div>
-      <div class="card-body">Private key signs (auth server only, never shared). Public key verifies (any service can have it). A compromised verifier cannot forge tokens — it only knows the public key.<br><br><strong>Good for:</strong> microservices, distributed systems, multi-team architectures.</div>
-    </div>
-  </div>
-
-  <h3>JWT validation — what the server checks on every request</h3>
-  <div class="flow">
-    <div class="flow-label">JWT VALIDATION SEQUENCE</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-desc"><strong>Signature</strong> — recalculate the expected signature from the received header+payload using the key. Compare to the signature in the token. If they don't match → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-desc"><strong>Expiry (exp)</strong> — is the current time before the exp timestamp? If expired → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-desc"><strong>Issuer (iss)</strong> — does the issuer match what this service expects? Prevents tokens from other systems. If mismatch → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-desc"><strong>Audience (aud)</strong> — is this token intended for this service? Prevents token replay across services. If mismatch → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-desc"><strong>Algorithm (alg)</strong> — is the algorithm what the server expects? Reject "none". Reject unexpected algorithms. If unexpected → 401.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-desc">All checks pass → extract claims from payload → proceed to authorization.</div></div></div>
-  </div>
-
-  <div class="callout callout-warn">
-    <div class="callout-label">CRITICAL ATTACK — alg:none</div>
-    <p>If a JWT library accepts <code>"alg": "none"</code>, it skips signature verification entirely. An attacker sets alg to none, modifies the payload (e.g. changes role to admin), removes the signature, and sends it. The server accepts it with no verification. Test: send a token with alg:none — must return 401.</p>
-  </div>
-
-  <h3>The revocation problem</h3>
-  <p>JWT is stateless — once issued, there is no database record to delete. If a token is stolen or a user is suspended, the token remains valid until <code>exp</code> passes. Mitigations:</p>
-  <ul>
-    <li><strong>Short TTL</strong> — access tokens should expire in 5–15 minutes.</li>
-    <li><strong>jti blocklist</strong> — store revoked token IDs in Redis. Check on every request.</li>
-    <li><strong>Refresh token rotation</strong> — see section 06.</li>
-  </ul>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Corrupt the signature (change last 5 chars) → must return 401. ② Use an expired token (exp in the past) → must return 401. ③ Send alg:none → must return 401. ④ Decode the payload at jwt.io — audit for PII, internal infrastructure details, unnecessary claims. ⑤ Send a token for Service A to Service B → must return 401 (aud mismatch). ⑥ Send a token from a different issuer → must return 401.</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 06 ── -->
-<div class="section" id="s06">
-  <div class="section-head">
-    <span class="section-num">06</span>
-    <span class="section-title">Access &amp; Refresh Tokens</span>
-    <span class="tag tag-token">TOKEN PAIR</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749#section-1.4" target="_blank">RFC 6749 §1.4</a>
-  </div>
-
-  <div class="intro">
-    Most modern auth systems issue two tokens together: a short-lived <strong>access token</strong> for API calls, and a long-lived <strong>refresh token</strong> to get a new access token when the old one expires. This balances security (short window if stolen) with user experience (no re-login every 15 minutes).
-  </div>
-
-  <div class="grid2">
-    <div class="card"><div class="card-title" style="color:var(--blue)">ACCESS TOKEN</div><div class="card-body"><strong>TTL:</strong> 5–60 minutes<br><strong>Format:</strong> usually JWT<br><strong>Sent to:</strong> every API endpoint<br><strong>Validated by:</strong> API server (cryptographically)<br><strong>Stolen?</strong> Attacker has a short window only.</div></div>
-    <div class="card"><div class="card-title" style="color:var(--purple)">REFRESH TOKEN</div><div class="card-body"><strong>TTL:</strong> days to weeks (or longer)<br><strong>Format:</strong> opaque string (random, no structure) or JWE (encrypted JWT — 5 parts)<br><strong>Sent to:</strong> ONLY the /token endpoint (refresh token endpoint)<br><strong>Validated by:</strong> auth server (via database lookup)<br><strong>Stolen?</strong> Attacker has long-term access — high risk.</div></div>
+  <div class="footer">
+    <span>QA STUDY NOTES</span>
+    <span class="footer-sep">·</span>
+    <span><span class="t-en">Backend &amp; Microservices track</span><span class="t-ua">Трек Backend та мікросервіси</span></span>
+    <span class="footer-sep">·</span>
+    <span><span class="t-en">Personal notes — simplified for clarity, not a formal specification</span><span class="t-ua">Особисті нотатки — спрощено для ясності, не є формальною специфікацією</span></span>
   </div>
 
 </div>
-
-<hr class="sep">
-
-<!-- ── 07 ── -->
-<div class="section" id="s07">
-  <div class="section-head">
-    <span class="section-num">07</span>
-    <span class="section-title">OAuth 1.0</span>
-    <span class="tag tag-framework">AUTHZ FRAMEWORK</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc5849" target="_blank">RFC 5849</a>
-  </div>
-
-  <div class="intro">
-    OAuth 1.0 (RFC 5849, 2010) was the first standardized protocol for <strong>delegated access</strong> — per RFC 5849, it provides "a method for clients to access server resources on behalf of a resource owner… without sharing their credentials." It is largely replaced by OAuth 2.0 but still appears in some older APIs (Twitter/X classic API, some payment systems).
-  </div>
-
-  <div class="callout callout-note">
-    <div class="callout-label">WHAT "AUTHORIZATION FRAMEWORK" MEANS</div>
-    <p>OAuth is <strong>not an authentication method</strong>. It is a <strong>framework</strong> — a set of rules for how a third-party application can obtain limited access to resources. The user authenticates to the authorization server (using whatever auth method that server requires). OAuth then defines the protocol by which the third-party receives a token representing that granted access.</p>
-  </div>
-
-  <h3>How OAuth 1.0 works</h3>
-  <div class="flow">
-    <div class="flow-label">OAUTH 1.0 FLOW — 3-LEGGED AUTH</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">1</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client requests a temporary "Request Token" using its Consumer Key and Consumer Secret.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">Returns a Request Token (temporary, not yet authorized).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">3</div><div class="flow-body"><div class="flow-actor">CLIENT redirects USER → AUTH SERVER</div><div class="flow-desc">User is sent to the auth server to log in and approve the access request.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">4</div><div class="flow-body"><div class="flow-actor">USER approves → AUTH SERVER redirects back</div><div class="flow-desc">Auth server redirects user back to client's callback URL with a verifier code.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">5</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client exchanges: Request Token + Verifier + Consumer Secret → Access Token.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE SERVER</div><div class="flow-desc">Client uses Access Token to make signed requests. Every request is signed using HMAC-SHA1 with both the Consumer Secret and Token Secret.</div><div class="flow-note">Request signing is the key complexity of OAuth 1.0 — every request body is part of the signature. This is why OAuth 2.0 dropped it in favor of HTTPS.</div></div></div>
-  </div>
-
-  <h3>OAuth 1.0 vs OAuth 2.0 — key differences</h3>
-  <table class="tbl">
-    <tr><th>Property</th><th>OAuth 1.0</th><th>OAuth 2.0</th></tr>
-    <tr><td>Request signing</td><td>Yes — every request signed with HMAC</td><td>No — relies on HTTPS for transport security</td></tr>
-    <tr><td>Token type</td><td>Opaque tokens only</td><td>JWT (or opaque), refresh tokens</td></tr>
-    <tr><td>Complexity</td><td>High — signature implementation error-prone</td><td>Lower — standardized flows</td></tr>
-    <tr><td>Mobile/SPA support</td><td>Poor</td><td>Good — PKCE extension</td></tr>
-    <tr><td>Status</td><td>Legacy — mostly replaced</td><td>Current standard</td></tr>
-  </table>
-</div>
-
-<hr class="sep">
-
-<!-- ── 08 ── -->
-<div class="section" id="s08">
-  <div class="section-head">
-    <span class="section-num">08</span>
-    <span class="section-title">OAuth 2.0</span>
-    <span class="tag tag-framework">AUTHZ FRAMEWORK</span>
-    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank">RFC 6749</a>
-  </div>
-
-  <div class="intro">
-    Per RFC 6749, OAuth 2.0 is an authorization framework that <strong>"enables a third-party application to obtain limited access to an HTTP service, either on behalf of a resource owner… or by allowing the third-party application to obtain access on its own behalf."</strong> OAuth 2.0 itself handles <strong>authorization only</strong>. It does not define authentication (that is what OIDC adds on top — see section 09). Note: when a client acts on its own behalf (Client Credentials grant), there is no user or delegation involved — just direct token issuance to the client.
-  </div>
-
-  <div class="callout callout-warn">
-    <div class="callout-label">OAUTH 2.0 IS NOT AN AUTHENTICATION METHOD</div>
-    <p>OAuth 2.0 tells you what a user has permitted a client to do. It does <strong>not</strong> tell you who the user is. When you "log in with Google," OAuth 2.0 grants the app access to your Google data. OpenID Connect (built on top of OAuth 2.0) provides the identity — who you are.</p>
-  </div>
-
-  <h3>The four roles in OAuth 2.0</h3>
-  <div class="grid2">
-    <div class="card"><div class="card-title">RESOURCE OWNER</div><div class="card-body">The user who owns the protected data and grants access.</div></div>
-    <div class="card"><div class="card-title">CLIENT</div><div class="card-body">The third-party application that wants access to the user's resources.</div></div>
-    <div class="card"><div class="card-title">AUTHORIZATION SERVER</div><div class="card-body">Issues tokens after authenticating the user and getting consent. (e.g. Google Auth, AWS Cognito)</div></div>
-    <div class="card"><div class="card-title">RESOURCE SERVER</div><div class="card-body">The API that holds the protected data. Accepts and validates access tokens.</div></div>
-  </div>
-
-  <h3>Flow 1: Authorization Code (user-facing apps)</h3>
-  <p>Used when a user must be present to authenticate and grant consent.</p>
-  <div class="flow">
-    <div class="flow-label">AUTHORIZATION CODE FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client redirects user to auth server's /authorize endpoint.</div><div class="flow-code">GET /authorize?response_type=code
-  &amp;client_id=myapp
-  &amp;redirect_uri=https://app.com/callback
-  &amp;scope=orders:read
-  &amp;state=random_csrf_token</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">USER (at auth server)</div><div class="flow-desc">User logs in and approves the requested scopes.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT (redirect)</div><div class="flow-desc">Auth server redirects to the redirect_uri with a short-lived authorization code and the same state value.</div><div class="flow-code">GET https://app.com/callback?code=AUTH_CODE&amp;state=random_csrf_token</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client verifies the state matches what it sent (CSRF protection).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (back channel)</div><div class="flow-desc">Client exchanges code + client_secret for tokens. This is server-to-server — tokens never touch the browser URL.</div><div class="flow-code">POST /token
-grant_type=authorization_code&amp;code=AUTH_CODE
-&amp;client_id=myapp&amp;client_secret=SECRET
-&amp;redirect_uri=https://app.com/callback</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">Returns access_token and refresh_token.</div></div></div>
-  </div>
-
-  <h3>Flow 2: Authorization Code + PKCE (mobile/SPA)</h3>
-  <p>PKCE (Proof Key for Code Exchange) extends Auth Code flow for <strong>public clients</strong> that cannot safely store a client_secret (mobile apps, SPAs). Without PKCE, a malicious app on the same device can intercept the authorization code and exchange it for tokens.</p>
-  <div class="flow">
-    <div class="flow-label">PKCE ADDITIONS TO AUTH CODE FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">CLIENT (before step 1)</div><div class="flow-desc">Client generates a random <strong>code_verifier</strong> string, then hashes it to produce a <strong>code_challenge</strong>.</div><div class="flow-code">code_verifier = random_string(64 chars)
-code_challenge = base64url(SHA256(code_verifier))</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">B</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (step 1 modified)</div><div class="flow-desc">Client includes code_challenge in the authorization request.</div><div class="flow-code">GET /authorize?...&amp;code_challenge=HASH&amp;code_challenge_method=S256</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">C</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (step 5 modified)</div><div class="flow-desc">At token exchange, client sends the original code_verifier (not the hash). Auth server hashes the verifier and compares to the stored challenge. Only the original requester has the verifier.</div><div class="flow-code">POST /token
-...&amp;code_verifier=ORIGINAL_RANDOM_STRING</div></div></div>
-  </div>
-
-  <h3>Flow 3: Client Credentials (machine-to-machine)</h3>
-  <p>Used when there is no user involved — a service authenticates as itself.</p>
-  <div class="flow">
-    <div class="flow-label">CLIENT CREDENTIALS FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">SERVICE → AUTH SERVER</div><div class="flow-desc">Service sends its own client_id and client_secret directly to the /token endpoint. No user redirect, no consent.</div><div class="flow-code">POST /token
-grant_type=client_credentials
-&amp;client_id=my-service&amp;client_secret=SERVICE_SECRET
-&amp;scope=data:ingest</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → SERVICE</div><div class="flow-desc">Returns an access_token representing the service (not any user). No refresh token — the service can re-authenticate at any time.</div><div class="flow-note">The token's sub claim is the service's client_id — not a user ID.</div></div></div>
-  </div>
-
-  <table class="tbl">
-    <tr><th>Flow</th><th>When to use</th><th>User present?</th><th>client_secret needed?</th></tr>
-    <tr><td>Auth Code</td><td>Web apps with a backend</td><td>Yes</td><td>Yes</td></tr>
-    <tr><td>Auth Code + PKCE</td><td>Mobile apps, SPAs</td><td>Yes</td><td>No (PKCE replaces it)</td></tr>
-    <tr><td>Client Credentials</td><td>Service-to-service, background jobs</td><td>No</td><td>Yes</td></tr>
-  </table>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Modify redirect_uri → auth server must reject (code interception risk). ② Remove state param → server must still validate state on callback (CSRF test). ③ Auth Code: try to reuse the authorization code a second time → must return error. ④ PKCE: send token exchange without code_verifier → must be rejected. ⑤ Client Credentials token → send to user-specific endpoint → must return 403 (wrong subject type). ⑥ Verify code_challenge_method=S256, not plain.</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 09 ── -->
-<div class="section" id="s09">
-  <div class="section-head">
-    <span class="section-num">09</span>
-    <span class="section-title">OpenID Connect (OIDC)</span>
-    <span class="tag tag-proto">AUTHN PROTOCOL</span>
-    <a class="spec-ref" href="https://openid.net/specs/openid-connect-core-1_0.html" target="_blank">OIDC Core 1.0</a>
-  </div>
-
-  <div class="intro">
-    Per the <a href="https://openid.net/specs/openid-connect-core-1_0.html" style="color:var(--cyan)">OpenID Connect Core 1.0 specification</a>: <strong>"OpenID Connect 1.0 is a simple identity layer on top of the OAuth 2.0 protocol."</strong> More precisely, it is an <strong>authentication protocol</strong> — it defines how a client verifies the identity of an end-user based on authentication performed by an Authorization Server. OAuth 2.0 answers "what can this client do?" OIDC answers "who is this user?" It adds the <strong>id_token</strong> (a JWT containing identity claims) and the <strong>UserInfo endpoint</strong> to the OAuth 2.0 framework. It is not an authorization framework — it is a protocol built <em>on top of</em> one.
-  </div>
-
-  <div class="callout callout-warn">
-    <div class="callout-label">COMMON MISTAKE</div>
-    <p>OIDC is often grouped with OAuth 2.0 under "authorization frameworks" because they share flows and endpoints. This is incorrect. OAuth 2.0 is an authorization framework. OIDC is an authentication protocol that uses OAuth 2.0 as its transport layer. Confusing these two is a frequent interview error.</p>
-  </div>
-
-  <h3>id_token vs access_token — critical distinction</h3>
-  <div class="grid2">
-    <div class="card"><div class="card-title" style="color:var(--blue)">ID_TOKEN</div><div class="card-body"><strong>Who it's for:</strong> the client application.<br><strong>Contains:</strong> identity claims — name, email, profile.<br><strong>Purpose:</strong> tells the client who the user is.<br><strong>Send to API?</strong> No — it is NOT for API authorization.<br><strong>Audience:</strong> the client_id.</div></div>
-    <div class="card"><div class="card-title" style="color:var(--green)">ACCESS_TOKEN</div><div class="card-body"><strong>Who it's for:</strong> the resource server (API).<br><strong>Contains:</strong> authorization claims — scopes, subject.<br><strong>Purpose:</strong> tells the API what the user is allowed to do.<br><strong>Send to API?</strong> Yes — in Authorization: Bearer header.<br><strong>Audience:</strong> the API resource server.</div></div>
-  </div>
-
-  <h3>Standard OIDC scopes</h3>
-  <table class="tbl">
-    <tr><th>Scope</th><th>Claims returned</th></tr>
-    <tr><td>openid</td><td>sub (required — enables OIDC)</td></tr>
-    <tr><td>profile</td><td>name, given_name, family_name, picture, locale</td></tr>
-    <tr><td>email</td><td>email, email_verified</td></tr>
-    <tr><td>phone</td><td>phone_number, phone_number_verified</td></tr>
-    <tr><td>address</td><td>address (structured JSON)</td></tr>
-  </table>
-
-  <h3>The nonce claim — replay attack prevention</h3>
-  <p>The client generates a random <strong>nonce</strong>, sends it in the authorization request, and the auth server embeds it in the id_token. The client verifies that the nonce in the received id_token matches what it sent. Without nonce: a captured id_token can be replayed to authenticate as the victim for its entire TTL.</p>
-
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Decode id_token → check for PII beyond what the application needs. ② Send id_token to a resource API endpoint (instead of access_token) → must return 401/403. ③ Call /userinfo with expired access_token → must return 401. ④ Test nonce: replay a captured id_token in a second login → must be rejected. ⑤ AWS Cognito finding: iss claim contains the full user pool URL — infrastructure disclosure, medium severity.</div></div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 10 ── -->
-<div class="section" id="s10">
-  <div class="section-head">
-    <span class="section-num">10</span>
-    <span class="section-title">Single Sign-On (SSO)</span>
-    <span class="tag tag-concept">UX PATTERN / SCHEME</span>
-    <a class="spec-ref" href="https://en.wikipedia.org/wiki/Single_sign-on" target="_blank">Wikipedia</a>
-  </div>
-
-  <div class="intro">
-    SSO is an <strong>authentication scheme and UX pattern</strong> — not a protocol. Wikipedia defines it as <em>"an authentication scheme that allows a user to log in with a single ID to access several related, yet independent, software systems."</em> It describes the <em>user experience and architecture</em> of centralised authentication. The underlying mechanisms are actual protocols: <strong>SAML</strong> (enterprise), <strong>OIDC</strong> (modern web/mobile), or Kerberos (network). SSO sits above the protocol layer — it defines the goal; the protocols define how it is achieved.
-  </div>
-
-  <div class="callout callout-note">
-    <div class="callout-label">SSO IS NOT AN AUTHENTICATION METHOD</div>
-    <p>SSO describes the <em>user experience and architecture</em> of centralized authentication. The underlying mechanisms are protocols: SAML, OIDC, or proprietary implementations. SSO sits above the auth method layer — it determines how sessions are shared across applications.</p>
-  </div>
-
-  <div class="flow">
-    <div class="flow-label">SSO FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">USER → APP A</div><div class="flow-desc">User tries to access App A. App A has no session for this user.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">APP A → IDENTITY PROVIDER</div><div class="flow-desc">App A redirects user to the central IdP (e.g. Okta, Google Workspace, ADFS).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">USER authenticates at IdP</div><div class="flow-desc">User logs in once with their corporate credentials. IdP establishes a session for this user.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">4</div><div class="flow-body"><div class="flow-actor">IDP → APP A</div><div class="flow-desc">IdP sends an assertion (SAML) or token (OIDC) back to App A. App A establishes its own local session.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">USER → APP B (later)</div><div class="flow-desc">User tries to access App B. App B redirects to IdP. IdP checks its session — user is already authenticated. Sends assertion to App B immediately — no login prompt.</div></div></div>
-  </div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 11 ── -->
-<div class="section" id="s11">
-  <div class="section-head">
-    <span class="section-num">11</span>
-    <span class="section-title">SAML</span>
-    <span class="tag tag-proto">IDENTITY PROTOCOL</span>
-    <a class="spec-ref" href="https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf" target="_blank">OASIS SAML 2.0</a>
-  </div>
-
-  <div class="intro">
-    SAML (Security Assertion Markup Language) is an XML-based protocol for SSO, primarily used in enterprise environments (corporate login, B2B integrations). It predates OAuth/OIDC and uses XML-signed assertions instead of JWT tokens. Common in: Okta, ADFS, Salesforce, enterprise portals.
-  </div>
-
-  <table class="tbl">
-    <tr><th>Property</th><th>SAML</th><th>OIDC</th></tr>
-    <tr><td>Format</td><td>XML assertions</td><td>JWT tokens</td></tr>
-    <tr><td>Transport</td><td>HTTP redirects (POST/Redirect binding)</td><td>HTTP redirects + API calls</td></tr>
-    <tr><td>Primary use</td><td>Enterprise SSO, B2B</td><td>Consumer apps, APIs, mobile</td></tr>
-    <tr><td>Complexity</td><td>High — XML, signatures, metadata exchange</td><td>Lower — JSON, standardized</td></tr>
-    <tr><td>Mobile support</td><td>Poor</td><td>Good</td></tr>
-  </table>
-</div>
-
-<hr class="sep">
-
-<!-- ── 12 ── -->
-<div class="section" id="s12">
-  <div class="section-head">
-    <span class="section-num">12</span>
-    <span class="section-title">Postman auth types — what each one is</span>
-    <span class="tag tag-concept">TESTING TOOL</span>
-    <a class="spec-ref" href="https://learning.postman.com/docs/sending-requests/authorization/authorization-types/" target="_blank">Postman Docs</a>
-  </div>
-
-  <div class="intro">
-    Postman groups auth types into categories. Understanding which category each option belongs to prevents the common mistake of treating all Postman auth options as equivalent. This directly maps to Image 3 in your screenshots.
-  </div>
-
-  <div class="postman-group">
-    <div class="postman-group-head" style="background:var(--blue-d);color:var(--blue)">AUTHENTICATION METHODS — the client proves its identity on each request</div>
-    <div class="postman-group-body">
-      <div class="postman-item"><span class="postman-item-name">Basic Auth</span><span class="postman-item-desc">Encodes username:password as Base64, sends in every request. Credentials travel with every call.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Bearer Token</span><span class="postman-item-desc">You paste a pre-generated token. Postman sends it as <code>Authorization: Bearer &lt;token&gt;</code>. No signing.</span></div>
-      <div class="postman-item"><span class="postman-item-name">JWT Bearer</span><span class="postman-item-desc">Postman constructs and signs the JWT locally using your provided algorithm, key, and claims. Useful for testing specific claim combinations in dev environments where you know the signing key.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Digest Auth</span><span class="postman-item-desc">Implements the Digest challenge-response handshake. Sends a hash, not the password.</span></div>
-      <div class="postman-item"><span class="postman-item-name">NTLM Authentication</span><span class="postman-item-desc">Windows authentication protocol. Challenge-response based. Used for corporate network resources.</span></div>
-      <div class="postman-item"><span class="postman-item-name">API Key</span><span class="postman-item-desc">Sends a static key in a header or query parameter. You specify the key name and value.</span></div>
-    </div>
-  </div>
-
-  <div class="postman-group">
-    <div class="postman-group-head" style="background:var(--green-d);color:var(--green)">AUTHORIZATION FRAMEWORKS — protocol flows for limited resource access</div>
-    <div class="postman-group-body">
-      <div class="postman-item"><span class="postman-item-name">OAuth 1.0</span><span class="postman-item-desc">Implements the OAuth 1.0 3-legged flow with request signing. For legacy APIs.</span></div>
-      <div class="postman-item"><span class="postman-item-name">OAuth 2.0</span><span class="postman-item-desc">Implements OAuth 2.0 flows (Auth Code, Client Credentials, etc.). Postman handles the redirect and token exchange. Stores the resulting access token for use in requests.</span></div>
-    </div>
-  </div>
-
-  <div class="postman-group">
-    <div class="postman-group-head" style="background:var(--amber-d);color:var(--amber)">VENDOR-SPECIFIC IMPLEMENTATIONS</div>
-    <div class="postman-group-body">
-      <div class="postman-item"><span class="postman-item-name">AWS Signature</span><span class="postman-item-desc">Implements AWS SigV4 signing for direct calls to AWS services (DynamoDB, SQS, SNS, S3). You provide your Access Key ID, Secret Access Key, region, and service. Every request is signed with a hash of the request content + timestamp. Use for testing AWS services directly — bypassing the application layer.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Hawk Authentication</span><span class="postman-item-desc">MAC-based request signing similar to OAuth 1.0. Each request is signed. Used by some Mozilla and legacy APIs.</span></div>
-      <div class="postman-item"><span class="postman-item-name">Akamai EdgeGrid</span><span class="postman-item-desc">Akamai's proprietary request signing for their CDN management APIs.</span></div>
-      <div class="postman-item"><span class="postman-item-name">ASAP (Atlassian)</span><span class="postman-item-desc">Atlassian's internal service-to-service auth. JWT-based with asymmetric keys. Used for Jira, Confluence integrations.</span></div>
-    </div>
-  </div>
-
-  <div class="callout callout-qa">
-    <div class="callout-label">WHEN TO USE WHICH IN QA WORK</div>
-    <p><strong>Testing a REST API with JWT:</strong> Bearer Token (paste the token) or JWT Bearer (if you have the key).<br>
-    <strong>Testing DynamoDB/SQS/SNS directly:</strong> AWS Signature (SigV4).<br>
-    <strong>Testing a full OAuth2 login flow end-to-end:</strong> OAuth 2.0 helper.<br>
-    <strong>Testing a legacy internal API:</strong> Basic Auth or Digest Auth.<br>
-    <strong>Testing an IoT sensor API:</strong> API Key (usually in custom header).</p>
-  </div>
-</div>
-
-<hr class="sep">
-
-<!-- ── 13 ── -->
-<div class="section" id="s13">
-  <div class="section-head">
-    <span class="section-num">13</span>
-    <span class="section-title">Common mistakes — what NOT to say in an interview</span>
-    <span class="tag tag-concept">INTERVIEW CRITICAL</span>
-    <a class="spec-ref" href="https://owasp.org/www-project-top-ten/" target="_blank">OWASP Top 10</a>
-  </div>
-
-  <div class="intro">
-    Common mistakes when describing authentication and authorization concepts.
-  </div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Calling OAuth 2.0 an authentication method.</strong><br>OAuth 2.0 is an authorization framework, not an authentication method. It handles obtaining limited access to resources. OIDC, built on top of OAuth 2.0, handles authentication.</div></div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Grouping SSO alongside authentication methods.</strong><br>SSO is an architectural pattern, not a method. It is implemented using protocols — OIDC, SAML, or Kerberos. The pattern describes the goal; the protocol describes how it is achieved.</div></div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Using JWT and Bearer Token as interchangeable terms.</strong><br>Bearer is the HTTP scheme name in the Authorization header. JWT is a token format. A bearer token can be an opaque string. A JWT can be used as a bearer token. They are different concepts at different layers.</div></div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Referring to JWT as an authentication type.</strong><br>JWT is a token format defined in RFC 7519 — a data structure with specific encoding and signing. It is used within authentication schemes and authorization frameworks, but is not itself either.</div></div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Confusing authentication and authorization.</strong><br>Authentication answers "who are you?" — verifying identity. Authorization answers "what are you allowed to do?" — verifying permissions. They are separate steps, have separate failure codes (401 vs 403), and operate at different layers. Authentication must succeed before authorization is checked.</div></div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Saying JWT is encrypted.</strong><br>Standard JWT (JWS) is not encrypted — the payload is base64url-encoded and readable by anyone. The signature provides tamper detection, not confidentiality. JWE is the encrypted variant and has 5 parts instead of 3.</div></div>
-
-  <div class="mistake"><span class="mistake-x">✗</span><div class="mistake-body"><strong>Assuming Basic Auth credentials are protected because they are base64-encoded.</strong><br>Base64 is an encoding scheme, not encryption — it is fully reversible with no key. The only protection in Basic Auth comes from HTTPS encrypting the transport layer.</div></div>
-
-  <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
-
-  <h3>The correct mental model — three layers</h3>
-  <div class="grid3">
-    <div class="card">
-      <div class="card-title" style="color:var(--blue)">LAYER 1: AUTH METHODS</div>
-      <div class="card-body">How a client proves identity on a request.<br><br><span class="pill pill-blue">Basic Auth</span><span class="pill pill-blue">Digest Auth</span><span class="pill pill-blue">API Key</span><span class="pill pill-blue">Session cookie</span><span class="pill pill-blue">Bearer Token</span></div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--green)">LAYER 2: AUTHZ FRAMEWORKS</div>
-      <div class="card-body">Protocols for obtaining limited access to resources on behalf of a resource owner, or on the client's own behalf.<br><br><span class="pill pill-green">OAuth 1.0</span><span class="pill pill-green">OAuth 2.0</span></div>
-    </div>
-    <div class="card">
-      <div class="card-title" style="color:var(--cyan)">LAYER 3: IDENTITY PROTOCOLS</div>
-      <div class="card-body">Protocols that add identity (authentication) on top of or alongside authorization frameworks.<br><br><span class="pill pill-cyan">OIDC</span><span class="pill pill-cyan">SAML</span><span class="pill pill-cyan">SSO (pattern)</span></div>
-    </div>
-  </div>
-
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>JWT is a token format</strong> used within Bearer auth and within OAuth 2.0 access tokens. Not an auth method.</div></div>
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>OAuth 2.0 is an authorization framework</strong> — it handles obtaining limited access to resources, not identity. OIDC handles identity.</div></div>
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>SSO is an architectural pattern</strong> — implemented via OIDC or SAML. Not a method or framework itself.</div></div>
-  <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Bearer ≠ JWT</strong> — Bearer is the header scheme. JWT is the token format. A bearer token can be an opaque string.</div></div>
-</div>
-
-</div><!-- end view-course -->
-
-
-
-</main>
-</div><!-- end layout -->
 
 <script>
-// ── COOKIES ──
 function setCookie(name, value) {
   const d = new Date();
   d.setTime(d.getTime() + 365*24*60*60*1000);
-  document.cookie = name+'='+value+';expires='+d.toUTCString()+';path=/;SameSite=Lax;Secure';
+  document.cookie = name+'='+value+';expires='+d.toUTCString()+';path=/;SameSite=Lax';
 }
 function getCookie(name) {
   const match = document.cookie.match(new RegExp('(?:^|; )'+name+'=([^;]*)'));
   return match ? match[1] : null;
 }
-
-// ── SETTINGS MENU ──
+function setLang(lang) {
+  setCookie('ui_lang', lang);
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-ua').classList.toggle('active', lang === 'ua');
+  document.body.classList.toggle('lang-en', lang === 'en');
+  document.body.classList.toggle('lang-ua', lang === 'ua');
+}
 function toggleSettings(e) {
   e.stopPropagation();
   const btn = document.getElementById('settings-btn');
@@ -1134,8 +240,6 @@ document.addEventListener('click', e => {
     document.getElementById('settings-btn').classList.remove('open');
   }
 });
-
-// ── FONT ──
 function setFont(font, e) {
   if (e) e.stopPropagation();
   document.body.classList.toggle('comic', font === 'comic');
@@ -1146,50 +250,17 @@ function setFont(font, e) {
   document.getElementById('settings-btn').classList.remove('open');
 }
 (function(){
-  const saved = getCookie('ui_font');
-  if (saved) setFont(saved);
+  const savedFont = getCookie('ui_font');
+  if (savedFont) setFont(savedFont);
+  const savedLang = getCookie('ui_lang') || 'en';
+  setLang(savedLang);
 })();
-
-// ── SIDEBAR TOGGLE (mobile) ──
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
-  const open = sidebar.classList.toggle('open');
-  overlay.classList.toggle('open', open);
-}
-
-// ── TAB SWITCHING ──
-function showTab(name, btn) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  btn.classList.add('active');
-}
-
-// ── SIDEBAR NAV ──
-function goTo(id) {
-  const el = document.getElementById(id);
-  if(el) el.scrollIntoView({behavior:'smooth'});
-  document.querySelectorAll('.sidelink').forEach(l=>l.classList.remove('active'));
-  event.target.classList.add('active');
-  // close sidebar on mobile after navigation
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-
-// ── INTERSECTION OBSERVER for sidebar highlight ──
-const observer = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      const id=e.target.id;
-      document.querySelectorAll('.sidelink').forEach(l=>{
-        l.classList.toggle('active', l.getAttribute('onclick')&&l.getAttribute('onclick').includes("'"+id+"'"));
-      });
-    }
+document.querySelectorAll('.topic-card[data-href-en]').forEach(function(card){
+  card.querySelector('.topic-card-head').addEventListener('click',function(){
+    var lang=getCookie('ui_lang')||'en';
+    window.location.href=lang==='ua'?card.dataset.hrefUa:card.dataset.hrefEn;
   });
-},{rootMargin:'-10% 0px -80% 0px'});
-document.querySelectorAll('.section').forEach(s=>observer.observe(s));
-
+});
 </script>
 </body>
 </html>
