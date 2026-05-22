@@ -191,6 +191,8 @@
     <span class="tag tag-network">NETWORK</span>
   </div>
 
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+
   <div class="intro">
     Infrastructure is divided into zones with different trust levels. Understanding <strong>what lives where</strong> and <strong>why</strong> is essential for identifying the blast radius of a security failure, and for knowing what to test at each boundary.
   </div>
@@ -217,6 +219,8 @@
     <tr><td>API Gateway → Microservice</td><td>HTTP / gRPC</td><td>Auth validated. Rate limit checked. Route resolved to specific service.</td></tr>
     <tr><td>Service → Service</td><td>HTTP / gRPC / AMQP</td><td>Internal call — bypasses gateway entirely. Trust is assumed.</td></tr>
   </table>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 <hr class="sep">
@@ -228,6 +232,8 @@
     <span class="section-title">Reverse Proxy</span>
     <span class="tag tag-component">COMPONENT</span>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
     The <strong>first server-side component</strong> a client request reaches. Sits in front of all other infrastructure. Its core job: terminate the TLS connection, normalize the request, and forward clean HTTP internally. Clients communicate only with the reverse proxy — they never see backend IPs.
@@ -319,6 +325,8 @@ Content-Encoding: gzip</div>
       ⑥ Compression: request with Accept-Encoding: gzip → response must include Content-Encoding: gzip and compressed body.
     </div>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 <hr class="sep">
@@ -330,6 +338,8 @@ Content-Encoding: gzip</div>
     <span class="section-title">Load Balancer</span>
     <span class="tag tag-component">COMPONENT</span>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
     Receives already-decrypted HTTP traffic from the reverse proxy. Distributes requests across <strong>multiple running instances</strong> of the next component (the API gateway cluster). Continuously monitors instance health and removes unhealthy nodes from the rotation automatically.
@@ -407,6 +417,8 @@ Content-Encoding: gzip</div>
       ⑤ X-Forwarded-For: confirm the header is present and contains the real client IP (not overwritten by the LB's IP).
     </div>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 <hr class="sep">
@@ -418,6 +430,8 @@ Content-Encoding: gzip</div>
     <span class="section-title">API Gateway</span>
     <span class="tag tag-component">COMPONENT</span>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
     The <strong>single enforced entry point</strong> for all microservice API traffic. Receives requests distributed by the load balancer and applies a set of policies — authentication, rate limiting, routing — before the request ever reaches a microservice. Services behind the gateway trust that these policies have already been enforced.
@@ -512,6 +526,8 @@ X-User-Id: user_abc123  (injected from token)</div>
       ⑦ Gateway latency: measure p95/p99 response times — the gateway adds overhead. Establish a baseline and alert on regressions.
     </div>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 <hr class="sep">
@@ -523,6 +539,8 @@ X-User-Id: user_abc123  (injected from token)</div>
     <span class="section-title">Microservices</span>
     <span class="tag tag-component">COMPONENT</span>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
     Individual services, each owning a single <strong>business domain</strong>. Process business logic, read and write to their own dedicated databases, and communicate with other services via internal calls. Never directly reachable from the public internet — all external traffic arrives pre-validated via the API gateway.
@@ -576,6 +594,8 @@ X-User-Id: user_abc123  (injected from token)</div>
       ⑥ Async flow: publish an event to the queue → verify the consuming service processes it and produces the expected side effect (within SLA time).
     </div>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 <hr class="sep">
@@ -587,6 +607,8 @@ X-User-Id: user_abc123  (injected from token)</div>
     <span class="section-title">Testing each layer</span>
     <span class="tag tag-testing">TESTING</span>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
     Each infrastructure layer introduces its own failure modes. A comprehensive test pass covers all four layers independently — <strong>not just the happy path through the full stack</strong>. The table below maps layers to concrete test scenarios and expected outcomes.
@@ -627,6 +649,8 @@ X-User-Id: user_abc123  (injected from token)</div>
       <div class="card-body">Full stack with real infrastructure. Test critical user journeys only — expensive, slow, brittle. Cover the complete path from client to database and back.</div>
     </div>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 <hr class="sep">
@@ -638,6 +662,8 @@ X-User-Id: user_abc123  (injected from token)</div>
     <span class="section-title">Common mistakes</span>
     <span class="tag tag-testing">INTERVIEW</span>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
     These are the most common incorrect statements made in interviews about these components. Saying any of these is an immediate red flag for a senior QA or backend engineer role.
@@ -680,6 +706,8 @@ X-User-Id: user_abc123  (injected from token)</div>
   <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>API gateway is the enforcer</strong> — every external request passes through exactly one enforced auth/rate-limit check before reaching business logic.</div></div>
   <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Service-to-service calls bypass the gateway</strong> — they travel directly on the internal network. This is correct and intentional.</div></div>
   <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Each layer is independently testable</strong> — test TLS at the proxy, distribution at the LB, auth at the gateway, and business logic at the service, without deploying the full stack for every test.</div></div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
 
 </div><!-- end view-course -->

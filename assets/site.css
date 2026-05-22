@@ -1,4 +1,4 @@
-:root{
+﻿:root{
   --bg:#0f0f0f;--surface:#161616;--surface2:#1e1e1e;--surface3:#252525;
   --border:#2a2a2a;--border2:#383838;
   --text:#e8e8e8;--text2:#b8b8b8;--text3:#909090;
@@ -153,6 +153,8 @@ code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:1
 .dia-comp{cursor:pointer;transition:opacity .12s}
 .dia-comp:hover{opacity:.82}
 .dia-comp.dia-active rect{stroke-width:1.5!important}
+.dia-link{font-family:var(--mono);font-size:10px;color:var(--text3);text-decoration:none;display:inline-block;padding:4px 0;transition:color .15s;cursor:pointer}
+.dia-link:hover{color:var(--cyan)}
 
 .postman-group{border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden}
 .postman-group-head{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;font-weight:500}
