@@ -155,6 +155,9 @@ code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:1
 .dia-comp.dia-active rect{stroke-width:1.5!important}
 .dia-link{font-family:var(--mono);font-size:10px;color:var(--text3);text-decoration:none;display:inline-block;padding:4px 0;transition:color .15s;cursor:pointer}
 .dia-link:hover{color:var(--cyan)}
+.text-ref{color:var(--cyan);text-decoration:underline;text-decoration-style:dashed;text-decoration-color:rgba(0,212,170,.35);cursor:pointer;transition:text-decoration-color .15s}
+.text-ref:hover{text-decoration-color:var(--cyan)}
+.term-flow{font-family:var(--mono);font-size:12px;color:var(--text2);background:var(--surface2);border-left:2px solid var(--border2);padding:8px 14px;margin:10px 0;border-radius:0 3px 3px 0;overflow-x:auto}
 
 .postman-group{border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden}
 .postman-group-head{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;font-weight:500}

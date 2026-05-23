@@ -48,6 +48,8 @@
   <div class="sidecat">QA &amp; Testing</div>
   <a class="sidelink" data-sec="s05" onclick="goTo('s05')">05 — Testing each layer</a>
   <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — Common mistakes</a>
+  <a class="sidelink" data-sec="s07" onclick="goTo('s07')">07 — Request normalization</a>
+  <a class="sidelink" data-sec="s08" onclick="goTo('s08')">08 — Proxies and gateways</a>
 </nav>
 
 <main class="main">
@@ -236,7 +238,7 @@
   <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 
   <div class="intro">
-    The <strong>first server-side component</strong> a client request reaches. Sits in front of all other infrastructure. Its core job: terminate the TLS connection, normalize the request, and forward clean HTTP internally. Clients communicate only with the reverse proxy — they never see backend IPs.
+    The <strong>first server-side component</strong> a client request reaches. Sits in front of all other infrastructure. Its core job: terminate the TLS connection, <a class="text-ref" onclick="goTo('s07')">normalize the request</a>, and forward clean HTTP internally. Clients communicate only with the reverse proxy — they never see backend IPs.
   </div>
 
   <div class="callout callout-info">
@@ -706,6 +708,109 @@ X-User-Id: user_abc123  (injected from token)</div>
   <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>API gateway is the enforcer</strong> — every external request passes through exactly one enforced auth/rate-limit check before reaching business logic.</div></div>
   <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Service-to-service calls bypass the gateway</strong> — they travel directly on the internal network. This is correct and intentional.</div></div>
   <div class="correct"><span class="correct-check">✓</span><div class="correct-body"><strong>Each layer is independently testable</strong> — test TLS at the proxy, distribution at the LB, auth at the gateway, and business logic at the service, without deploying the full stack for every test.</div></div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 07 ── -->
+<div class="section" id="s07">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <span class="section-title">Request normalization</span>
+    <span class="tag tag-component">COMPONENT</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+
+  <div class="intro">
+    Normalization is the process of transforming an incoming request into a clean, standardized form before passing it further down the chain. The reverse proxy does this first — before the request reaches the load balancer or any internal service.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">WHY REQUESTS CAN BE "DIRTY"</div>
+    <p>Browsers send well-formed requests — but the browser is not the only client. curl, mobile apps, third-party integrations, and attackers craft requests by hand, with no guarantees of correctness. Normalization protects against every client that isn't a browser, not against the browser itself.</p>
+  </div>
+
+  <h3>What gets normalized</h3>
+  <table class="tbl">
+    <tr><th>What</th><th>Example</th><th>Why it matters</th></tr>
+    <tr><td><strong>URLs and paths</strong></td><td><code>//api//orders</code> → <code>/api/orders</code>; <code>/api/./orders/../orders</code> → <code>/api/orders</code>; double-encoding <code>%252F</code> is decoded here</td><td>Anomalous paths are a common filter-bypass technique — normalize before any routing decision</td></tr>
+    <tr><td><strong>Client-supplied headers</strong></td><td>Client sends <code>X-User-Id: admin</code> → proxy strips it</td><td>Without stripping, any client can spoof an identity and trick a downstream service</td></tr>
+    <tr><td><strong>Hop-by-hop headers</strong></td><td><code>Connection: keep-alive</code> is removed</td><td>Applies only to the current TCP connection; forwarding it is a protocol error</td></tr>
+    <tr><td><strong>Protocol version</strong></td><td>HTTP/1.0 without a <code>Host</code> header → normalized to HTTP/1.1</td><td>Backend receives a well-formed request regardless of what the client sent</td></tr>
+  </table>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">WHY THIS MATTERS FOR QA</div>
+    <p>If normalization is missing or broken, the backend receives a dirty or potentially dangerous request. The classic example is path traversal: <code>GET /api/orders/../../etc/passwd</code>. A browser won't send that — an attacker will. If the URL is not normalized before being passed to a service, the request can bypass routing and reach files or endpoints that were never meant to be accessible.</p>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">QA TEST ANGLES — REQUEST NORMALIZATION</div>
+    <div class="qa-a">
+      ① Path traversal: <code>GET /api/orders/../../etc/passwd</code> → expect 400 or 404, not file contents<br>
+      ② Double encoding: <code>/api%2Forders</code> and <code>/api%252Forders</code> → correctly handled or rejected<br>
+      ③ Spoofed header: request with <code>X-User-Id: 999</code> → service receives the ID from the token, not from this header<br>
+      ④ Hop-by-hop: the <code>Connection</code> header does not appear in backend logs
+    </div>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 08 ── -->
+<div class="section" id="s08">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <span class="section-title">Proxies and gateways — terminology</span>
+    <span class="tag tag-concept">TERMINOLOGY</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+
+  <div class="intro">
+    All four sit "in the middle" of a connection — that's why they feel the same. The difference is <strong>who they serve and in which direction</strong>.
+  </div>
+
+  <h3>Proxy (forward proxy)</h3>
+  <p>Sits between the <strong>client and the internet</strong>. The client knows about it and routes traffic through it intentionally. The destination server sees the proxy's IP, not the client's.</p>
+  <div class="term-flow">Client → Proxy → Internet → Server</div>
+  <p>Used for: corporate internet filtering, anonymisation, bypassing geo-restrictions. The server has no idea a proxy is involved.</p>
+
+  <h3>Reverse Proxy</h3>
+  <p>Sits between the <strong>internet and your servers</strong>. The client has no idea it exists — it just sees one address. All traffic hits the reverse proxy first.</p>
+  <div class="term-flow">Client → Reverse Proxy → Your Server(s)</div>
+  <p>Used for: TLS termination, caching, compression, hiding internal IPs. The client has no idea there's anything behind it.</p>
+  <p>The word "reverse" just means the proxy is on the server side instead of the client side.</p>
+
+  <h3>Gateway</h3>
+  <p>A general networking term — any component that <strong>translates between two different systems or protocols</strong>. Not specific to HTTP. A gateway can bridge two different networks, protocols, or data formats.</p>
+  <p>Reverse proxy is technically a type of gateway — but the term "gateway" alone is too broad to mean anything specific without context.</p>
+
+  <h3>API Gateway</h3>
+  <p>A reverse proxy with <strong>API-specific features built in</strong>. Sits in front of microservices specifically.</p>
+<pre class="term-flow">Client → API Gateway → Microservice A
+                     → Microservice B
+                     → Microservice C</pre>
+  <p>Added on top of what a plain reverse proxy does: authentication enforcement, rate limiting per client, request routing between multiple services, token validation, request/response transformation.</p>
+
+  <h3>One-line summary</h3>
+  <table class="tbl">
+    <tr><th>Term</th><th>Serves</th><th>Direction</th><th>Key job</th></tr>
+    <tr><td>Proxy</td><td>Client</td><td>Client → Internet</td><td>Hides client from internet</td></tr>
+    <tr><td>Reverse Proxy</td><td>Server</td><td>Internet → Server</td><td>Hides server from internet</td></tr>
+    <tr><td>Gateway</td><td>Either</td><td>Either</td><td>Translates between systems (broad term)</td></tr>
+    <tr><td>API Gateway</td><td>Server</td><td>Internet → Microservices</td><td>Reverse proxy + auth + rate limiting + routing</td></tr>
+  </table>
+
+  <div class="callout callout-info">
+    <div class="callout-label">THE CONFUSION USUALLY COMES FROM</div>
+    <p>The fact that an API Gateway <em>is</em> a reverse proxy — it just does more. And vendors sometimes call their reverse proxy a "gateway" for marketing reasons (AWS API Gateway, Kong Gateway). The underlying concept is always the same: something sitting in the middle, intercepting and processing requests.</p>
+  </div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
 </div>
