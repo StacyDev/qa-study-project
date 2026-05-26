@@ -50,6 +50,7 @@
   <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — Типові помилки</a>
   <a class="sidelink" data-sec="s07" onclick="goTo('s07')">07 — Нормалізація запиту</a>
   <a class="sidelink" data-sec="s08" onclick="goTo('s08')">08 — Проксі та шлюзи</a>
+  <a class="sidelink" data-sec="s09" onclick="goTo('s09')">09 — Кілька балансувальників</a>
 </nav>
 
 <main class="main">
@@ -798,6 +799,56 @@ X-User-Id: user_abc123  (вставлено з токена)</div>
   <div class="callout callout-info">
     <div class="callout-label">ПЛУТАНИНА ЗАЗВИЧАЙ ВИНИКАЄ ЧЕРЕЗ ТЕ</div>
     <p>Що API-шлюз <em>є</em> зворотнім проксі — він просто робить більше. А вендори іноді називають свій зворотній проксі "шлюзом" з маркетингових міркувань (AWS API Gateway, Kong Gateway). Базова концепція завжди одна: щось стоїть посередині, перехоплює і обробляє запити.</p>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ діаграма</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 09 ── -->
+<div class="section" id="s09">
+  <div class="section-head">
+    <span class="section-num">09</span>
+    <span class="section-title">Кілька балансувальників</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ діаграма</a>
+
+  <div class="intro">
+    Так — це поширена практика. Балансувальник не прив'язаний до якогось одного місця в архітектурі. Він ставиться перед <strong>будь-яким шаром, який потрібно масштабувати горизонтально</strong>.
+  </div>
+
+  <h3>Як це виглядає</h3>
+<pre class="term-flow">Клієнт
+  ↓
+Зворотній проксі
+  ↓
+Load Balancer (1) ← розподіляє між екземплярами застосунку
+  ↓
+Application Servers (кілька екземплярів)
+  ↓
+Load Balancer (2) ← розподіляє між вузлами БД
+  ↓
+Database Cluster (primary + replicas)</pre>
+
+  <h3>Перший балансувальник — перед застосунком</h3>
+  <p>Те що ми вже розбирали. Розподіляє HTTP-трафік між екземплярами API-шлюзу або application servers. Працює на L7, бачить HTTP.</p>
+
+  <h3>Другий балансувальник — перед БД</h3>
+  <p>Зазвичай працює на <strong>L4</strong> (TCP-рівень) — він не розуміє SQL, просто розподіляє TCP-з'єднання між вузлами кластеру.</p>
+  <p>
+    ① Направляти <strong>читання</strong> (SELECT) на replica-вузли, <strong>запис</strong> (INSERT, UPDATE) — тільки на primary<br>
+    ② Прибирати вузол з ротації якщо він впав<br>
+    ③ Зменшити кількість прямих з'єднань до БД (connection pooling)
+  </p>
+  <p>Приклади таких інструментів: <strong>PgBouncer</strong> (PostgreSQL), <strong>ProxySQL</strong> (MySQL), <strong>HAProxy</strong> (універсальний L4/L7).</p>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">ЧОМУ READ/WRITE РОЗПОДІЛ ВАЖЛИВИЙ ДЛЯ QA</div>
+    <p>Якщо запис іде на primary, а читання — з репліки, між ними є <strong>replication lag</strong> (затримка реплікації). Тест може записати дані і одразу прочитати їх — і не знайти, бо репліка ще не оновилась.</p>
+    <p>Це поширена причина flaky-тестів у інтеграційному середовищі. Рішення — або читати з primary у тестах, або додавати затримку після запису.</p>
   </div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ діаграма</a>

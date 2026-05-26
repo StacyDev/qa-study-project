@@ -50,6 +50,7 @@
   <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — Common mistakes</a>
   <a class="sidelink" data-sec="s07" onclick="goTo('s07')">07 — Request normalization</a>
   <a class="sidelink" data-sec="s08" onclick="goTo('s08')">08 — Proxies and gateways</a>
+  <a class="sidelink" data-sec="s09" onclick="goTo('s09')">09 — Multiple load balancers</a>
 </nav>
 
 <main class="main">
@@ -810,6 +811,56 @@ X-User-Id: user_abc123  (injected from token)</div>
   <div class="callout callout-info">
     <div class="callout-label">THE CONFUSION USUALLY COMES FROM</div>
     <p>The fact that an API Gateway <em>is</em> a reverse proxy — it just does more. And vendors sometimes call their reverse proxy a "gateway" for marketing reasons (AWS API Gateway, Kong Gateway). The underlying concept is always the same: something sitting in the middle, intercepting and processing requests.</p>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 09 ── -->
+<div class="section" id="s09">
+  <div class="section-head">
+    <span class="section-num">09</span>
+    <span class="section-title">Multiple load balancers</span>
+    <span class="tag tag-component">COMPONENT</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>
+
+  <div class="intro">
+    Yes — this is common practice. A load balancer is not fixed to any single place in the architecture. It goes in front of <strong>any layer that needs to scale horizontally</strong>.
+  </div>
+
+  <h3>What this looks like</h3>
+<pre class="term-flow">Client
+  ↓
+Reverse Proxy
+  ↓
+Load Balancer (1) ← distributes across application instances
+  ↓
+Application Servers (multiple instances)
+  ↓
+Load Balancer (2) ← distributes across DB nodes
+  ↓
+Database Cluster (primary + replicas)</pre>
+
+  <h3>First load balancer — before the application</h3>
+  <p>What we've already covered. Distributes HTTP traffic across API gateway or application server instances. Operates at L7, understands HTTP.</p>
+
+  <h3>Second load balancer — before the database</h3>
+  <p>Typically operates at <strong>L4</strong> (TCP level) — it doesn't understand SQL, it just distributes TCP connections across cluster nodes.</p>
+  <p>
+    ① Route <strong>reads</strong> (SELECT) to replica nodes, <strong>writes</strong> (INSERT, UPDATE) to primary only<br>
+    ② Remove a node from rotation if it goes down<br>
+    ③ Reduce direct connections to the database (connection pooling)
+  </p>
+  <p>Examples of tools for this: <strong>PgBouncer</strong> (PostgreSQL), <strong>ProxySQL</strong> (MySQL), <strong>HAProxy</strong> (universal L4/L7).</p>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">WHY READ/WRITE SPLIT MATTERS FOR QA</div>
+    <p>If writes go to primary and reads come from a replica, there is <strong>replication lag</strong> between them. A test can write data and immediately read it — and not find it, because the replica hasn't updated yet.</p>
+    <p>This is a common cause of flaky tests in integration environments. Solutions: read from primary in tests, or add a delay after writes.</p>
   </div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ diagram</a>

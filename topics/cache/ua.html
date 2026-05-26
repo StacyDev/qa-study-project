@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кешування — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body>
+
+<div class="disclaimer"><strong>Нотатки:</strong> Особисті навчальні нотатки — спрощено для ясності. Не є формальною специфікацією. Завжди перевіряйте поведінку на реальній системі.</div>
+
+<nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Меню">☰</button>
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← всі теми</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (за замовчуванням)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+    </div>
+  </div>
+  <a class="lang-btn" id="lang-en" href="uk.html" onclick="setCookie('ui_lang','en')">EN</a>
+  <button class="lang-btn active" id="lang-ua" onclick="setCookie('ui_lang','ua')">UA</button>
+</nav>
+
+<div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidecat">Концепції</div>
+  <a class="sidelink" data-sec="s00" onclick="goTo('s00')">00 — Що таке кеш</a>
+
+  <div class="sidecat">Кеш у запиті</div>
+  <a class="sidelink" data-sec="s01" onclick="goTo('s01')">01 — 7 рівнів кешу</a>
+
+  <div class="sidecat">Компоненти</div>
+  <a class="sidelink" data-sec="s02" onclick="goTo('s02')">02 — Балансувальник і кеш</a>
+
+  <div class="sidecat">Браузер</div>
+  <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — Browser Storage</a>
+</nav>
+
+<main class="main">
+<div id="view-course" class="view active">
+
+<!-- ── 00 ── -->
+<div class="section" id="s00">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <span class="section-title">Що таке кеш</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+
+  <div class="intro">
+    Кеш — це місце швидкого зберігання, де зберігаються результати дорогих обчислень або запитів, щоб наступний запит отримав відповідь без повторного виконання роботи. Правило просте: <strong>якщо отримати відповідь повторно дешевше ніж обчислити заново — кешуй</strong>. Кеш є на кожному рівні сучасної системи — від процесора до браузера.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">АНАЛОГІЯ</div>
+    <p>Уявіть ресторан. Шеф-кухар готує складну страву 20 хвилин. Якщо замовлення одне й те саме — зручніше тримати готову страву в теплій шафі (кеш), ніж готувати заново щоразу. <strong>Cache hit</strong> — страва є в шафі. <strong>Cache miss</strong> — шафа порожня, потрібно готувати.</p>
+  </div>
+
+  <h3>Що де кешується</h3>
+  <table class="tbl">
+    <thead>
+      <tr><th>Рівень</th><th>Що кешується</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Браузер</td><td>HTML, JS, CSS, зображення, Cookie, localStorage, sessionStorage</td></tr>
+      <tr><td>CDN</td><td>Статичні ресурси, HTML-сторінки (за наявності відповідних заголовків)</td></tr>
+      <tr><td>Reverse Proxy (Nginx)</td><td>HTTP-відповіді мікросервісів, статичні файли</td></tr>
+      <tr><td>Застосунок</td><td>Результати бізнес-логіки, агреговані дані (in-memory або Redis)</td></tr>
+      <tr><td>База даних</td><td>Результати запитів (query cache), буфери сторінок (InnoDB buffer pool)</td></tr>
+      <tr><td>Процесор</td><td>Інструкції та дані (L1 / L2 / L3 кеш — поза зоною відповідальності QA)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cache hit і cache miss</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">CACHE HIT — ПОПАДАННЯ</div>
+      <div class="card-body">Запитувані дані вже є в кеші і ще не застаріли (TTL не минув). Відповідь повертається одразу з кешу без звернення до джерела. Швидко, дешево — заради цього кеш і потрібен.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">CACHE MISS — ПРОМАХ</div>
+      <div class="card-body">Дані в кеші відсутні або застаріли. Система звертається до оригінального джерела (БД, API), отримує відповідь і зазвичай зберігає її в кеші для наступного разу.</div>
+    </div>
+  </div>
+
+  <h3>TTL — час життя кешу</h3>
+  <p><strong>TTL (Time To Live)</strong> — час, протягом якого закешовані дані вважаються актуальними. Після спливання TTL дані вважаються застарілими, і наступний запит спричинить cache miss. TTL може вимірюватися секундами, хвилинами або годинами залежно від того, наскільки критична актуальність даних.</p>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">ЧОМУ ЦЕ ВАЖЛИВО ДЛЯ QA</div>
+    <p>Кеш — найпоширеніша причина "дивної поведінки", яку важко відтворити. Тест проходить в одному запуску і падає в іншому. Функція "не працює" — насправді браузер або CDN повертає стару версію. Завжди перевіряйте кеш перед тим, як логувати баг.</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 01 ── -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Кеш у шляху запиту — 7 рівнів</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+
+  <div class="intro">
+    Кожен запит від клієнта до бази даних проходить через кілька шарів, кожен із яких може мати власний кеш. Розуміння цих рівнів допомагає QA-інженеру <strong>точно локалізувати</strong>, звідки прийшла відповідь — і чи є вона актуальною.
+  </div>
+
+<pre class="term-flow">Запит клієнта
+      ↓
+[1] Client-side state  (cookie, localStorage, sessionStorage, Redux/Zustand)
+      ↓ miss
+[2] HTTP Browser Cache  (Cache-Control, ETag, 304 Not Modified)
+      ↓ miss
+[3] CDN / Proxy Cache  (Cloudflare, Fastly, Nginx)
+      ↓ miss
+[4] API Gateway Cache
+      ↓ miss
+[5] App In-memory Cache  (LRU Map, Caffeine, node-lru-cache)
+      ↓ miss
+[6] Redis / Distributed Cache
+      ↓ miss
+[7] Database
+      ↓
+Відповідь → зберігається в кеш ↑ для наступного запиту</pre>
+
+  <h3>Рівень 1 — Client-side state</h3>
+  <p>Дані, що зберігаються безпосередньо в браузері або клієнтській частині застосунку: cookies, localStorage, sessionStorage, стан Redux/Zustand/Pinia. Використовуються, щоб не робити HTTP-запит взагалі — дані вже є на клієнті.</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 1</div>
+    <div class="qa-a">
+      DevTools → вкладка Application: <code>Cookies</code>, <code>Local Storage</code>, <code>Session Storage</code>.<br>
+      Перевірити ключ, значення, TTL (для cookie), домен та шлях.<br>
+      Redux / Zustand: Redux DevTools або console.log стану.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>Тест очищує cookies, але не localStorage. Стан або JWT з попереднього тесту залишається в localStorage і "проникає" в наступний тест — автентифікація проходить без реального логіна.</p>
+  </div>
+
+  <h3>Рівень 2 — HTTP Browser Cache</h3>
+  <p>Браузер кешує HTTP-відповіді на диск відповідно до директив <code>Cache-Control</code>, <code>Expires</code> і перевіряє актуальність через умовні запити з <code>ETag</code> або <code>Last-Modified</code>. Відповідь <code>304 Not Modified</code> означає "дані не змінились — використовуй кеш".</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 2</div>
+    <div class="qa-a">
+      DevTools → Network → стовпець <strong>Status</strong>: код <code>200</code> vs <code>304</code> (з кешу).<br>
+      Стовпець <strong>Size</strong>: "(memory cache)" або "(disk cache)" означає cache hit.<br>
+      Заголовки відповіді: <code>Cache-Control</code>, <code>ETag</code>, <code>Age</code>.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>Тест отримує <code>304</code> і вважає це успішним "200 OK". Насправді перевіряється кешована стара відповідь. Для тестування завжди вимикайте кеш (DevTools → Network → Disable cache) або додавайте заголовок <code>Cache-Control: no-cache</code> до запиту.</p>
+  </div>
+
+  <h3>Рівень 3 — CDN / Proxy Cache</h3>
+  <p>CDN (Cloudflare, Fastly, AWS CloudFront) розміщує кешовані відповіді на edge-серверах поблизу користувача. Зворотній проксі (Nginx, Varnish) може кешувати відповіді бекенду. Ключовий заголовок відповіді: <code>X-Cache: HIT</code> або <code>X-Cache: MISS</code>.</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 3</div>
+    <div class="qa-a">
+      Перевірити заголовки відповіді:<br>
+      <code>X-Cache: HIT</code> / <code>X-Cache: MISS</code><br>
+      <code>CF-Cache-Status: HIT</code> (Cloudflare)<br>
+      <code>Age</code> — скільки секунд відповідь знаходиться в кеші.<br>
+      Інструмент: <code>curl -I https://example.com/api/data</code>
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>Дані оновлені в базі, але CDN повертає старий кеш ще протягом години. Скидання кешу в застосунку не скидає CDN. Потрібен окремий виклик CDN Cache Purge API або очікування спливання TTL.</p>
+  </div>
+
+  <h3>Рівень 4 — API Gateway Cache</h3>
+  <p>Деякі API Gateway (AWS API Gateway, Kong, Apigee) підтримують кешування відповідей на рівні шлюзу. Якщо кешування увімкнено, повторний запит до того самого ендпоінту з тими самими параметрами може не дійти до мікросервісу.</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 4</div>
+    <div class="qa-a">
+      Перевірити конфігурацію API Gateway: чи є cache policy для даного ендпоінту.<br>
+      Заголовки відповіді: деякі шлюзи додають <code>X-Cache</code> або власні заголовки.<br>
+      Порівняти час відповіді: cache hit значно швидший за cache miss.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>GET-запит з <code>?page=1</code> кешується. POST-запит, що змінює дані, успішно виконується, але наступний GET все одно повертає старий кеш шлюзу — він не знає, що дані змінились.</p>
+  </div>
+
+  <h3>Рівень 5 — App In-memory Cache</h3>
+  <p>Дані кешуються прямо в пам'яті процесу застосунку: <code>Map</code>, LRU-кеш (Caffeine для Java, node-lru-cache для Node.js). Найшвидший варіант, але дані не розділяються між екземплярами та зникають при рестарті сервісу.</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 5</div>
+    <div class="qa-a">
+      Перевірити логи або метрики застосунку: cache hit rate, cache size.<br>
+      У тесті: оновити дані через API → зробити GET → якщо відповідь стара — in-memory кеш не інвалідовано.<br>
+      Рестарт сервісу скидає in-memory кеш — перший запит після рестарту завжди cache miss.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>При горизонтальному масштабуванні кожен екземпляр має власний in-memory кеш. Запис через один екземпляр не інвалідує кеш в інших. Різні запити від одного користувача потрапляють на різні екземпляри і можуть отримати різні відповіді.</p>
+  </div>
+
+  <h3>Рівень 6 — Redis / Distributed Cache</h3>
+  <p>Зовнішній розподілений кеш — окремий процес (Redis, Memcached), доступний всім екземплярам застосунку. Дані зберігаються між рестартами сервісу (Redis із persistence). Стандарт для горизонтально масштабованих систем.</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 6</div>
+    <div class="qa-a">
+      <code>redis-cli</code>: <code>GET key</code> — перевірити наявність і значення.<br>
+      <code>TTL key</code> — скільки секунд залишилось до спливання.<br>
+      <code>MONITOR</code> — відстежувати всі команди в реальному часі (для відлагодження).<br>
+      Після оновлення в БД: перевірити чи ключ у Redis видалений або оновлений.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>Дані оновлено в БД, але інвалідація кешу не відбулась (баг в логіці або гонка потоків). Redis повертає стару версію аж до спливання TTL. Тест, що записує і одразу читає, може не виявити проблему — потрібно перевіряти також після окремого запиту на оновлення.</p>
+  </div>
+
+  <h3>Рівень 7 — База даних</h3>
+  <p>СУБД теж має внутрішній кеш: InnoDB buffer pool (MySQL/MariaDB), shared_buffers (PostgreSQL). Повторний SELECT на ті самі дані виконується значно швидше завдяки кешованим сторінкам у пам'яті.</p>
+  <div class="qa-block">
+    <div class="qa-q">ЯК ПЕРЕВІРИТИ — РІВЕНЬ 7</div>
+    <div class="qa-a">
+      <code>EXPLAIN ANALYZE</code> (PostgreSQL) або <code>EXPLAIN</code> (MySQL) — перевірити план запиту та реальний час.<br>
+      Slow query log — логувати запити, що виконуються довше порогу.<br>
+      Перший запит після рестарту БД — завжди повільніший (холодний кеш).
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">ТИПОВА ПОМИЛКА</div>
+    <p>Продуктивність перевіряється лише при "гарячому" кеші — БД вже прогріта попередніми запитами. Після деплою або рестарту перші запити значно повільніші. Якщо тест на продуктивність запускається повторно без скидання стану — результати будуть нереалістично оптимістичними.</p>
+  </div>
+
+  <h3>Порядок розслідування кеш-проблем</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">СТРАТЕГІЯ</div>
+    <p>Починайте з <strong>верхніх рівнів</strong> — браузера і CDN. Більшість видимих кеш-проблем знаходяться саме там. Рухайтесь вниз тільки якщо верхні рівні виключено.</p>
+    <p>
+      ① Відкрити DevTools Network → Disable cache → перезавантажити<br>
+      ② Перевірити заголовки відповіді: <code>X-Cache</code>, <code>CF-Cache-Status</code>, <code>Age</code><br>
+      ③ Спробувати інший браузер або режим інкогніто<br>
+      ④ Зробити запит через <code>curl</code> — минаючи браузерний кеш<br>
+      ⑤ Перевірити Redis: <code>redis-cli GET &lt;key&gt;</code><br>
+      ⑥ Перевірити БД напряму: чи там актуальні дані?
+    </p>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 02 ── -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Балансувальник і кеш</span>
+    <span class="tag tag-component">КОМПОНЕНТ</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+
+  <div class="intro">
+    Часте непорозуміння: балансувальник навантаження — це <strong>не кеш</strong>. Він не зберігає і не повертає відповіді. Балансувальник лише передає запит далі — до одного з доступних серверів. Кешування — це завдання CDN, зворотнього проксі, API Gateway або самого застосунку.
+  </div>
+
+  <table class="tbl">
+    <thead>
+      <tr><th>Компонент</th><th>Кешує відповіді?</th><th>Пояснення</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>CDN (Cloudflare, CloudFront)</td><td>Так</td><td>Зберігає HTTP-відповіді на edge-серверах глобально</td></tr>
+      <tr><td>Reverse Proxy (Nginx, Varnish)</td><td>Так</td><td>Може кешувати відповіді бекенду (потребує явного налаштування)</td></tr>
+      <tr><td>API Gateway (Kong, AWS APIGW)</td><td>Частково</td><td>Опціональне кешування, вмикається окремо для кожного ендпоінту</td></tr>
+      <tr><td>Load Balancer (HAProxy, AWS ALB)</td><td>Ні</td><td>Тільки маршрутизує TCP/HTTP-з'єднання, не зберігає відповіді</td></tr>
+      <tr><td>Мікросервіс</td><td>Так</td><td>In-memory кеш або Redis — відповідальність самого сервісу</td></tr>
+    </tbody>
+  </table>
+
+  <p>Якщо кешована відповідь повертається неправильно — шукайте в CDN, зворотньому проксі або API Gateway, а не в балансувальнику. Балансувальник <strong>прозорий для даних</strong> — він їх не читає і не зберігає.</p>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 03 ── -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Browser Storage</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+
+  <div class="intro">
+    Браузер надає три механізми зберігання даних на стороні клієнта: <strong>localStorage</strong>, <strong>sessionStorage</strong> і <strong>IndexedDB</strong>. Кожен має своє призначення і обмеження. QA-інженеру важливо розуміти різницю, щоб правильно очищати стан між тестами і правильно перевіряти persisted state.
+  </div>
+
+  <h3>localStorage</h3>
+  <p>Постійне сховище у вигляді пар ключ-значення. Дані зберігаються між сесіями (закриттям і відкриттям браузера). Обмежений доменом. Синхронний API — блокує основний потік при великих обсягах. Типовий ліміт ~5–10 МБ залежно від браузера.</p>
+
+<pre class="code-block">// Запис
+localStorage.setItem('user', JSON.stringify({ id: 1, name: 'Alice' }));
+
+// Читання
+const user = JSON.parse(localStorage.getItem('user'));
+
+// Видалення одного ключа
+localStorage.removeItem('user');
+
+// Очистити всі дані домену
+localStorage.clear();</pre>
+
+  <h3>sessionStorage</h3>
+  <p>Аналогічний API до localStorage, але дані існують <strong>лише протягом поточної вкладки</strong>. Закрита вкладка — дані зникли. Нова вкладка — окреме ізольоване сховище, навіть для того самого домену. Корисний для wizard-форм і тимчасового стану між кроками.</p>
+
+<pre class="code-block">sessionStorage.setItem('step', '2');
+const step = sessionStorage.getItem('step');
+sessionStorage.removeItem('step');</pre>
+
+  <h3>IndexedDB</h3>
+  <p>Повноцінна NoSQL-база даних у браузері з асинхронним API. Підтримує зберігання структурованих об'єктів (не лише рядків), транзакції, індекси та великі обсяги даних. Використовується в PWA для offline-режиму та в застосунках зі складним локальним станом.</p>
+
+<pre class="code-block">// Через бібліотеку idb (спрощений wrapper для IndexedDB)
+import { openDB } from 'idb';
+
+const db = await openDB('myDB', 1, {
+  upgrade(db) {
+    db.createObjectStore('users', { keyPath: 'id' });
+  }
+});
+
+// Запис
+await db.put('users', { id: 1, name: 'Alice' });
+
+// Читання
+const user = await db.get('users', 1);
+
+// Видалення
+await db.delete('users', 1);</pre>
+
+  <h3>Порівняння</h3>
+  <table class="tbl">
+    <thead>
+      <tr><th></th><th>localStorage</th><th>sessionStorage</th><th>IndexedDB</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Обсяг</td><td>~5–10 МБ</td><td>~5 МБ</td><td>Сотні МБ+</td></tr>
+      <tr><td>Час життя</td><td>Постійний</td><td>Поточна вкладка</td><td>Постійний</td></tr>
+      <tr><td>Область доступу</td><td>Домен</td><td>Вкладка</td><td>Домен</td></tr>
+      <tr><td>API</td><td>Синхронний</td><td>Синхронний</td><td>Асинхронний</td></tr>
+      <tr><td>Тип даних</td><td>Рядки</td><td>Рядки</td><td>Будь-які JS-об'єкти</td></tr>
+      <tr><td>Транзакції</td><td>Ні</td><td>Ні</td><td>Так</td></tr>
+    </tbody>
+  </table>
+
+  <div class="qa-block">
+    <div class="qa-q">КУТИ ТЕСТУВАННЯ QA — BROWSER STORAGE</div>
+    <div class="qa-a">
+      ① Перевірити, що при logout дані користувача видаляються з localStorage і sessionStorage.<br>
+      ② Перевірити поведінку при переповненні: записати більше ніж ліміт → очікується <code>QuotaExceededError</code>.<br>
+      ③ Перевірити ізоляцію між вкладками: дані sessionStorage однієї вкладки не доступні в іншій.<br>
+      ④ Перевірити, що чутливі дані (паролі, токени) не зберігаються в незашифрованому вигляді.<br>
+      ⑤ IndexedDB в PWA: перевірити offline-режим — дані доступні без мережі після першого завантаження.
+    </div>
+  </div>
+
+  <p>Документація: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" class="text-ref">MDN — Web Storage API</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank" class="text-ref">MDN — IndexedDB API</a></p>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+</div>
+
+</div>
+</main>
+</div>
+
+<script src="../../assets/site.js"></script>
+</body>
+</html>

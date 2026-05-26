@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caching — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body>
+
+<div class="disclaimer"><strong>Notes:</strong> Personal study notes — simplified for clarity. Not a formal specification. Always verify behavior against a real system.</div>
+
+<nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← all topics</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">FONT</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+    </div>
+  </div>
+  <button class="lang-btn active" id="lang-en" onclick="setCookie('ui_lang','en')">EN</button>
+  <a class="lang-btn" id="lang-ua" href="ua.html" onclick="setCookie('ui_lang','ua')">UA</a>
+</nav>
+
+<div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidecat">Concepts</div>
+  <a class="sidelink" data-sec="s00" onclick="goTo('s00')">00 — What is cache</a>
+
+  <div class="sidecat">Cache in request</div>
+  <a class="sidelink" data-sec="s01" onclick="goTo('s01')">01 — 7 cache layers</a>
+
+  <div class="sidecat">Components</div>
+  <a class="sidelink" data-sec="s02" onclick="goTo('s02')">02 — Load balancer and cache</a>
+
+  <div class="sidecat">Browser</div>
+  <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — Browser Storage</a>
+</nav>
+
+<main class="main">
+<div id="view-course" class="view active">
+
+<!-- ── 00 ── -->
+<div class="section" id="s00">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <span class="section-title">What is cache</span>
+    <span class="tag tag-concept">CONCEPT</span>
+  </div>
+
+  <div class="intro">
+    A cache is a fast storage layer that holds the results of expensive computations or queries so that subsequent requests get a response without repeating the work. The rule is simple: <strong>if retrieving a result again is cheaper than computing it from scratch — cache it</strong>. Caching exists at every level of a modern system, from the CPU to the browser.
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">ANALOGY</div>
+    <p>Think of a restaurant. The chef takes 20 minutes to prepare a complex dish. If orders keep coming in for the same dish, it makes sense to keep a ready portion in a warming cabinet (cache) rather than cook it from scratch every time. <strong>Cache hit</strong> — the dish is in the cabinet. <strong>Cache miss</strong> — the cabinet is empty, cooking must start.</p>
+  </div>
+
+  <h3>What is cached where</h3>
+  <table class="tbl">
+    <thead>
+      <tr><th>Layer</th><th>What is cached</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Browser</td><td>HTML, JS, CSS, images, Cookies, localStorage, sessionStorage</td></tr>
+      <tr><td>CDN</td><td>Static assets, HTML pages (when appropriate headers are set)</td></tr>
+      <tr><td>Reverse Proxy (Nginx)</td><td>HTTP responses from backend services, static files</td></tr>
+      <tr><td>Application</td><td>Business logic results, aggregated data (in-memory or Redis)</td></tr>
+      <tr><td>Database</td><td>Query results (query cache), page buffers (InnoDB buffer pool)</td></tr>
+      <tr><td>CPU</td><td>Instructions and data (L1 / L2 / L3 cache — outside QA scope)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cache hit and cache miss</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">CACHE HIT</div>
+      <div class="card-body">The requested data is already in the cache and has not expired (TTL has not elapsed). The response is returned immediately from the cache without touching the source. Fast, cheap — this is the whole point of caching.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">CACHE MISS</div>
+      <div class="card-body">The data is absent from the cache or has gone stale. The system fetches it from the original source (database, API), returns the response, and usually stores it in the cache for next time.</div>
+    </div>
+  </div>
+
+  <h3>TTL — Time To Live</h3>
+  <p><strong>TTL (Time To Live)</strong> is the duration for which cached data is considered fresh. Once TTL expires the data is treated as stale and the next request will result in a cache miss. TTL can range from seconds to hours depending on how critical data freshness is for that particular resource.</p>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">WHY THIS MATTERS FOR QA</div>
+    <p>Cache is the most common cause of "weird behavior" that is hard to reproduce. A test passes in one run and fails in the next. A feature "doesn't work" — in reality the browser or CDN is serving an old version. Always check the cache before filing a bug.</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 01 ── -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Cache in the request path — 7 layers</span>
+    <span class="tag tag-component">COMPONENT</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+
+  <div class="intro">
+    Every request from the client to the database passes through several layers, each of which may have its own cache. Understanding these layers helps a QA engineer <strong>precisely identify</strong> where a response came from — and whether it is current.
+  </div>
+
+<pre class="term-flow">Client request
+      ↓
+[1] Client-side state  (cookie, localStorage, sessionStorage, Redux/Zustand)
+      ↓ miss
+[2] HTTP Browser Cache  (Cache-Control, ETag, 304 Not Modified)
+      ↓ miss
+[3] CDN / Proxy Cache  (Cloudflare, Fastly, Nginx)
+      ↓ miss
+[4] API Gateway Cache
+      ↓ miss
+[5] App In-memory Cache  (LRU Map, Caffeine, node-lru-cache)
+      ↓ miss
+[6] Redis / Distributed Cache
+      ↓ miss
+[7] Database
+      ↓
+Response → stored in cache ↑ for the next request</pre>
+
+  <h3>Layer 1 — Client-side state</h3>
+  <p>Data stored directly in the browser or client application: cookies, localStorage, sessionStorage, Redux/Zustand/Pinia state. Used to avoid making an HTTP request at all — the data is already on the client.</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 1</div>
+    <div class="qa-a">
+      DevTools → Application tab: <code>Cookies</code>, <code>Local Storage</code>, <code>Session Storage</code>.<br>
+      Inspect key, value, TTL (for cookies), domain and path.<br>
+      Redux / Zustand: Redux DevTools or console.log the state.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>A test clears cookies but not localStorage. A JWT or state from a previous test remains in localStorage and "leaks" into the next test — authentication passes without a real login.</p>
+  </div>
+
+  <h3>Layer 2 — HTTP Browser Cache</h3>
+  <p>The browser caches HTTP responses to disk according to <code>Cache-Control</code> and <code>Expires</code> directives, and validates freshness via conditional requests with <code>ETag</code> or <code>Last-Modified</code>. A <code>304 Not Modified</code> response means "data hasn't changed — use the cache".</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 2</div>
+    <div class="qa-a">
+      DevTools → Network → <strong>Status</strong> column: <code>200</code> vs <code>304</code> (from cache).<br>
+      <strong>Size</strong> column: "(memory cache)" or "(disk cache)" indicates a cache hit.<br>
+      Response headers: <code>Cache-Control</code>, <code>ETag</code>, <code>Age</code>.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>A test receives <code>304</code> and treats it as a successful "200 OK". In reality it is verifying a stale cached response. For testing, always disable cache (DevTools → Network → Disable cache) or add <code>Cache-Control: no-cache</code> to the request.</p>
+  </div>
+
+  <h3>Layer 3 — CDN / Proxy Cache</h3>
+  <p>A CDN (Cloudflare, Fastly, AWS CloudFront) places cached responses on edge servers close to the user. A reverse proxy (Nginx, Varnish) can cache backend responses. Key response header: <code>X-Cache: HIT</code> or <code>X-Cache: MISS</code>.</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 3</div>
+    <div class="qa-a">
+      Inspect response headers:<br>
+      <code>X-Cache: HIT</code> / <code>X-Cache: MISS</code><br>
+      <code>CF-Cache-Status: HIT</code> (Cloudflare)<br>
+      <code>Age</code> — how many seconds the response has been in cache.<br>
+      Tool: <code>curl -I https://example.com/api/data</code>
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>Data is updated in the database but the CDN keeps serving the old cache for another hour. Clearing the application cache does not clear the CDN. A separate CDN Cache Purge API call is needed, or you must wait for TTL to expire.</p>
+  </div>
+
+  <h3>Layer 4 — API Gateway Cache</h3>
+  <p>Some API Gateways (AWS API Gateway, Kong, Apigee) support response caching at the gateway level. If caching is enabled, a repeated request to the same endpoint with the same parameters may never reach the microservice.</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 4</div>
+    <div class="qa-a">
+      Check API Gateway configuration: is there a cache policy for this endpoint?<br>
+      Response headers: some gateways add <code>X-Cache</code> or their own headers.<br>
+      Compare response times: a cache hit is significantly faster than a cache miss.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>A GET request with <code>?page=1</code> is cached. A POST request that mutates data completes successfully, but the next GET still returns the gateway's stale cache — the gateway has no knowledge that the data changed.</p>
+  </div>
+
+  <h3>Layer 5 — App In-memory Cache</h3>
+  <p>Data is cached directly in the process memory of the application: a <code>Map</code>, an LRU cache (Caffeine for Java, node-lru-cache for Node.js). Fastest option, but data is not shared across instances and is lost on service restart.</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 5</div>
+    <div class="qa-a">
+      Check application logs or metrics: cache hit rate, cache size.<br>
+      In a test: update data via API → GET → if response is stale, in-memory cache was not invalidated.<br>
+      Restarting the service clears the in-memory cache — the first request after restart is always a cache miss.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>With horizontal scaling each instance holds its own in-memory cache. A write to one instance does not invalidate the cache in others. Different requests from the same user may hit different instances and receive different responses.</p>
+  </div>
+
+  <h3>Layer 6 — Redis / Distributed Cache</h3>
+  <p>An external distributed cache — a separate process (Redis, Memcached) accessible to all application instances. Data survives service restarts when Redis persistence is enabled. The standard for horizontally scaled systems.</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 6</div>
+    <div class="qa-a">
+      <code>redis-cli</code>: <code>GET key</code> — check existence and value.<br>
+      <code>TTL key</code> — seconds remaining until expiry.<br>
+      <code>MONITOR</code> — watch all commands in real time (for debugging).<br>
+      After a DB update: verify the Redis key was deleted or updated.
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>Data is updated in the DB but cache invalidation did not happen (logic bug or race condition). Redis keeps serving the stale version until TTL expires. A test that writes and immediately reads may not catch this — also test after a separate update request.</p>
+  </div>
+
+  <h3>Layer 7 — Database</h3>
+  <p>The database engine has its own internal cache: InnoDB buffer pool (MySQL/MariaDB), shared_buffers (PostgreSQL). Repeated SELECT queries on the same data execute much faster thanks to cached pages in memory.</p>
+  <div class="qa-block">
+    <div class="qa-q">HOW TO CHECK — LAYER 7</div>
+    <div class="qa-a">
+      <code>EXPLAIN ANALYZE</code> (PostgreSQL) or <code>EXPLAIN</code> (MySQL) — inspect query plan and actual execution time.<br>
+      Slow query log — log queries that exceed a time threshold.<br>
+      First query after a DB restart — always slower (cold cache).
+    </div>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">TYPICAL MISTAKE</div>
+    <p>Performance is measured only on a "warm" cache — the DB has already been primed by earlier queries. After a deploy or restart the first requests are significantly slower. Performance tests that run repeatedly without resetting state will show unrealistically optimistic results.</p>
+  </div>
+
+  <h3>Cache investigation order</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">STRATEGY</div>
+    <p>Start at the <strong>top layers</strong> — browser and CDN. Most visible cache problems live there. Move down only after the upper layers have been ruled out.</p>
+    <p>
+      ① Open DevTools Network → Disable cache → reload<br>
+      ② Inspect response headers: <code>X-Cache</code>, <code>CF-Cache-Status</code>, <code>Age</code><br>
+      ③ Try a different browser or incognito mode<br>
+      ④ Make the request via <code>curl</code> — bypassing the browser cache<br>
+      ⑤ Check Redis: <code>redis-cli GET &lt;key&gt;</code><br>
+      ⑥ Query the DB directly: is the data actually fresh there?
+    </p>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 02 ── -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Load balancer and cache</span>
+    <span class="tag tag-component">COMPONENT</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+
+  <div class="intro">
+    A common misconception: a load balancer is <strong>not a cache</strong>. It does not store or return responses. A load balancer only forwards the request to one of the available servers. Caching is the responsibility of a CDN, reverse proxy, API Gateway, or the application itself.
+  </div>
+
+  <table class="tbl">
+    <thead>
+      <tr><th>Component</th><th>Caches responses?</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>CDN (Cloudflare, CloudFront)</td><td>Yes</td><td>Stores HTTP responses on globally distributed edge servers</td></tr>
+      <tr><td>Reverse Proxy (Nginx, Varnish)</td><td>Yes</td><td>Can cache backend responses (requires explicit configuration)</td></tr>
+      <tr><td>API Gateway (Kong, AWS APIGW)</td><td>Partially</td><td>Optional caching, must be enabled per endpoint</td></tr>
+      <tr><td>Load Balancer (HAProxy, AWS ALB)</td><td>No</td><td>Only routes TCP/HTTP connections, does not store responses</td></tr>
+      <tr><td>Microservice</td><td>Yes</td><td>In-memory cache or Redis — the service's own responsibility</td></tr>
+    </tbody>
+  </table>
+
+  <p>If a stale cached response is being returned, look in the CDN, reverse proxy, or API Gateway — not in the load balancer. The load balancer is <strong>transparent to data</strong> — it neither reads nor stores response bodies.</p>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 03 ── -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Browser Storage</span>
+    <span class="tag tag-concept">CONCEPT</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+
+  <div class="intro">
+    The browser provides three client-side storage mechanisms: <strong>localStorage</strong>, <strong>sessionStorage</strong>, and <strong>IndexedDB</strong>. Each has its own purpose and constraints. A QA engineer needs to understand the differences to correctly clear state between tests and properly verify persisted state.
+  </div>
+
+  <h3>localStorage</h3>
+  <p>Persistent key-value storage. Data survives across sessions (closing and reopening the browser). Scoped to the origin. Synchronous API — blocks the main thread for large amounts of data. Typical limit is ~5–10 MB depending on the browser.</p>
+
+<pre class="code-block">// Write
+localStorage.setItem('user', JSON.stringify({ id: 1, name: 'Alice' }));
+
+// Read
+const user = JSON.parse(localStorage.getItem('user'));
+
+// Remove one key
+localStorage.removeItem('user');
+
+// Clear all data for the origin
+localStorage.clear();</pre>
+
+  <h3>sessionStorage</h3>
+  <p>Identical API to localStorage, but data exists <strong>only for the current tab</strong>. Closing the tab deletes the data. A new tab gets its own isolated storage, even for the same origin. Useful for multi-step wizard forms and temporary in-flight state.</p>
+
+<pre class="code-block">sessionStorage.setItem('step', '2');
+const step = sessionStorage.getItem('step');
+sessionStorage.removeItem('step');</pre>
+
+  <h3>IndexedDB</h3>
+  <p>A full NoSQL database in the browser with an asynchronous API. Supports storing structured objects (not just strings), transactions, indexes, and large data volumes. Used in PWAs for offline mode and in apps with complex local state.</p>
+
+<pre class="code-block">// Using the idb library (simplified wrapper for IndexedDB)
+import { openDB } from 'idb';
+
+const db = await openDB('myDB', 1, {
+  upgrade(db) {
+    db.createObjectStore('users', { keyPath: 'id' });
+  }
+});
+
+// Write
+await db.put('users', { id: 1, name: 'Alice' });
+
+// Read
+const user = await db.get('users', 1);
+
+// Delete
+await db.delete('users', 1);</pre>
+
+  <h3>Comparison</h3>
+  <table class="tbl">
+    <thead>
+      <tr><th></th><th>localStorage</th><th>sessionStorage</th><th>IndexedDB</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Capacity</td><td>~5–10 MB</td><td>~5 MB</td><td>Hundreds of MB+</td></tr>
+      <tr><td>Lifetime</td><td>Persistent</td><td>Current tab only</td><td>Persistent</td></tr>
+      <tr><td>Scope</td><td>Origin</td><td>Tab</td><td>Origin</td></tr>
+      <tr><td>API</td><td>Synchronous</td><td>Synchronous</td><td>Asynchronous</td></tr>
+      <tr><td>Data type</td><td>Strings</td><td>Strings</td><td>Any JS objects</td></tr>
+      <tr><td>Transactions</td><td>No</td><td>No</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+
+  <div class="qa-block">
+    <div class="qa-q">QA TEST ANGLES — BROWSER STORAGE</div>
+    <div class="qa-a">
+      ① Verify that on logout all user data is removed from localStorage and sessionStorage.<br>
+      ② Verify overflow behavior: write more than the limit → expect <code>QuotaExceededError</code>.<br>
+      ③ Verify tab isolation: sessionStorage data from one tab is not accessible in another.<br>
+      ④ Verify that sensitive data (passwords, tokens) is not stored in plain text.<br>
+      ⑤ IndexedDB in a PWA: verify offline mode — data is accessible without a network connection after the first load.
+    </div>
+  </div>
+
+  <p>Documentation: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" class="text-ref">MDN — Web Storage API</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank" class="text-ref">MDN — IndexedDB API</a></p>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+</div>
+
+</div>
+</main>
+</div>
+
+<script src="../../assets/site.js"></script>
+</body>
+</html>
