@@ -46,6 +46,9 @@
 
   <div class="sidecat">Browser</div>
   <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — Browser Storage</a>
+
+  <div class="sidecat">Invalidation</div>
+  <a class="sidelink" data-sec="s04" onclick="goTo('s04')">04 — Invalidation triggers</a>
 </nav>
 
 <main class="main">
@@ -316,45 +319,11 @@ Response → stored in cache ↑ for the next request</pre>
   <h3>localStorage</h3>
   <p>Persistent key-value storage. Data survives across sessions (closing and reopening the browser). Scoped to the origin. Synchronous API — blocks the main thread for large amounts of data. Typical limit is ~5–10 MB depending on the browser.</p>
 
-<pre class="code-block">// Write
-localStorage.setItem('user', JSON.stringify({ id: 1, name: 'Alice' }));
-
-// Read
-const user = JSON.parse(localStorage.getItem('user'));
-
-// Remove one key
-localStorage.removeItem('user');
-
-// Clear all data for the origin
-localStorage.clear();</pre>
-
   <h3>sessionStorage</h3>
   <p>Identical API to localStorage, but data exists <strong>only for the current tab</strong>. Closing the tab deletes the data. A new tab gets its own isolated storage, even for the same origin. Useful for multi-step wizard forms and temporary in-flight state.</p>
 
-<pre class="code-block">sessionStorage.setItem('step', '2');
-const step = sessionStorage.getItem('step');
-sessionStorage.removeItem('step');</pre>
-
   <h3>IndexedDB</h3>
   <p>A full NoSQL database in the browser with an asynchronous API. Supports storing structured objects (not just strings), transactions, indexes, and large data volumes. Used in PWAs for offline mode and in apps with complex local state.</p>
-
-<pre class="code-block">// Using the idb library (simplified wrapper for IndexedDB)
-import { openDB } from 'idb';
-
-const db = await openDB('myDB', 1, {
-  upgrade(db) {
-    db.createObjectStore('users', { keyPath: 'id' });
-  }
-});
-
-// Write
-await db.put('users', { id: 1, name: 'Alice' });
-
-// Read
-const user = await db.get('users', 1);
-
-// Delete
-await db.delete('users', 1);</pre>
 
   <h3>Comparison</h3>
   <table class="tbl">
@@ -383,6 +352,154 @@ await db.delete('users', 1);</pre>
   </div>
 
   <p>Documentation: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" class="text-ref">MDN — Web Storage API</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank" class="text-ref">MDN — IndexedDB API</a></p>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 04 ── -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Cache invalidation triggers</span>
+    <span class="tag tag-concept">CONCEPT</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+
+  <h3>Invalidation triggers by layer</h3>
+
+  <p><strong>Browser</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Trigger</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>TTL expired</td><td><code>Cache-Control: max-age=3600</code> — after 3600 seconds browser makes a fresh request</td></tr>
+      <tr><td>ETag mismatch</td><td>Browser sends <code>If-None-Match: "abc123"</code> — server compares, returns 200 with new content if changed</td></tr>
+      <tr><td>Last-Modified changed</td><td>Browser sends <code>If-Modified-Since</code> — server checks file modification date</td></tr>
+      <tr><td>Hard reload</td><td><code>Ctrl+Shift+R</code> — browser bypasses cache entirely</td></tr>
+      <tr><td><code>Cache-Control: no-store</code></td><td>Server prohibits caching altogether</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>CDN</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Trigger</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>TTL expired</td><td>Edge node holds a copy for N seconds, then fetches fresh from origin</td></tr>
+      <tr><td>Explicit API purge</td><td>Developer calls CDN API: "invalidate this URL" — used after deploys</td></tr>
+      <tr><td>URL versioning</td><td><code>style.css?v=2</code> — new URL, CDN treats it as a new resource with no cache</td></tr>
+      <tr><td><code>Cache-Control: no-cache</code> from origin</td><td>CDN does not cache the response</td></tr>
+      <tr><td>Purge all</td><td>Full cache flush — typically after a major release</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Reverse proxy</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Trigger</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>TTL expired</td><td><code>proxy_cache_valid 200 10m</code> — entry deleted after 10 minutes</td></tr>
+      <tr><td><code>Cache-Control: no-store</code> from backend</td><td>Nginx does not cache this response</td></tr>
+      <tr><td>Cache key change</td><td>Different query params or headers = different cache entry</td></tr>
+      <tr><td>Manual purge</td><td>Delete cache files on disk or use <code>proxy_cache_purge</code> module</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Application cache (Redis)</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Trigger</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>TTL expired</td><td><code>SET key value EX 300</code> — Redis deletes the entry automatically after 300 seconds</td></tr>
+      <tr><td>Explicit delete after write</td><td>After <code>UPDATE</code> in DB — code calls <code>DEL cache:user:123</code></td></tr>
+      <tr><td>Event-driven invalidation</td><td>Service publishes <code>UserUpdated</code> event → subscriber deletes the relevant cache key</td></tr>
+      <tr><td>Pattern-based purge</td><td><code>DEL cache:orders:*</code> — delete all keys matching a prefix</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Database</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Trigger</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>Write operation</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> — database invalidates internal query cache for affected tables</td></tr>
+      <tr><td>Replication lag</td><td>Replica receives changes from primary with a delay — returns stale data until synced</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Invalidation after unsafe HTTP methods</h3>
+
+  <p>HTTP methods are divided into <strong>safe</strong> and <strong>unsafe</strong>.</p>
+  <p>
+    <strong>Safe</strong> — do not modify state on the server: <code>GET</code>, <code>HEAD</code>, <code>OPTIONS</code>. Can be cached.<br>
+    <strong>Unsafe</strong> — modify state: <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>. Must not be cached, and their successful execution must invalidate related cache entries.
+  </p>
+
+  <p>Per HTTP specification (RFC 9110) — after a successful <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, or <code>DELETE</code>, the browser <strong>must invalidate</strong> cached responses for the same URI.</p>
+
+<pre class="term-flow">GET  /api/orders/123     → response cached in browser
+PUT  /api/orders/123     → successful update
+GET  /api/orders/123     → browser does NOT return cached version,
+                           makes a fresh request</pre>
+
+  <p><strong>Browser</strong> handles this automatically for the same URI if the response was <code>200</code>, <code>201</code>, or <code>204</code>.</p>
+
+  <p><strong>CDN and reverse proxy</strong> do not know your data changed — they have no business logic awareness. Invalidation here is always explicit: purge API call after a successful write, URL versioning, or short TTL on frequently changing resources.</p>
+
+  <p><strong>Application cache (Redis)</strong> — the most common pattern is invalidate-on-write:</p>
+
+<pre class="term-flow">PUT /api/orders/123
+  → update in database
+  → DEL cache:orders:123   ← explicit deletion
+  → return 200</pre>
+
+  <p>If this step is skipped, the next <code>GET</code> returns stale data from cache.</p>
+
+  <h3>Method-specific invalidation strategy</h3>
+
+  <p>The correct invalidation scope depends on which method was used:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>What changed</th><th>What to invalidate</th></tr></thead>
+    <tbody>
+      <tr><td><code>PUT /orders/123</code></td><td>Known specific resource</td><td><code>cache:orders:123</code></td></tr>
+      <tr><td><code>PATCH /orders/123</code></td><td>Known specific resource</td><td><code>cache:orders:123</code></td></tr>
+      <tr><td><code>DELETE /orders/123</code></td><td>Resource removed</td><td><code>cache:orders:123</code> + any list containing it</td></tr>
+      <tr><td><code>POST /orders</code></td><td>New resource created, ID unknown</td><td>Collection: <code>cache:orders:list:*</code></td></tr>
+    </tbody>
+  </table>
+
+  <p><code>PUT</code> and <code>PATCH</code> are <strong>idempotent</strong> — repeating the call with the same data produces the same result. This makes the invalidation target predictable: you always know exactly which key to delete.</p>
+  <p><code>POST</code> is <strong>not idempotent</strong> — a repeat call may create a duplicate. The invalidation target is less precise: you must invalidate the collection, not just a specific entry.</p>
+
+  <h3>Cache stampede</h3>
+
+  <p>When TTL for a large number of entries expires simultaneously, all requests go to the origin at once — a sudden spike in load. Solved with <strong>jitter</strong>: adding a random offset to TTL values so entries expire at different times rather than all together.</p>
+
+<pre class="term-flow">base TTL: 300 seconds
+with jitter: 300 + random(0, 60) seconds per entry</pre>
+
+  <div class="qa-block">
+    <div class="qa-q">QA TESTING ANGLES — CACHE INVALIDATION</div>
+    <div class="qa-a">
+      <strong>Cache freshness after write.</strong> After <code>PUT</code> or <code>PATCH</code> on a resource → the next <code>GET</code> on the same URI returns updated data, not the cached previous version.<br><br>
+      <strong>Delete invalidation.</strong> After <code>DELETE</code> on a resource → the next <code>GET</code> returns 404, not the old cached response.<br><br>
+      <strong>Collection invalidation after POST.</strong> After <code>POST</code> creating a new resource → <code>GET</code> on the collection endpoint includes the new item.<br><br>
+      <strong>No caching on sensitive endpoints.</strong> Verify <code>Cache-Control: no-store</code> is set on endpoints returning personal, financial, or session data — they must never be cached at any layer.<br><br>
+      <strong>TTL boundary.</strong> Test behaviour immediately after TTL expiry — the first request after expiry should return fresh data, not a stale hit.<br><br>
+      <strong>Replication lag (flaky test root cause).</strong> A test writes data then immediately reads it — and does not find it, because the read went to a replica that has not yet synced. First hypothesis for any data inconsistency in test environments: <strong>cache or replication lag, not a bug</strong>.<br><br>
+      <strong>Parallel writes.</strong> Two concurrent <code>PUT</code> requests on the same resource → the final state is consistent, cache does not contain an intermediate state from the losing write.<br><br>
+      <strong>Response headers on mutating endpoints.</strong> <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code> responses must not contain <code>Cache-Control: max-age</code> — mutating endpoints should never be cached.
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">KEY TAKEAWAYS</div>
+    <p>
+      Cache lives at every layer — browser, CDN, proxy, application, database. Each has its own invalidation rules.<br>
+      Invalidation is either <strong>time-based</strong> (TTL expires) or <strong>event-based</strong> (explicit delete after a write).<br>
+      Unsafe HTTP methods must trigger invalidation — browser does this automatically, every other layer requires explicit handling.<br>
+      <code>POST</code> invalidates collections. <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code> invalidate specific resources.<br>
+      Replication lag and stale cache are the two most common causes of unexpected data behaviour in test environments. Always check these before assuming a bug.
+    </p>
+  </div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ top</a>
 </div>

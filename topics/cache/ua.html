@@ -46,6 +46,9 @@
 
   <div class="sidecat">Браузер</div>
   <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — Browser Storage</a>
+
+  <div class="sidecat">Інвалідація</div>
+  <a class="sidelink" data-sec="s04" onclick="goTo('s04')">04 — Тригери інвалідації</a>
 </nav>
 
 <main class="main">
@@ -316,45 +319,11 @@
   <h3>localStorage</h3>
   <p>Постійне сховище у вигляді пар ключ-значення. Дані зберігаються між сесіями (закриттям і відкриттям браузера). Обмежений доменом. Синхронний API — блокує основний потік при великих обсягах. Типовий ліміт ~5–10 МБ залежно від браузера.</p>
 
-<pre class="code-block">// Запис
-localStorage.setItem('user', JSON.stringify({ id: 1, name: 'Alice' }));
-
-// Читання
-const user = JSON.parse(localStorage.getItem('user'));
-
-// Видалення одного ключа
-localStorage.removeItem('user');
-
-// Очистити всі дані домену
-localStorage.clear();</pre>
-
   <h3>sessionStorage</h3>
   <p>Аналогічний API до localStorage, але дані існують <strong>лише протягом поточної вкладки</strong>. Закрита вкладка — дані зникли. Нова вкладка — окреме ізольоване сховище, навіть для того самого домену. Корисний для wizard-форм і тимчасового стану між кроками.</p>
 
-<pre class="code-block">sessionStorage.setItem('step', '2');
-const step = sessionStorage.getItem('step');
-sessionStorage.removeItem('step');</pre>
-
   <h3>IndexedDB</h3>
   <p>Повноцінна NoSQL-база даних у браузері з асинхронним API. Підтримує зберігання структурованих об'єктів (не лише рядків), транзакції, індекси та великі обсяги даних. Використовується в PWA для offline-режиму та в застосунках зі складним локальним станом.</p>
-
-<pre class="code-block">// Через бібліотеку idb (спрощений wrapper для IndexedDB)
-import { openDB } from 'idb';
-
-const db = await openDB('myDB', 1, {
-  upgrade(db) {
-    db.createObjectStore('users', { keyPath: 'id' });
-  }
-});
-
-// Запис
-await db.put('users', { id: 1, name: 'Alice' });
-
-// Читання
-const user = await db.get('users', 1);
-
-// Видалення
-await db.delete('users', 1);</pre>
 
   <h3>Порівняння</h3>
   <table class="tbl">
@@ -383,6 +352,154 @@ await db.delete('users', 1);</pre>
   </div>
 
   <p>Документація: <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" class="text-ref">MDN — Web Storage API</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank" class="text-ref">MDN — IndexedDB API</a></p>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 04 ── -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Тригери інвалідації кешу</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+
+  <h3>Тригери інвалідації за рівнями</h3>
+
+  <p><strong>Браузер</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Тригер</th><th>Як працює</th></tr></thead>
+    <tbody>
+      <tr><td>Спливання TTL</td><td><code>Cache-Control: max-age=3600</code> — через 3600 секунд браузер робить новий запит</td></tr>
+      <tr><td>Невідповідність ETag</td><td>Браузер надсилає <code>If-None-Match: "abc123"</code> — сервер порівнює, повертає 200 з новим вмістом якщо змінилось</td></tr>
+      <tr><td>Зміна Last-Modified</td><td>Браузер надсилає <code>If-Modified-Since</code> — сервер перевіряє дату зміни файлу</td></tr>
+      <tr><td>Жорке перезавантаження</td><td><code>Ctrl+Shift+R</code> — браузер повністю ігнорує кеш</td></tr>
+      <tr><td><code>Cache-Control: no-store</code></td><td>Сервер забороняє кешування взагалі</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>CDN</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Тригер</th><th>Як працює</th></tr></thead>
+    <tbody>
+      <tr><td>Спливання TTL</td><td>Edge-вузол тримає копію N секунд, потім запитує свіже з origin</td></tr>
+      <tr><td>Явний виклик Purge API</td><td>Розробник викликає CDN API: "інвалідуй цю URL" — використовується після деплоїв</td></tr>
+      <tr><td>Версіонування URL</td><td><code>style.css?v=2</code> — нова URL, CDN вважає новим ресурсом без кешу</td></tr>
+      <tr><td><code>Cache-Control: no-cache</code> від origin</td><td>CDN не кешує відповідь</td></tr>
+      <tr><td>Повне скидання кешу</td><td>Повне очищення — зазвичай після мажорного релізу</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Зворотній проксі</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Тригер</th><th>Як працює</th></tr></thead>
+    <tbody>
+      <tr><td>Спливання TTL</td><td><code>proxy_cache_valid 200 10m</code> — запис видаляється через 10 хвилин</td></tr>
+      <tr><td><code>Cache-Control: no-store</code> від бекенду</td><td>Nginx не кешує цю відповідь</td></tr>
+      <tr><td>Зміна cache key</td><td>Різні query-параметри або заголовки = різний запис у кеші</td></tr>
+      <tr><td>Ручне очищення</td><td>Видалення файлів кешу на диску або модуль <code>proxy_cache_purge</code></td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Кеш застосунку (Redis)</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Тригер</th><th>Як працює</th></tr></thead>
+    <tbody>
+      <tr><td>Спливання TTL</td><td><code>SET key value EX 300</code> — Redis автоматично видаляє запис після 300 секунд</td></tr>
+      <tr><td>Явне видалення після запису</td><td>Після <code>UPDATE</code> в БД — код викликає <code>DEL cache:user:123</code></td></tr>
+      <tr><td>Подієво-керована інвалідація</td><td>Сервіс публікує подію <code>UserUpdated</code> → підписник видаляє відповідний ключ кешу</td></tr>
+      <tr><td>Видалення за патерном</td><td><code>DEL cache:orders:*</code> — видалити всі ключі за префіксом</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>База даних</strong></p>
+  <table class="tbl">
+    <thead><tr><th>Тригер</th><th>Як працює</th></tr></thead>
+    <tbody>
+      <tr><td>Операція запису</td><td><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code> — БД інвалідує внутрішній query cache для зачеплених таблиць</td></tr>
+      <tr><td>Затримка реплікації</td><td>Репліка отримує зміни від primary із затримкою — повертає застарілі дані до синхронізації</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Інвалідація після небезпечних HTTP-методів</h3>
+
+  <p>HTTP-методи поділяються на <strong>безпечні</strong> та <strong>небезпечні</strong>.</p>
+  <p>
+    <strong>Безпечні</strong> — не змінюють стан на сервері: <code>GET</code>, <code>HEAD</code>, <code>OPTIONS</code>. Можуть кешуватись.<br>
+    <strong>Небезпечні</strong> — змінюють стан: <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>. Не повинні кешуватись, а їх успішне виконання повинно інвалідувати пов'язані записи кешу.
+  </p>
+
+  <p>Згідно зі специфікацією HTTP (RFC 9110) — після успішного <code>POST</code>, <code>PUT</code>, <code>PATCH</code> або <code>DELETE</code> браузер <strong>повинен інвалідувати</strong> кешовані відповіді для тієї самої URI.</p>
+
+<pre class="term-flow">GET  /api/orders/123     → відповідь закешована в браузері
+PUT  /api/orders/123     → успішне оновлення
+GET  /api/orders/123     → браузер НЕ повертає закешовану версію,
+                           робить новий запит</pre>
+
+  <p><strong>Браузер</strong> обробляє це автоматично для тієї самої URI якщо відповідь була <code>200</code>, <code>201</code> або <code>204</code>.</p>
+
+  <p><strong>CDN та зворотній проксі</strong> не знають, що дані змінились — вони не мають розуміння бізнес-логіки. Інвалідація тут завжди явна: виклик Purge API після успішного запису, версіонування URL або короткий TTL для ресурсів, що часто змінюються.</p>
+
+  <p><strong>Кеш застосунку (Redis)</strong> — найпоширеніший патерн — invalidate-on-write:</p>
+
+<pre class="term-flow">PUT /api/orders/123
+  → оновлення в БД
+  → DEL cache:orders:123   ← явне видалення
+  → повернути 200</pre>
+
+  <p>Якщо цей крок пропущено, наступний <code>GET</code> поверне застарілі дані з кешу.</p>
+
+  <h3>Стратегія інвалідації залежно від методу</h3>
+
+  <p>Правильний обсяг інвалідації залежить від використаного методу:</p>
+  <table class="tbl">
+    <thead><tr><th>Метод</th><th>Що змінилось</th><th>Що інвалідувати</th></tr></thead>
+    <tbody>
+      <tr><td><code>PUT /orders/123</code></td><td>Відомий конкретний ресурс</td><td><code>cache:orders:123</code></td></tr>
+      <tr><td><code>PATCH /orders/123</code></td><td>Відомий конкретний ресурс</td><td><code>cache:orders:123</code></td></tr>
+      <tr><td><code>DELETE /orders/123</code></td><td>Ресурс видалено</td><td><code>cache:orders:123</code> + будь-який список, що містив його</td></tr>
+      <tr><td><code>POST /orders</code></td><td>Новий ресурс створено, ID невідомий</td><td>Колекція: <code>cache:orders:list:*</code></td></tr>
+    </tbody>
+  </table>
+
+  <p><code>PUT</code> та <code>PATCH</code> є <strong>ідемпотентними</strong> — повтор виклику з тими самими даними дає той самий результат. Це робить ціль інвалідації передбачуваною: завжди відомо точно, який ключ видаляти.</p>
+  <p><code>POST</code> є <strong>не ідемпотентним</strong> — повтор виклику може створити дублікат. Ціль інвалідації менш точна: потрібно інвалідувати колекцію, а не конкретний запис.</p>
+
+  <h3>Шторм кешу</h3>
+
+  <p>Коли TTL для великої кількості записів спливає одночасно, всі запити йдуть до origin одночасно — різкий стрибок навантаження. Вирішується за допомогою <strong>джитеру</strong>: додавання випадкового зсуву до значень TTL, щоб записи спливали в різний час, а не всі разом.</p>
+
+<pre class="term-flow">базовий TTL: 300 секунд
+з джитером: 300 + random(0, 60) секунд для кожного запису</pre>
+
+  <div class="qa-block">
+    <div class="qa-q">КУТИ ТЕСТУВАННЯ QA — ІНВАЛІДАЦІЯ КЕШУ</div>
+    <div class="qa-a">
+      <strong>Актуальність кешу після запису.</strong> Після <code>PUT</code> або <code>PATCH</code> на ресурс → наступний <code>GET</code> на ту саму URI повертає оновлені дані, а не кешовану попередню версію.<br><br>
+      <strong>Інвалідація при видаленні.</strong> Після <code>DELETE</code> на ресурс → наступний <code>GET</code> повертає 404, а не стару закешовану відповідь.<br><br>
+      <strong>Інвалідація колекції після POST.</strong> Після <code>POST</code> що створює новий ресурс → <code>GET</code> на ендпоінт колекції містить новий елемент.<br><br>
+      <strong>Заборона кешування на чутливих ендпоінтах.</strong> Перевірити що <code>Cache-Control: no-store</code> встановлено на ендпоінтах що повертають персональні, фінансові або сесійні дані — вони не повинні кешуватись на жодному рівні.<br><br>
+      <strong>Межа TTL.</strong> Тестувати поведінку одразу після спливання TTL — перший запит після спливання повинен повертати свіжі дані, а не застарілий hit.<br><br>
+      <strong>Затримка реплікації (причина нестабільних тестів).</strong> Тест записує дані і одразу читає — і не знаходить, бо читання пішло на репліку що ще не синхронізувалась. Перша гіпотеза при будь-якій невідповідності даних у тестовому середовищі: <strong>кеш або replication lag, а не баг</strong>.<br><br>
+      <strong>Паралельні записи.</strong> Два одночасних <code>PUT</code> запити на той самий ресурс → кінцевий стан консистентний, кеш не містить проміжний стан від програшного запису.<br><br>
+      <strong>Заголовки відповіді на мутуючих ендпоінтах.</strong> Відповіді <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code> не повинні містити <code>Cache-Control: max-age</code> — мутуючі ендпоінти ніколи не повинні кешуватись.
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-label">КЛЮЧОВІ ВИСНОВКИ</div>
+    <p>
+      Кеш існує на кожному рівні — браузер, CDN, проксі, застосунок, БД. Кожен має власні правила інвалідації.<br>
+      Інвалідація є або <strong>часовою</strong> (спливає TTL) або <strong>подієвою</strong> (явне видалення після запису).<br>
+      Небезпечні HTTP-методи повинні тригерити інвалідацію — браузер робить це автоматично, кожен інший рівень потребує явної обробки.<br>
+      <code>POST</code> інвалідує колекції. <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code> інвалідують конкретні ресурси.<br>
+      Затримка реплікації та застарілий кеш — найпоширеніші причини несподіваної поведінки даних у тестових середовищах. Завжди перевіряйте ці варіанти перед тим, як вважати це багом.
+    </p>
+  </div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
 </div>
