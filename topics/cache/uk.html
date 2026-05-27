@@ -538,274 +538,367 @@ with jitter: 300 + random(0, 60) seconds per entry</pre>
   <h3>GET</h3>
   <p>The only method that should be cached at every layer. All caching infrastructure is designed around GET responses.</p>
 
-  <p><strong>Browser Cache</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>Cache-Control: max-age=N</code> on public static resources (CSS, JS, images)<br>
-  — <code>Cache-Control: private, max-age=N</code> on authenticated or personalised responses<br>
-  — <code>ETag: "abc123"</code> or <code>Last-Modified: &lt;date&gt;</code> on any resource that requires revalidation<br>
-  — On a repeat request — browser sends <code>If-None-Match: "abc123"</code> or <code>If-Modified-Since: &lt;date&gt;</code><br>
-  — Server returns <code>304 Not Modified</code> with an empty body if content has not changed<br>
-  — <code>Vary: Accept-Encoding</code> if the response is compressed</p>
+  <div class="qa-block">
+    <div class="qa-q">BROWSER CACHE</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>Cache-Control: max-age=N</code> on public static resources (CSS, JS, images)<br>
+      — <code>Cache-Control: private, max-age=N</code> on authenticated or personalised responses<br>
+      — <code>ETag: "abc123"</code> or <code>Last-Modified: &lt;date&gt;</code> on any resource that requires revalidation<br>
+      — On a repeat request — browser sends <code>If-None-Match: "abc123"</code> or <code>If-Modified-Since: &lt;date&gt;</code><br>
+      — Server returns <code>304 Not Modified</code> with an empty body if content has not changed<br>
+      — <code>Vary: Accept-Encoding</code> if the response is compressed<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — <code>Cache-Control: no-store</code> on public static resources — this actively prohibits caching<br>
+      — <code>Cache-Control: max-age=N</code> on responses containing personal, financial, or session data<br>
+      — Missing <code>ETag</code> or <code>Last-Modified</code> on large resources — a missed optimisation, every request downloads the full content<br>
+      — <code>Pragma: no-cache</code> — a deprecated HTTP/1.0 directive, replace with <code>Cache-Control</code><br>
+      — <code>Expires</code> header without <code>Cache-Control</code> — legacy, unreliable<br>
+      <br>
+      <strong>How to check</strong><br>
+      — DevTools → Network tab → inspect response headers on the first request<br>
+      — Repeat the request — status should be <code>304</code>, not <code>200</code>, if content has not changed<br>
+      — Hard reload (<code>Ctrl+Shift+R</code>) — forced request, status must be <code>200</code><br>
+      — Check the <code>Size</code> column in DevTools — cached responses show <code>(disk cache)</code> or <code>(memory cache)</code>
+    </div>
+  </div>
 
-  <p><strong>SHOULD NOT see</strong><br>
-  — <code>Cache-Control: no-store</code> on public static resources — this actively prohibits caching<br>
-  — <code>Cache-Control: max-age=N</code> on responses containing personal, financial, or session data<br>
-  — Missing <code>ETag</code> or <code>Last-Modified</code> on large resources — a missed optimisation, every request downloads the full content<br>
-  — <code>Pragma: no-cache</code> — a deprecated HTTP/1.0 directive, replace with <code>Cache-Control</code><br>
-  — <code>Expires</code> header without <code>Cache-Control</code> — legacy, unreliable</p>
+  <div class="qa-block">
+    <div class="qa-q">CDN (CloudFront, Cloudflare)</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>X-Cache: Hit</code> (CloudFront) or <code>CF-Cache-Status: HIT</code> (Cloudflare) on repeat requests<br>
+      — <code>Age: N</code> — seconds the response has been in the CDN cache<br>
+      — <code>Cache-Control: public, s-maxage=N</code> for CDN-specific TTL separate from the browser TTL<br>
+      — <code>Vary: Accept-Encoding</code> if the CDN compresses responses<br>
+      — <code>ETag</code> forwarded from origin so downstream can perform revalidation<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — CDN caching responses with <code>Cache-Control: private</code> — private responses must not be stored in a shared cache<br>
+      — CDN caching responses that contain <code>Set-Cookie</code> — unless explicitly and intentionally configured<br>
+      — <code>X-Cache: Hit</code> on authenticated API responses without <code>Vary: Authorization</code> — different users will receive each other's responses<br>
+      — <code>Age</code> value exceeding the configured <code>max-age</code> — indicates a misconfigured TTL<br>
+      <br>
+      <strong>How to check</strong><br>
+      — Send the same GET twice — the first should be <code>MISS</code>, the second <code>HIT</code><br>
+      — Verify that the <code>Age</code> header increments on repeated requests<br>
+      — Send a request with a different <code>Authorization</code> header — should be a <code>MISS</code>, not served from a previous user's cache<br>
+      — Purge the URL via CDN API, then request it — should be a <code>MISS</code>
+    </div>
+  </div>
 
-  <p><strong>How to check</strong><br>
-  — DevTools → Network tab → inspect response headers on the first request<br>
-  — Repeat the request — status should be <code>304</code>, not <code>200</code>, if content has not changed<br>
-  — Hard reload (<code>Ctrl+Shift+R</code>) — forced request, status must be <code>200</code><br>
-  — Check the <code>Size</code> column in DevTools — cached responses show <code>(disk cache)</code> or <code>(memory cache)</code></p>
+  <div class="qa-block">
+    <div class="qa-q">REVERSE PROXY (Nginx)</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>X-Cache-Status: HIT</code> (Nginx with <code>proxy_cache</code>) on cached responses<br>
+      — <code>Cache-Control</code> headers from upstream forwarded or overridden according to configuration<br>
+      — <code>Age</code> header if Nginx adds it<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — Nginx caching responses with <code>Cache-Control: no-store</code> from upstream<br>
+      — Nginx caching responses with <code>Set-Cookie</code> — standard Nginx behaviour ignores them, but verify your configuration<br>
+      — Cached response served after upstream data changes before TTL expires — expected behaviour, but important to know the staleness window<br>
+      <br>
+      <strong>How to check</strong><br>
+      — Check Nginx access logs — cache HIT vs MISS<br>
+      — Compare response time: HIT is significantly faster than MISS<br>
+      — Set a short <code>proxy_cache_valid</code> TTL in the test environment, confirm that a stale response is served until expiry
+    </div>
+  </div>
 
-  <p><strong>CDN (CloudFront, Cloudflare)</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>X-Cache: Hit</code> (CloudFront) or <code>CF-Cache-Status: HIT</code> (Cloudflare) on repeat requests<br>
-  — <code>Age: N</code> — seconds the response has been in the CDN cache<br>
-  — <code>Cache-Control: public, s-maxage=N</code> for CDN-specific TTL separate from the browser TTL<br>
-  — <code>Vary: Accept-Encoding</code> if the CDN compresses responses<br>
-  — <code>ETag</code> forwarded from origin so downstream can perform revalidation</p>
+  <div class="qa-block">
+    <div class="qa-q">API GATEWAY (Kong, AWS API Gateway)</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — Caching enabled only for explicitly configured routes — not globally by default<br>
+      — <code>Cache-Control</code> headers respected — the gateway must not cache what upstream marked as <code>no-store</code><br>
+      — Reduced response time on repeated identical requests when caching is enabled<br>
+      — Cache key includes all relevant parameters — URI, query string, and if personalised — the <code>Authorization</code> header<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — Gateway caching authenticated endpoint responses without scoping the cache key per user — a critical security misconfiguration<br>
+      — Gateway caching error responses (<code>4xx</code>, <code>5xx</code>) — only <code>200</code> should be cache-eligible<br>
+      — Cached responses served after upstream data changes within TTL without explicit invalidation<br>
+      <br>
+      <strong>How to check</strong><br>
+      — Send the same GET twice with caching enabled — the second should be faster<br>
+      — Change a query parameter — should be a cache miss, not the previous response<br>
+      — Two users with different tokens request the same URI — each should receive their own data
+    </div>
+  </div>
 
-  <p><strong>SHOULD NOT see</strong><br>
-  — CDN caching responses with <code>Cache-Control: private</code> — private responses must not be stored in a shared cache<br>
-  — CDN caching responses that contain <code>Set-Cookie</code> — unless explicitly and intentionally configured<br>
-  — <code>X-Cache: Hit</code> on authenticated API responses without <code>Vary: Authorization</code> — different users will receive each other's responses<br>
-  — <code>Age</code> value exceeding the configured <code>max-age</code> — indicates a misconfigured TTL</p>
+  <div class="qa-block">
+    <div class="qa-q">APP CACHE (Redis / Memcached)</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — Cache key follows a consistent naming convention: <code>resource:id</code>, e.g. <code>orders:123</code><br>
+      — TTL set on every key — no keys without TTL on frequently changing data<br>
+      — Cache miss falls through to the DB and stores the result for next time<br>
+      — Measurable difference in response time between cache hit and cache miss<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — Cached results for queries that must always be fresh (e.g. account balance, stock count)<br>
+      — Keys without TTL on mutable data — permanently stale data if there is a bug in the invalidation logic<br>
+      — Cache storing large objects in full when only a subset of fields is needed — wastes memory<br>
+      <br>
+      <strong>How to check</strong><br>
+      — <code>redis-cli GET orders:123</code> — verify the key exists after the first GET request<br>
+      — Check TTL: <code>redis-cli TTL orders:123</code> — should return remaining seconds, not <code>-1</code> (no TTL)<br>
+      — Delete the key manually, repeat GET — response time increases (DB fallthrough)<br>
+      — Update the resource, verify the Redis key is deleted or updated
+    </div>
+  </div>
 
-  <p><strong>How to check</strong><br>
-  — Send the same GET twice — the first should be <code>MISS</code>, the second <code>HIT</code><br>
-  — Verify that the <code>Age</code> header increments on repeated requests<br>
-  — Send a request with a different <code>Authorization</code> header — should be a <code>MISS</code>, not served from a previous user's cache<br>
-  — Purge the URL via CDN API, then request it — should be a <code>MISS</code></p>
-
-  <p><strong>Reverse Proxy (Nginx)</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>X-Cache-Status: HIT</code> (Nginx with <code>proxy_cache</code>) on cached responses<br>
-  — <code>Cache-Control</code> headers from upstream forwarded or overridden according to configuration<br>
-  — <code>Age</code> header if Nginx adds it</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — Nginx caching responses with <code>Cache-Control: no-store</code> from upstream<br>
-  — Nginx caching responses with <code>Set-Cookie</code> — standard Nginx behaviour ignores them, but verify your configuration<br>
-  — Cached response served after upstream data changes before TTL expires — expected behaviour, but important to know the staleness window</p>
-
-  <p><strong>How to check</strong><br>
-  — Check Nginx access logs — cache HIT vs MISS<br>
-  — Compare response time: HIT is significantly faster than MISS<br>
-  — Set a short <code>proxy_cache_valid</code> TTL in the test environment, confirm that a stale response is served until expiry</p>
-
-  <p><strong>API Gateway (Kong, AWS API Gateway)</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — Caching enabled only for explicitly configured routes — not globally by default<br>
-  — <code>Cache-Control</code> headers respected — the gateway must not cache what upstream marked as <code>no-store</code><br>
-  — Reduced response time on repeated identical requests when caching is enabled<br>
-  — Cache key includes all relevant parameters — URI, query string, and if personalised — the <code>Authorization</code> header</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — Gateway caching authenticated endpoint responses without scoping the cache key per user — a critical security misconfiguration<br>
-  — Gateway caching error responses (<code>4xx</code>, <code>5xx</code>) — only <code>200</code> should be cache-eligible<br>
-  — Cached responses served after upstream data changes within TTL without explicit invalidation</p>
-
-  <p><strong>How to check</strong><br>
-  — Send the same GET twice with caching enabled — the second should be faster<br>
-  — Change a query parameter — should be a cache miss, not the previous response<br>
-  — Two users with different tokens request the same URI — each should receive their own data</p>
-
-  <p><strong>App Cache (Redis / Memcached)</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — Cache key follows a consistent naming convention: <code>resource:id</code>, e.g. <code>orders:123</code><br>
-  — TTL set on every key — no keys without TTL on frequently changing data<br>
-  — Cache miss falls through to the DB and stores the result for next time<br>
-  — Measurable difference in response time between cache hit and cache miss</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — Cached results for queries that must always be fresh (e.g. account balance, stock count)<br>
-  — Keys without TTL on mutable data — permanently stale data if there is a bug in the invalidation logic<br>
-  — Cache storing large objects in full when only a subset of fields is needed — wastes memory</p>
-
-  <p><strong>How to check</strong><br>
-  — <code>redis-cli GET orders:123</code> — verify the key exists after the first GET request<br>
-  — Check TTL: <code>redis-cli TTL orders:123</code> — should return remaining seconds, not <code>-1</code> (no TTL)<br>
-  — Delete the key manually, repeat GET — response time increases (DB fallthrough)<br>
-  — Update the resource, verify the Redis key is deleted or updated</p>
-
-  <p><strong>Database</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — Internal query plan cache used for repeated identical queries — the same query executes faster on the second run<br>
-  — Buffer pool (PostgreSQL <code>shared_buffers</code>, MySQL <code>innodb_buffer_pool</code>) keeps frequently accessed data in memory</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — Stale query results after <code>PUT</code> or <code>DELETE</code> — the internal cache must be invalidated automatically on write</p>
-
-  <p><strong>How to check</strong><br>
-  — Run <code>EXPLAIN ANALYZE</code> in PostgreSQL before and after a repeat execution — the second run shows lower cost<br>
-  — In test environments: confirm that a fresh SELECT after UPDATE returns the updated values immediately</p>
+  <div class="qa-block">
+    <div class="qa-q">DATABASE</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — Internal query plan cache used for repeated identical queries — the same query executes faster on the second run<br>
+      — Buffer pool (PostgreSQL <code>shared_buffers</code>, MySQL <code>innodb_buffer_pool</code>) keeps frequently accessed data in memory<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — Stale query results after <code>PUT</code> or <code>DELETE</code> — the internal cache must be invalidated automatically on write<br>
+      <br>
+      <strong>How to check</strong><br>
+      — Run <code>EXPLAIN ANALYZE</code> in PostgreSQL before and after a repeat execution — the second run shows lower cost<br>
+      — In test environments: confirm that a fresh SELECT after UPDATE returns the updated values immediately
+    </div>
+  </div>
 
   <h3>HEAD</h3>
   <p>Identical caching rules to GET — same headers, TTL, revalidation mechanism. The only difference is that the response body is empty.</p>
-  <p><strong>At every layer:</strong> apply the same checklist as for GET.</p>
-  <p><strong>Additional check:</strong> <code>ETag</code> and <code>Last-Modified</code> must be present in the HEAD response — the client uses HEAD specifically to check whether content has changed before downloading via GET. If these headers are absent from HEAD, the optimisation is pointless.</p>
+
+  <div class="qa-block">
+    <div class="qa-q">ALL LAYERS</div>
+    <div class="qa-a">
+      Apply the same checklist as for GET at every layer.<br>
+      <br>
+      <strong>Additional check:</strong> <code>ETag</code> and <code>Last-Modified</code> must be present in the HEAD response — the client uses HEAD specifically to check whether content has changed before downloading via GET. If these headers are absent from HEAD, the optimisation is pointless.
+    </div>
+  </div>
 
   <h3>OPTIONS</h3>
   <p>Used primarily for CORS preflight. Not cached by standard caching infrastructure — only the browser caches the preflight result.</p>
 
-  <p><strong>Browser Cache</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>Access-Control-Max-Age: N</code> — how long the browser caches the preflight result in seconds<br>
-  — Subsequent requests to the same endpoint within this window do not trigger a new preflight</p>
+  <div class="qa-block">
+    <div class="qa-q">BROWSER CACHE</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>Access-Control-Max-Age: N</code> — how long the browser caches the preflight result in seconds<br>
+      — Subsequent requests to the same endpoint within this window do not trigger a new preflight<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — <code>Access-Control-Max-Age: 0</code> or absent — browser sends a preflight on every request, significant overhead<br>
+      <br>
+      <strong>How to check</strong><br>
+      — DevTools → Network — the OPTIONS request appears once, then disappears for subsequent calls within the TTL<br>
+      — Temporarily set <code>Access-Control-Max-Age: 0</code> — the OPTIONS request reappears on every call
+    </div>
+  </div>
 
-  <p><strong>SHOULD NOT see</strong><br>
-  — <code>Access-Control-Max-Age: 0</code> or absent — browser sends a preflight on every request, significant overhead</p>
-
-  <p><strong>How to check</strong><br>
-  — DevTools → Network — the OPTIONS request appears once, then disappears for subsequent calls within the TTL<br>
-  — Temporarily set <code>Access-Control-Max-Age: 0</code> — the OPTIONS request reappears on every call</p>
-
-  <p><strong>All other layers:</strong> OPTIONS is not cached. Nothing to check.</p>
+  <div class="qa-block">
+    <div class="qa-q">CDN · REVERSE PROXY · API GATEWAY · APP CACHE · DATABASE</div>
+    <div class="qa-a">OPTIONS is not cached at these layers. Nothing to check.</div>
+  </div>
 
   <h3>POST</h3>
   <p>Must not be cached at any layer. The response MUST NOT be stored. Execution must trigger invalidation of the related GET cache.</p>
 
-  <p><strong>Browser</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>Cache-Control: no-store</code> in the response<br>
-  — No <code>ETag</code> or <code>Last-Modified</code> in the response</p>
+  <div class="qa-block">
+    <div class="qa-q">BROWSER</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>Cache-Control: no-store</code> in the response<br>
+      — No <code>ETag</code> or <code>Last-Modified</code> in the response<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — <code>Cache-Control: max-age=N</code> in the response<br>
+      — Browser reusing a previous POST response on retry<br>
+      <br>
+      <strong>How to check</strong><br>
+      — DevTools — POST responses must never show <code>(disk cache)</code> or <code>(memory cache)</code><br>
+      — Repeat the POST — it must always reach the server, with no cache interference
+    </div>
+  </div>
 
-  <p><strong>SHOULD NOT see</strong><br>
-  — <code>Cache-Control: max-age=N</code> in the response<br>
-  — Browser reusing a previous POST response on retry</p>
+  <div class="qa-block">
+    <div class="qa-q">CDN · REVERSE PROXY</div>
+    <div class="qa-a">
+      <strong>SHOULD NOT see</strong><br>
+      — CDN or proxy returning a cached response to a POST request — this means a previous POST response was incorrectly stored<br>
+      — <code>X-Cache: HIT</code> on any POST response<br>
+      <br>
+      <strong>How to check</strong><br>
+      — Send the same POST twice — both must reach the origin server (verify origin logs)<br>
+      — The <code>X-Cache</code> header should be absent or show <code>MISS</code> / <code>BYPASS</code>
+    </div>
+  </div>
 
-  <p><strong>How to check</strong><br>
-  — DevTools — POST responses must never show <code>(disk cache)</code> or <code>(memory cache)</code><br>
-  — Repeat the POST — it must always reach the server, with no cache interference</p>
+  <div class="qa-block">
+    <div class="qa-q">API GATEWAY</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — POST requests always forwarded to upstream — never served from cache<br>
+      — Caching plugin/policy explicitly disabled for POST routes<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — Any caching directives applied to POST endpoints
+    </div>
+  </div>
 
-  <p><strong>CDN and Reverse Proxy</strong></p>
-  <p><strong>SHOULD NOT see</strong><br>
-  — CDN or proxy returning a cached response to a POST request — this means a previous POST response was incorrectly stored<br>
-  — <code>X-Cache: HIT</code> on any POST response</p>
+  <div class="qa-block">
+    <div class="qa-q">APP CACHE (Redis) — invalidation</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — After a successful POST creating a new resource — collection cache keys are deleted<br>
+      — Example: <code>POST /orders</code> succeeds → <code>DEL cache:orders:list:*</code><br>
+      — New resource is available on the next <code>GET</code> of the collection<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — GET of the collection returning a stale list after POST — new item absent<br>
+      <br>
+      <strong>How to check</strong><br>
+      — <code>POST /orders</code> → immediately <code>GET /orders</code> → new item must be present<br>
+      — Check Redis: the collection key must be absent after POST (deleted), not containing stale data
+    </div>
+  </div>
 
-  <p><strong>How to check</strong><br>
-  — Send the same POST twice — both must reach the origin server (verify origin logs)<br>
-  — The <code>X-Cache</code> header should be absent or show <code>MISS</code> / <code>BYPASS</code></p>
-
-  <p><strong>API Gateway</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — POST requests always forwarded to upstream — never served from cache<br>
-  — Caching plugin/policy explicitly disabled for POST routes</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — Any caching directives applied to POST endpoints</p>
-
-  <p><strong>App Cache (Redis) — invalidation</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — After a successful POST creating a new resource — collection cache keys are deleted<br>
-  — Example: <code>POST /orders</code> succeeds → <code>DEL cache:orders:list:*</code><br>
-  — New resource is available on the next <code>GET</code> of the collection</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — GET of the collection returning a stale list after POST — new item absent</p>
-
-  <p><strong>How to check</strong><br>
-  — <code>POST /orders</code> → immediately <code>GET /orders</code> → new item must be present<br>
-  — Check Redis: the collection key must be absent after POST (deleted), not containing stale data</p>
-
-  <p><strong>Database</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>INSERT</code> invalidates the internal query cache for the affected table — the next SELECT returns fresh results</p>
-
-  <p><strong>How to check</strong><br>
-  — SELECT count before and after INSERT — count must reflect the new row immediately</p>
+  <div class="qa-block">
+    <div class="qa-q">DATABASE</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>INSERT</code> invalidates the internal query cache for the affected table — the next SELECT returns fresh results<br>
+      <br>
+      <strong>How to check</strong><br>
+      — SELECT count before and after INSERT — count must reflect the new row immediately
+    </div>
+  </div>
 
   <h3>PUT</h3>
   <p>Must not be cached. Response must not be stored. Must invalidate the cache for the specific resource.</p>
 
-  <p><strong>Browser, CDN, Reverse Proxy, API Gateway</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>Cache-Control: no-store</code> in the response<br>
-  — No <code>Age</code> header<br>
-  — No <code>X-Cache: HIT</code></p>
+  <div class="qa-block">
+    <div class="qa-q">BROWSER · CDN · REVERSE PROXY · API GATEWAY</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>Cache-Control: no-store</code> in the response<br>
+      — No <code>Age</code> header<br>
+      — No <code>X-Cache: HIT</code><br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — Any layer returning a cached PUT response<br>
+      — <code>Cache-Control: max-age</code> in the response<br>
+      <br>
+      <strong>How to check</strong><br>
+      — PUT, then immediately GET the same URI — GET must return the updated resource, not a cached old version<br>
+      — Check origin server logs — both the PUT and the subsequent GET must appear (GET not served from cache)
+    </div>
+  </div>
 
-  <p><strong>SHOULD NOT see</strong><br>
-  — Any layer returning a cached PUT response<br>
-  — <code>Cache-Control: max-age</code> in the response</p>
-
-  <p><strong>How to check</strong><br>
-  — PUT, then immediately GET the same URI — GET must return the updated resource, not a cached old version<br>
-  — Check origin server logs — both the PUT and the subsequent GET must appear (GET not served from cache)</p>
-
-  <p><strong>App Cache (Redis) — invalidation</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — Specific resource key deleted after PUT: <code>DEL cache:orders:123</code><br>
-  — Next GET falls through to the DB and repopulates the cache</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — <code>GET /orders/123</code> returning old values after a successful PUT<br>
-  — Redis key containing data that predates the PUT</p>
-
-  <p><strong>How to check</strong><br>
-  — <code>PUT /orders/123</code> with a changed field → <code>GET /orders/123</code> → changed field must be present<br>
-  — <code>redis-cli GET orders:123</code> after PUT — key must be absent (deleted) or contain the updated data</p>
+  <div class="qa-block">
+    <div class="qa-q">APP CACHE (Redis) — invalidation</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — Specific resource key deleted after PUT: <code>DEL cache:orders:123</code><br>
+      — Next GET falls through to the DB and repopulates the cache<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — <code>GET /orders/123</code> returning old values after a successful PUT<br>
+      — Redis key containing data that predates the PUT<br>
+      <br>
+      <strong>How to check</strong><br>
+      — <code>PUT /orders/123</code> with a changed field → <code>GET /orders/123</code> → changed field must be present<br>
+      — <code>redis-cli GET orders:123</code> after PUT — key must be absent (deleted) or contain the updated data
+    </div>
+  </div>
 
   <h3>PATCH</h3>
   <p>Same rules as PUT. Must not be cached. Must invalidate the specific resource.</p>
-  <p>Apply the full PUT checklist above.</p>
-  <p><strong>Important note:</strong> PATCH modifies a subset of fields — ensure that cache invalidation covers the full resource, not just the modified fields. A partial cache update is more dangerous than a full delete and reload.</p>
+
+  <div class="qa-block">
+    <div class="qa-q">ALL LAYERS</div>
+    <div class="qa-a">
+      Apply the full PUT checklist above.<br>
+      <br>
+      <strong>Important note:</strong> PATCH modifies a subset of fields — ensure that cache invalidation covers the full resource, not just the modified fields. A partial cache update is more dangerous than a full delete and reload.
+    </div>
+  </div>
 
   <h3>DELETE</h3>
   <p>Must not be cached at any layer. Must invalidate both the specific resource and any collection that contained it.</p>
 
-  <p><strong>Browser, CDN, Reverse Proxy, API Gateway</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>Cache-Control: no-store</code> in the DELETE response<br>
-  — After DELETE — the next GET of the same URI returns <code>404</code> from the server, not a cached <code>200</code></p>
+  <div class="qa-block">
+    <div class="qa-q">BROWSER · CDN · REVERSE PROXY · API GATEWAY</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>Cache-Control: no-store</code> in the DELETE response<br>
+      — After DELETE — the next GET of the same URI returns <code>404</code> from the server, not a cached <code>200</code><br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — <code>Cache-Control: max-age</code> in the DELETE response<br>
+      — <code>X-Cache: HIT</code> in the DELETE response — means a previous DELETE response was cached, subsequent DELETEs never reached the server<br>
+      — GET of the deleted resource returning <code>200</code> from cache<br>
+      <br>
+      <strong>How to check</strong><br>
+      — <code>DELETE /orders/123</code> → <code>GET /orders/123</code> → must be <code>404</code>, not <code>200</code><br>
+      — Hard reload or disable cache → repeat GET → if the result changed, the previous <code>200</code> was from cache<br>
+      — Send <code>DELETE</code> twice — the second call must return <code>404</code> from the server, not a cached <code>200</code> from the first
+    </div>
+  </div>
 
-  <p><strong>SHOULD NOT see</strong><br>
-  — <code>Cache-Control: max-age</code> in the DELETE response<br>
-  — <code>X-Cache: HIT</code> in the DELETE response — means a previous DELETE response was cached, subsequent DELETEs never reached the server<br>
-  — GET of the deleted resource returning <code>200</code> from cache</p>
+  <div class="qa-block">
+    <div class="qa-q">APP CACHE (Redis) — invalidation</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — Specific resource key deleted: <code>DEL cache:orders:123</code><br>
+      — All collection keys that contained this resource deleted: <code>DEL cache:orders:list:*</code><br>
+      — Dependent resource keys deleted if applicable (e.g. the user's order list)<br>
+      <br>
+      <strong>SHOULD NOT see</strong><br>
+      — <code>GET /orders/123</code> returning data after DELETE — resource still in Redis<br>
+      — Collection <code>GET /orders</code> still containing the deleted item<br>
+      <br>
+      <strong>How to check</strong><br>
+      — <code>DELETE /orders/123</code> → <code>redis-cli GET orders:123</code> → must return nil<br>
+      — <code>DELETE /orders/123</code> → <code>GET /orders</code> → deleted item must not appear in the list
+    </div>
+  </div>
 
-  <p><strong>How to check</strong><br>
-  — <code>DELETE /orders/123</code> → <code>GET /orders/123</code> → must be <code>404</code>, not <code>200</code><br>
-  — Hard reload or disable cache → repeat GET → if the result changed, the previous <code>200</code> was from cache<br>
-  — Send <code>DELETE</code> twice — the second call must return <code>404</code> from the server, not a cached <code>200</code> from the first</p>
-
-  <p><strong>App Cache (Redis) — invalidation</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — Specific resource key deleted: <code>DEL cache:orders:123</code><br>
-  — All collection keys that contained this resource deleted: <code>DEL cache:orders:list:*</code><br>
-  — Dependent resource keys deleted if applicable (e.g. the user's order list)</p>
-
-  <p><strong>SHOULD NOT see</strong><br>
-  — <code>GET /orders/123</code> returning data after DELETE — resource still in Redis<br>
-  — Collection <code>GET /orders</code> still containing the deleted item</p>
-
-  <p><strong>How to check</strong><br>
-  — <code>DELETE /orders/123</code> → <code>redis-cli GET orders:123</code> → must return nil<br>
-  — <code>DELETE /orders/123</code> → <code>GET /orders</code> → deleted item must not appear in the list</p>
-
-  <p><strong>Database</strong></p>
-  <p><strong>SHOULD see</strong><br>
-  — <code>DELETE</code> invalidates the internal cache for the affected rows — a <code>SELECT</code> immediately after returns an empty result for that row</p>
-
-  <p><strong>How to check</strong><br>
-  — SELECT by ID before deletion — row exists. DELETE. SELECT again — row absent. No stale result.</p>
+  <div class="qa-block">
+    <div class="qa-q">DATABASE</div>
+    <div class="qa-a">
+      <strong>SHOULD see</strong><br>
+      — <code>DELETE</code> invalidates the internal cache for the affected rows — a <code>SELECT</code> immediately after returns an empty result for that row<br>
+      <br>
+      <strong>How to check</strong><br>
+      — SELECT by ID before deletion — row exists. DELETE. SELECT again — row absent. No stale result.
+    </div>
+  </div>
 
   <h3>Summary by layer — what to always check</h3>
 
-  <p><strong>On any mutating method (POST, PUT, PATCH, DELETE)</strong><br>
-  — Response must contain <code>Cache-Control: no-store</code><br>
-  — No <code>ETag</code>, <code>Last-Modified</code>, <code>Age</code>, or <code>X-Cache: HIT</code> in the response<br>
-  — The next GET on the same URI must reach the origin server, not any cache layer<br>
-  — Verify that Redis keys are deleted after the operation completes<br>
-  — Verify that collection endpoints reflect the change — not just the specific resource endpoint</p>
+  <div class="qa-block">
+    <div class="qa-q">ANY MUTATING METHOD (POST, PUT, PATCH, DELETE)</div>
+    <div class="qa-a">
+      — Response must contain <code>Cache-Control: no-store</code><br>
+      — No <code>ETag</code>, <code>Last-Modified</code>, <code>Age</code>, or <code>X-Cache: HIT</code> in the response<br>
+      — The next GET on the same URI must reach the origin server, not any cache layer<br>
+      — Verify that Redis keys are deleted after the operation completes<br>
+      — Verify that collection endpoints reflect the change — not just the specific resource endpoint
+    </div>
+  </div>
 
-  <p><strong>On GET</strong><br>
-  — Public static resources must have <code>max-age</code> and <code>ETag</code><br>
-  — Authenticated or personalised responses must have <code>private</code> or <code>no-store</code><br>
-  — A repeat request returns <code>304</code> or is served from cache with <code>X-Cache: HIT</code><br>
-  — The <code>Age</code> header must be present and incrementing on CDN-cached responses</p>
+  <div class="qa-block">
+    <div class="qa-q">GET</div>
+    <div class="qa-a">
+      — Public static resources must have <code>max-age</code> and <code>ETag</code><br>
+      — Authenticated or personalised responses must have <code>private</code> or <code>no-store</code><br>
+      — A repeat request returns <code>304</code> or is served from cache with <code>X-Cache: HIT</code><br>
+      — The <code>Age</code> header must be present and incrementing on CDN-cached responses
+    </div>
+  </div>
 
   <div class="callout callout-warn">
     <div class="callout-label">RED FLAGS AT ANY LAYER</div>

@@ -538,274 +538,367 @@ GET  /api/orders/123     → браузер НЕ повертає закешов
   <h3>GET</h3>
   <p>Єдиний метод, який повинен кешуватись на кожному рівні. Вся кешуюча інфраструктура проектується навколо GET-відповідей.</p>
 
-  <p><strong>Кеш браузера</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>Cache-Control: max-age=N</code> на публічних статичних ресурсах (CSS, JS, зображення)<br>
-  — <code>Cache-Control: private, max-age=N</code> на автентифікованих або персоналізованих відповідях<br>
-  — <code>ETag: "abc123"</code> або <code>Last-Modified: &lt;дата&gt;</code> на будь-якому ресурсі, що потребує реvalidation<br>
-  — На повторний запит — браузер надсилає <code>If-None-Match: "abc123"</code> або <code>If-Modified-Since: &lt;дата&gt;</code><br>
-  — Сервер повертає <code>304 Not Modified</code> з порожнім тілом якщо вміст не змінився<br>
-  — <code>Vary: Accept-Encoding</code> якщо відповідь стискається</p>
+  <div class="qa-block">
+    <div class="qa-q">КЕШ БРАУЗЕРА</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>Cache-Control: max-age=N</code> на публічних статичних ресурсах (CSS, JS, зображення)<br>
+      — <code>Cache-Control: private, max-age=N</code> на автентифікованих або персоналізованих відповідях<br>
+      — <code>ETag: "abc123"</code> або <code>Last-Modified: &lt;дата&gt;</code> на будь-якому ресурсі, що потребує реvalidation<br>
+      — На повторний запит — браузер надсилає <code>If-None-Match: "abc123"</code> або <code>If-Modified-Since: &lt;дата&gt;</code><br>
+      — Сервер повертає <code>304 Not Modified</code> з порожнім тілом якщо вміст не змінився<br>
+      — <code>Vary: Accept-Encoding</code> якщо відповідь стискається<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — <code>Cache-Control: no-store</code> на публічних статичних ресурсах — це активно забороняє кешування<br>
+      — <code>Cache-Control: max-age=N</code> на відповідях що містять персональні, фінансові або сесійні дані<br>
+      — Відсутність <code>ETag</code> або <code>Last-Modified</code> на великих ресурсах — пропущена оптимізація, кожен запит завантажує повний вміст<br>
+      — <code>Pragma: no-cache</code> — застаріла директива HTTP/1.0, слід замінити на <code>Cache-Control</code><br>
+      — Заголовок <code>Expires</code> без <code>Cache-Control</code> — легасі, ненадійно<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — DevTools → вкладка Network → перевірити заголовки відповіді на першому запиті<br>
+      — Повторити запит — статус повинен бути <code>304</code>, а не <code>200</code>, якщо вміст не змінився<br>
+      — Жорке перезавантаження (<code>Ctrl+Shift+R</code>) — примусовий запит, статус повинен бути <code>200</code><br>
+      — Перевірити стовпець <code>Size</code> в DevTools — кешовані відповіді показують <code>(disk cache)</code> або <code>(memory cache)</code>
+    </div>
+  </div>
 
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — <code>Cache-Control: no-store</code> на публічних статичних ресурсах — це активно забороняє кешування<br>
-  — <code>Cache-Control: max-age=N</code> на відповідях що містять персональні, фінансові або сесійні дані<br>
-  — Відсутність <code>ETag</code> або <code>Last-Modified</code> на великих ресурсах — пропущена оптимізація, кожен запит завантажує повний вміст<br>
-  — <code>Pragma: no-cache</code> — застаріла директива HTTP/1.0, слід замінити на <code>Cache-Control</code><br>
-  — Заголовок <code>Expires</code> без <code>Cache-Control</code> — легасі, ненадійно</p>
+  <div class="qa-block">
+    <div class="qa-q">CDN (CloudFront, Cloudflare)</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>X-Cache: Hit</code> (CloudFront) або <code>CF-Cache-Status: HIT</code> (Cloudflare) на повторних запитах<br>
+      — <code>Age: N</code> — секунди, протягом яких відповідь знаходиться в кеші CDN<br>
+      — <code>Cache-Control: public, s-maxage=N</code> для CDN-специфічного TTL окремо від браузерного TTL<br>
+      — <code>Vary: Accept-Encoding</code> якщо CDN стискає відповіді<br>
+      — <code>ETag</code> передається від origin щоб downstream міг виконати revalidation<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — CDN кешує відповіді з <code>Cache-Control: private</code> — приватні відповіді не повинні зберігатись у shared cache<br>
+      — CDN кешує відповіді що містять <code>Set-Cookie</code> — якщо тільки не налаштовано явно і навмисно<br>
+      — <code>X-Cache: Hit</code> на автентифікованих API-відповідях без <code>Vary: Authorization</code> — різні користувачі отримають відповіді один одного<br>
+      — Значення <code>Age</code> перевищує налаштований <code>max-age</code> — вказує на неправильно налаштований TTL<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — Надіслати той самий GET двічі — перший повинен бути <code>MISS</code>, другий <code>HIT</code><br>
+      — Перевірити що заголовок <code>Age</code> збільшується при повторних запитах<br>
+      — Надіслати запит з іншим заголовком <code>Authorization</code> — повинно бути <code>MISS</code>, а не з кешу попереднього користувача<br>
+      — Виконати purge URL через CDN API, потім запросити — повинно бути <code>MISS</code>
+    </div>
+  </div>
 
-  <p><strong>Як перевірити</strong><br>
-  — DevTools → вкладка Network → перевірити заголовки відповіді на першому запиті<br>
-  — Повторити запит — статус повинен бути <code>304</code>, а не <code>200</code>, якщо вміст не змінився<br>
-  — Жорке перезавантаження (<code>Ctrl+Shift+R</code>) — примусовий запит, статус повинен бути <code>200</code><br>
-  — Перевірити стовпець <code>Size</code> в DevTools — кешовані відповіді показують <code>(disk cache)</code> або <code>(memory cache)</code></p>
+  <div class="qa-block">
+    <div class="qa-q">ЗВОРОТНІЙ ПРОКСІ (Nginx)</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>X-Cache-Status: HIT</code> (Nginx з <code>proxy_cache</code>) на кешованих відповідях<br>
+      — Заголовки <code>Cache-Control</code> від upstream передаються або перевизначаються відповідно до конфігурації<br>
+      — Заголовок <code>Age</code> якщо Nginx його додає<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — Nginx кешує відповіді з <code>Cache-Control: no-store</code> від upstream<br>
+      — Nginx кешує відповіді з <code>Set-Cookie</code> — стандартна поведінка Nginx їх ігнорує, але перевірте свою конфігурацію<br>
+      — Кешована відповідь роздається після зміни даних upstream до спливання TTL — очікувана поведінка, але важливо знати вікно затримки<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — Перевірити Nginx access logs — cache HIT vs MISS<br>
+      — Порівняти час відповіді: HIT значно швидший за MISS<br>
+      — Встановити короткий TTL <code>proxy_cache_valid</code> в тестовому середовищі, підтвердити що застаріла відповідь роздається до спливання
+    </div>
+  </div>
 
-  <p><strong>CDN (CloudFront, Cloudflare)</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>X-Cache: Hit</code> (CloudFront) або <code>CF-Cache-Status: HIT</code> (Cloudflare) на повторних запитах<br>
-  — <code>Age: N</code> — секунди, протягом яких відповідь знаходиться в кеші CDN<br>
-  — <code>Cache-Control: public, s-maxage=N</code> для CDN-специфічного TTL окремо від браузерного TTL<br>
-  — <code>Vary: Accept-Encoding</code> якщо CDN стискає відповіді<br>
-  — <code>ETag</code> передається від origin щоб downstream міг виконати revalidation</p>
+  <div class="qa-block">
+    <div class="qa-q">API GATEWAY (Kong, AWS API Gateway)</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — Кешування увімкнено лише для явно налаштованих маршрутів — не глобально за замовчуванням<br>
+      — Заголовки <code>Cache-Control</code> дотримуються — шлюз не повинен кешувати те, що upstream позначив як <code>no-store</code><br>
+      — Зменшення часу відповіді на повторних однакових запитах при увімкненому кешуванні<br>
+      — Cache key включає всі релевантні параметри — URI, query string, і якщо персоналізовано — заголовок <code>Authorization</code><br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — Шлюз кешує відповіді автентифікованих ендпоінтів без обмеження cache key по користувачу — критична security misconfiguration<br>
+      — Шлюз кешує помилкові відповіді (<code>4xx</code>, <code>5xx</code>) — cache-eligible повинен бути лише <code>200</code><br>
+      — Кешовані відповіді роздаються після зміни даних upstream в межах TTL без явної інвалідації<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — Надіслати однаковий GET двічі з увімкненим кешуванням — другий повинен бути швидшим<br>
+      — Змінити query-параметр — повинен бути cache miss, а не попередня відповідь<br>
+      — Два користувачі з різними токенами запитують той самий URI — кожен повинен отримати свої дані
+    </div>
+  </div>
 
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — CDN кешує відповіді з <code>Cache-Control: private</code> — приватні відповіді не повинні зберігатись у shared cache<br>
-  — CDN кешує відповіді що містять <code>Set-Cookie</code> — якщо тільки не налаштовано явно і навмисно<br>
-  — <code>X-Cache: Hit</code> на автентифікованих API-відповідях без <code>Vary: Authorization</code> — різні користувачі отримають відповіді один одного<br>
-  — Значення <code>Age</code> перевищує налаштований <code>max-age</code> — вказує на неправильно налаштований TTL</p>
+  <div class="qa-block">
+    <div class="qa-q">КЕШ ЗАСТОСУНКУ (Redis / Memcached)</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — Cache key відповідає консистентній конвенції іменування: <code>resource:id</code>, напр. <code>orders:123</code><br>
+      — TTL встановлено на кожному ключі — немає ключів без TTL на даних що часто змінюються<br>
+      — Cache miss звертається до БД і зберігає результат для наступного разу<br>
+      — Різниця в часі відповіді між cache hit і cache miss вимірювана<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — Кешовані результати для запитів що завжди повинні бути актуальними (напр. баланс рахунку, кількість на складі)<br>
+      — Ключі без TTL на мутабельних даних — вічно застарілі дані якщо в логіці інвалідації є баг<br>
+      — Кеш зберігає великі об'єкти цілком коли потрібна тільки частина полів — марнування пам'яті<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — <code>redis-cli GET orders:123</code> — перевірити наявність ключа після першого GET-запиту<br>
+      — Перевірити TTL: <code>redis-cli TTL orders:123</code> — повинно повертати залишок секунд, а не <code>-1</code> (без TTL)<br>
+      — Видалити ключ вручну, повторити GET — час відповіді збільшується (звернення до БД)<br>
+      — Оновити ресурс, перевірити чи ключ у Redis видалений або оновлений
+    </div>
+  </div>
 
-  <p><strong>Як перевірити</strong><br>
-  — Надіслати той самий GET двічі — перший повинен бути <code>MISS</code>, другий <code>HIT</code><br>
-  — Перевірити що заголовок <code>Age</code> збільшується при повторних запитах<br>
-  — Надіслати запит з іншим заголовком <code>Authorization</code> — повинно бути <code>MISS</code>, а не з кешу попереднього користувача<br>
-  — Виконати purge URL через CDN API, потім запросити — повинно бути <code>MISS</code></p>
-
-  <p><strong>Зворотній проксі (Nginx)</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>X-Cache-Status: HIT</code> (Nginx з <code>proxy_cache</code>) на кешованих відповідях<br>
-  — Заголовки <code>Cache-Control</code> від upstream передаються або перевизначаються відповідно до конфігурації<br>
-  — Заголовок <code>Age</code> якщо Nginx його додає</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — Nginx кешує відповіді з <code>Cache-Control: no-store</code> від upstream<br>
-  — Nginx кешує відповіді з <code>Set-Cookie</code> — стандартна поведінка Nginx їх ігнорує, але перевірте свою конфігурацію<br>
-  — Кешована відповідь роздається після зміни даних upstream до спливання TTL — очікувана поведінка, але важливо знати вікно затримки</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — Перевірити Nginx access logs — cache HIT vs MISS<br>
-  — Порівняти час відповіді: HIT значно швидший за MISS<br>
-  — Встановити короткий TTL <code>proxy_cache_valid</code> в тестовому середовищі, підтвердити що застаріла відповідь роздається до спливання</p>
-
-  <p><strong>API Gateway (Kong, AWS API Gateway)</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — Кешування увімкнено лише для явно налаштованих маршрутів — не глобально за замовчуванням<br>
-  — Заголовки <code>Cache-Control</code> дотримуються — шлюз не повинен кешувати те, що upstream позначив як <code>no-store</code><br>
-  — Зменшення часу відповіді на повторних однакових запитах при увімкненому кешуванні<br>
-  — Cache key включає всі релевантні параметри — URI, query string, і якщо персоналізовано — заголовок <code>Authorization</code></p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — Шлюз кешує відповіді автентифікованих ендпоінтів без обмеження cache key по користувачу — критична security misconfiguration<br>
-  — Шлюз кешує помилкові відповіді (<code>4xx</code>, <code>5xx</code>) — cache-eligible повинен бути лише <code>200</code><br>
-  — Кешовані відповіді роздаються після зміни даних upstream в межах TTL без явної інвалідації</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — Надіслати однаковий GET двічі з увімкненим кешуванням — другий повинен бути швидшим<br>
-  — Змінити query-параметр — повинен бути cache miss, а не попередня відповідь<br>
-  — Два користувачі з різними токенами запитують той самий URI — кожен повинен отримати свої дані</p>
-
-  <p><strong>Кеш застосунку (Redis / Memcached)</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — Cache key відповідає консистентній конвенції іменування: <code>resource:id</code>, напр. <code>orders:123</code><br>
-  — TTL встановлено на кожному ключі — немає ключів без TTL на даних що часто змінюються<br>
-  — Cache miss звертається до БД і зберігає результат для наступного разу<br>
-  — Різниця в часі відповіді між cache hit і cache miss вимірювана</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — Кешовані результати для запитів що завжди повинні бути актуальними (напр. баланс рахунку, кількість на складі)<br>
-  — Ключі без TTL на мутабельних даних — вічно застарілі дані якщо в логіці інвалідації є баг<br>
-  — Кеш зберігає великі об'єкти цілком коли потрібна тільки частина полів — марнування пам'яті</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — <code>redis-cli GET orders:123</code> — перевірити наявність ключа після першого GET-запиту<br>
-  — Перевірити TTL: <code>redis-cli TTL orders:123</code> — повинно повертати залишок секунд, а не <code>-1</code> (без TTL)<br>
-  — Видалити ключ вручну, повторити GET — час відповіді збільшується (звернення до БД)<br>
-  — Оновити ресурс, перевірити чи ключ у Redis видалений або оновлений</p>
-
-  <p><strong>База даних</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — Внутрішній кеш планів запитів використовується для повторних однакових запитів — той самий запит виконується швидше повторно<br>
-  — Buffer pool (PostgreSQL <code>shared_buffers</code>, MySQL <code>innodb_buffer_pool</code>) утримує часто використовувані дані в пам'яті</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — Застарілі результати запитів після <code>PUT</code> або <code>DELETE</code> — внутрішній кеш повинен інвалідуватись автоматично при записі</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — Виконати <code>EXPLAIN ANALYZE</code> в PostgreSQL до і після повторного виконання — другий запуск показує нижчу вартість<br>
-  — В тестових середовищах: підтвердити що свіжий SELECT після UPDATE повертає оновлені значення одразу</p>
+  <div class="qa-block">
+    <div class="qa-q">БАЗА ДАНИХ</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — Внутрішній кеш планів запитів використовується для повторних однакових запитів — той самий запит виконується швидше повторно<br>
+      — Buffer pool (PostgreSQL <code>shared_buffers</code>, MySQL <code>innodb_buffer_pool</code>) утримує часто використовувані дані в пам'яті<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — Застарілі результати запитів після <code>PUT</code> або <code>DELETE</code> — внутрішній кеш повинен інвалідуватись автоматично при записі<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — Виконати <code>EXPLAIN ANALYZE</code> в PostgreSQL до і після повторного виконання — другий запуск показує нижчу вартість<br>
+      — В тестових середовищах: підтвердити що свіжий SELECT після UPDATE повертає оновлені значення одразу
+    </div>
+  </div>
 
   <h3>HEAD</h3>
   <p>Ідентичні правила кешування до GET — ті самі заголовки, TTL, механізм revalidation. Єдина відмінність — тіло відповіді порожнє.</p>
-  <p><strong>На кожному рівні:</strong> застосувати той самий checklist що і для GET.</p>
-  <p><strong>Додаткова перевірка:</strong> <code>ETag</code> і <code>Last-Modified</code> повинні бути присутні у відповіді HEAD — клієнт використовує HEAD саме щоб перевірити чи змінився вміст перед завантаженням через GET. Якщо ці заголовки відсутні у HEAD — оптимізація безглузда.</p>
+
+  <div class="qa-block">
+    <div class="qa-q">УСІ РІВНІ</div>
+    <div class="qa-a">
+      Застосувати той самий checklist що і для GET на кожному рівні.<br>
+      <br>
+      <strong>Додаткова перевірка:</strong> <code>ETag</code> і <code>Last-Modified</code> повинні бути присутні у відповіді HEAD — клієнт використовує HEAD саме щоб перевірити чи змінився вміст перед завантаженням через GET. Якщо ці заголовки відсутні у HEAD — оптимізація безглузда.
+    </div>
+  </div>
 
   <h3>OPTIONS</h3>
   <p>Використовується переважно для CORS preflight. Не кешується стандартною кешуючою інфраструктурою — тільки браузер кешує результат preflight.</p>
 
-  <p><strong>Кеш браузера</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>Access-Control-Max-Age: N</code> — як довго браузер кешує результат preflight в секундах<br>
-  — Наступні запити до того самого ендпоінту в межах цього вікна не тригерять новий preflight</p>
+  <div class="qa-block">
+    <div class="qa-q">КЕШ БРАУЗЕРА</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>Access-Control-Max-Age: N</code> — як довго браузер кешує результат preflight в секундах<br>
+      — Наступні запити до того самого ендпоінту в межах цього вікна не тригерять новий preflight<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — <code>Access-Control-Max-Age: 0</code> або відсутність — браузер надсилає preflight на кожен запит, значні накладні витрати<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — DevTools → Network — OPTIONS-запит з'являється один раз, потім зникає для наступних викликів в межах TTL<br>
+      — Тимчасово встановити <code>Access-Control-Max-Age: 0</code> — OPTIONS-запит повертається на кожному виклику
+    </div>
+  </div>
 
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — <code>Access-Control-Max-Age: 0</code> або відсутність — браузер надсилає preflight на кожен запит, значні накладні витрати</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — DevTools → Network — OPTIONS-запит з'являється один раз, потім зникає для наступних викликів в межах TTL<br>
-  — Тимчасово встановити <code>Access-Control-Max-Age: 0</code> — OPTIONS-запит повертається на кожному виклику</p>
-
-  <p><strong>Всі інші рівні:</strong> OPTIONS не кешують. Нічого перевіряти.</p>
+  <div class="qa-block">
+    <div class="qa-q">CDN · ЗВОРОТНІЙ ПРОКСІ · API GATEWAY · КЕШ ЗАСТОСУНКУ · БАЗА ДАНИХ</div>
+    <div class="qa-a">OPTIONS на цих рівнях не кешується. Нічого перевіряти.</div>
+  </div>
 
   <h3>POST</h3>
   <p>Не повинен кешуватись на жодному рівні. Відповідь НЕ ПОВИННА зберігатись. Виконання повинно тригерити інвалідацію пов'язаного GET-кешу.</p>
 
-  <p><strong>Браузер</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>Cache-Control: no-store</code> у відповіді<br>
-  — Відсутність <code>ETag</code> і <code>Last-Modified</code> у відповіді</p>
+  <div class="qa-block">
+    <div class="qa-q">БРАУЗЕР</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>Cache-Control: no-store</code> у відповіді<br>
+      — Відсутність <code>ETag</code> і <code>Last-Modified</code> у відповіді<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — <code>Cache-Control: max-age=N</code> у відповіді<br>
+      — Браузер повторно використовує попередню POST-відповідь при повторі<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — DevTools — POST-відповіді ніколи не повинні показувати <code>(disk cache)</code> або <code>(memory cache)</code><br>
+      — Повторити POST — завжди досягає сервера, без кеш-інтерференції
+    </div>
+  </div>
 
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — <code>Cache-Control: max-age=N</code> у відповіді<br>
-  — Браузер повторно використовує попередню POST-відповідь при повторі</p>
+  <div class="qa-block">
+    <div class="qa-q">CDN · ЗВОРОТНІЙ ПРОКСІ</div>
+    <div class="qa-a">
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — CDN або проксі повертає кешовану відповідь на POST-запит — це означає що попередня POST-відповідь була помилково збережена<br>
+      — <code>X-Cache: HIT</code> на будь-якій POST-відповіді<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — Надіслати той самий POST двічі — обидва повинні дійти до origin-сервера (перевірити логи origin)<br>
+      — Заголовок <code>X-Cache</code> повинен бути відсутній або показувати <code>MISS</code> / <code>BYPASS</code>
+    </div>
+  </div>
 
-  <p><strong>Як перевірити</strong><br>
-  — DevTools — POST-відповіді ніколи не повинні показувати <code>(disk cache)</code> або <code>(memory cache)</code><br>
-  — Повторити POST — завжди досягає сервера, без кеш-інтерференції</p>
+  <div class="qa-block">
+    <div class="qa-q">API GATEWAY</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — POST-запити завжди переадресовуються до upstream — ніколи не роздаються з кешу<br>
+      — Кешуючий плагін/policy явно вимкнений для POST-маршрутів<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — Будь-які кешуючі директиви застосовані до POST-ендпоінтів
+    </div>
+  </div>
 
-  <p><strong>CDN та зворотній проксі</strong></p>
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — CDN або проксі повертає кешовану відповідь на POST-запит — це означає що попередня POST-відповідь була помилково збережена<br>
-  — <code>X-Cache: HIT</code> на будь-якій POST-відповіді</p>
+  <div class="qa-block">
+    <div class="qa-q">КЕШ ЗАСТОСУНКУ (Redis) — інвалідація</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — Після успішного POST що створює новий ресурс — ключі кешу колекції видаляються<br>
+      — Приклад: <code>POST /orders</code> успішний → <code>DEL cache:orders:list:*</code><br>
+      — Новий ресурс доступний на наступному <code>GET</code> колекції<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — GET колекції повертає застарілий список після POST — новий елемент відсутній<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — <code>POST /orders</code> → одразу <code>GET /orders</code> → новий елемент повинен бути присутній<br>
+      — Перевірити Redis: ключ колекції повинен бути відсутній після POST (видалений), а не містити застарілі дані
+    </div>
+  </div>
 
-  <p><strong>Як перевірити</strong><br>
-  — Надіслати той самий POST двічі — обидва повинні дійти до origin-сервера (перевірити логи origin)<br>
-  — Заголовок <code>X-Cache</code> повинен бути відсутній або показувати <code>MISS</code> / <code>BYPASS</code></p>
-
-  <p><strong>API Gateway</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — POST-запити завжди переадресовуються до upstream — ніколи не роздаються з кешу<br>
-  — Кешуючий плагін/policy явно вимкнений для POST-маршрутів</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — Будь-які кешуючі директиви застосовані до POST-ендпоінтів</p>
-
-  <p><strong>Кеш застосунку (Redis) — інвалідація</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — Після успішного POST що створює новий ресурс — ключі кешу колекції видаляються<br>
-  — Приклад: <code>POST /orders</code> успішний → <code>DEL cache:orders:list:*</code><br>
-  — Новий ресурс доступний на наступному <code>GET</code> колекції</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — GET колекції повертає застарілий список після POST — новий елемент відсутній</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — <code>POST /orders</code> → одразу <code>GET /orders</code> → новий елемент повинен бути присутній<br>
-  — Перевірити Redis: ключ колекції повинен бути відсутній після POST (видалений), а не містити застарілі дані</p>
-
-  <p><strong>База даних</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>INSERT</code> інвалідує внутрішній query cache для зачепленої таблиці — наступний SELECT повертає свіжі результати</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — SELECT count до і після INSERT — count повинен відображати новий рядок одразу</p>
+  <div class="qa-block">
+    <div class="qa-q">БАЗА ДАНИХ</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>INSERT</code> інвалідує внутрішній query cache для зачепленої таблиці — наступний SELECT повертає свіжі результати<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — SELECT count до і після INSERT — count повинен відображати новий рядок одразу
+    </div>
+  </div>
 
   <h3>PUT</h3>
   <p>Не повинен кешуватись. Відповідь не повинна зберігатись. Повинен інвалідувати кеш конкретного ресурсу.</p>
 
-  <p><strong>Браузер, CDN, зворотній проксі, API Gateway</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>Cache-Control: no-store</code> у відповіді<br>
-  — Відсутність заголовка <code>Age</code><br>
-  — Відсутність <code>X-Cache: HIT</code></p>
+  <div class="qa-block">
+    <div class="qa-q">БРАУЗЕР · CDN · ЗВОРОТНІЙ ПРОКСІ · API GATEWAY</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>Cache-Control: no-store</code> у відповіді<br>
+      — Відсутність заголовка <code>Age</code><br>
+      — Відсутність <code>X-Cache: HIT</code><br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — Будь-який рівень повертає кешовану PUT-відповідь<br>
+      — <code>Cache-Control: max-age</code> у відповіді<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — PUT, потім одразу GET тієї самої URI — GET повинен повернути оновлений ресурс, а не кешовану стару версію<br>
+      — Перевірити логи origin-сервера — і PUT, і наступний GET повинні з'явитись (GET не роздається з кешу)
+    </div>
+  </div>
 
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — Будь-який рівень повертає кешовану PUT-відповідь<br>
-  — <code>Cache-Control: max-age</code> у відповіді</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — PUT, потім одразу GET тієї самої URI — GET повинен повернути оновлений ресурс, а не кешовану стару версію<br>
-  — Перевірити логи origin-сервера — і PUT, і наступний GET повинні з'явитись (GET не роздається з кешу)</p>
-
-  <p><strong>Кеш застосунку (Redis) — інвалідація</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — Ключ конкретного ресурсу видалений після PUT: <code>DEL cache:orders:123</code><br>
-  — Наступний GET звертається до БД і заново наповнює кеш</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — <code>GET /orders/123</code> повертає старі значення після успішного PUT<br>
-  — Ключ Redis містить дані що передують PUT</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — <code>PUT /orders/123</code> зі зміненим полем → <code>GET /orders/123</code> → змінене поле повинно бути присутнє<br>
-  — <code>redis-cli GET orders:123</code> після PUT — ключ повинен бути відсутній (видалений) або містити оновлені дані</p>
+  <div class="qa-block">
+    <div class="qa-q">КЕШ ЗАСТОСУНКУ (Redis) — інвалідація</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — Ключ конкретного ресурсу видалений після PUT: <code>DEL cache:orders:123</code><br>
+      — Наступний GET звертається до БД і заново наповнює кеш<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — <code>GET /orders/123</code> повертає старі значення після успішного PUT<br>
+      — Ключ Redis містить дані що передують PUT<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — <code>PUT /orders/123</code> зі зміненим полем → <code>GET /orders/123</code> → змінене поле повинно бути присутнє<br>
+      — <code>redis-cli GET orders:123</code> після PUT — ключ повинен бути відсутній (видалений) або містити оновлені дані
+    </div>
+  </div>
 
   <h3>PATCH</h3>
   <p>Ті самі правила що і PUT. Не повинен кешуватись. Повинен інвалідувати конкретний ресурс.</p>
-  <p>Застосуйте весь checklist PUT вище.</p>
-  <p><strong>Важлива примітка:</strong> PATCH змінює підмножину полів — переконайтесь що інвалідація кешу охоплює повний ресурс, а не тільки змінені поля. Часткове оновлення кешу небезпечніше ніж повне видалення і повторне завантаження.</p>
+
+  <div class="qa-block">
+    <div class="qa-q">УСІ РІВНІ</div>
+    <div class="qa-a">
+      Застосуйте весь checklist PUT вище.<br>
+      <br>
+      <strong>Важлива примітка:</strong> PATCH змінює підмножину полів — переконайтесь що інвалідація кешу охоплює повний ресурс, а не тільки змінені поля. Часткове оновлення кешу небезпечніше ніж повне видалення і повторне завантаження.
+    </div>
+  </div>
 
   <h3>DELETE</h3>
   <p>Не повинен кешуватись на жодному рівні. Повинен інвалідувати як конкретний ресурс, так і будь-яку колекцію що його містила.</p>
 
-  <p><strong>Браузер, CDN, зворотній проксі, API Gateway</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>Cache-Control: no-store</code> у DELETE-відповіді<br>
-  — Після DELETE — наступний GET тієї самої URI повертає <code>404</code> від сервера, а не кешований <code>200</code></p>
+  <div class="qa-block">
+    <div class="qa-q">БРАУЗЕР · CDN · ЗВОРОТНІЙ ПРОКСІ · API GATEWAY</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>Cache-Control: no-store</code> у DELETE-відповіді<br>
+      — Після DELETE — наступний GET тієї самої URI повертає <code>404</code> від сервера, а не кешований <code>200</code><br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — <code>Cache-Control: max-age</code> у DELETE-відповіді<br>
+      — <code>X-Cache: HIT</code> у DELETE-відповіді — означає що попередня DELETE-відповідь була закешована, наступні DELETE ніколи не доходили до сервера<br>
+      — GET видаленого ресурсу повертає <code>200</code> з кешу<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — <code>DELETE /orders/123</code> → <code>GET /orders/123</code> → повинно бути <code>404</code>, а не <code>200</code><br>
+      — Жорке перезавантаження або вимкнення кешу → повторний GET → якщо результат змінився, попередній <code>200</code> був з кешу<br>
+      — Надіслати <code>DELETE</code> двічі — другий виклик повинен повертати <code>404</code> від сервера, а не кешований <code>200</code> від першого
+    </div>
+  </div>
 
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — <code>Cache-Control: max-age</code> у DELETE-відповіді<br>
-  — <code>X-Cache: HIT</code> у DELETE-відповіді — означає що попередня DELETE-відповідь була закешована, наступні DELETE ніколи не доходили до сервера<br>
-  — GET видаленого ресурсу повертає <code>200</code> з кешу</p>
+  <div class="qa-block">
+    <div class="qa-q">КЕШ ЗАСТОСУНКУ (Redis) — інвалідація</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — Ключ конкретного ресурсу видалений: <code>DEL cache:orders:123</code><br>
+      — Всі ключі колекцій що містили цей ресурс видалені: <code>DEL cache:orders:list:*</code><br>
+      — Ключі залежних ресурсів видалені якщо застосовно (напр. список замовлень користувача)<br>
+      <br>
+      <strong>НЕ ПОВИННО бути</strong><br>
+      — <code>GET /orders/123</code> повертає дані після DELETE — ресурс ще в Redis<br>
+      — Колекція <code>GET /orders</code> ще містить видалений елемент<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — <code>DELETE /orders/123</code> → <code>redis-cli GET orders:123</code> → повинно повернути nil<br>
+      — <code>DELETE /orders/123</code> → <code>GET /orders</code> → видалений елемент не повинен з'являтись у списку
+    </div>
+  </div>
 
-  <p><strong>Як перевірити</strong><br>
-  — <code>DELETE /orders/123</code> → <code>GET /orders/123</code> → повинно бути <code>404</code>, а не <code>200</code><br>
-  — Жорке перезавантаження або вимкнення кешу → повторний GET → якщо результат змінився, попередній <code>200</code> був з кешу<br>
-  — Надіслати <code>DELETE</code> двічі — другий виклик повинен повертати <code>404</code> від сервера, а не кешований <code>200</code> від першого</p>
-
-  <p><strong>Кеш застосунку (Redis) — інвалідація</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — Ключ конкретного ресурсу видалений: <code>DEL cache:orders:123</code><br>
-  — Всі ключі колекцій що містили цей ресурс видалені: <code>DEL cache:orders:list:*</code><br>
-  — Ключі залежних ресурсів видалені якщо застосовно (напр. список замовлень користувача)</p>
-
-  <p><strong>НЕ ПОВИННО бути</strong><br>
-  — <code>GET /orders/123</code> повертає дані після DELETE — ресурс ще в Redis<br>
-  — Колекція <code>GET /orders</code> ще містить видалений елемент</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — <code>DELETE /orders/123</code> → <code>redis-cli GET orders:123</code> → повинно повернути nil<br>
-  — <code>DELETE /orders/123</code> → <code>GET /orders</code> → видалений елемент не повинен з'являтись у списку</p>
-
-  <p><strong>База даних</strong></p>
-  <p><strong>ПОВИННО бути</strong><br>
-  — <code>DELETE</code> інвалідує внутрішній кеш для зачеплених рядків — <code>SELECT</code> одразу після повертає порожній результат для цього рядка</p>
-
-  <p><strong>Як перевірити</strong><br>
-  — SELECT за ID перед видаленням — рядок існує. DELETE. SELECT знову — рядок відсутній. Без застарілого результату.</p>
+  <div class="qa-block">
+    <div class="qa-q">БАЗА ДАНИХ</div>
+    <div class="qa-a">
+      <strong>ПОВИННО бути</strong><br>
+      — <code>DELETE</code> інвалідує внутрішній кеш для зачеплених рядків — <code>SELECT</code> одразу після повертає порожній результат для цього рядка<br>
+      <br>
+      <strong>Як перевірити</strong><br>
+      — SELECT за ID перед видаленням — рядок існує. DELETE. SELECT знову — рядок відсутній. Без застарілого результату.
+    </div>
+  </div>
 
   <h3>Підсумок по рівнях — що завжди перевіряти</h3>
 
-  <p><strong>На будь-якому мутуючому методі (POST, PUT, PATCH, DELETE)</strong><br>
-  — Відповідь повинна містити <code>Cache-Control: no-store</code><br>
-  — Відсутність <code>ETag</code>, <code>Last-Modified</code>, <code>Age</code>, <code>X-Cache: HIT</code> у відповіді<br>
-  — Наступний GET на ту саму URI повинен дійти до origin-сервера, а не до будь-якого кеш-рівня<br>
-  — Перевірити що ключі Redis видалені після завершення операції<br>
-  — Перевірити що ендпоінти колекцій відображають зміну — не тільки ендпоінт конкретного ресурсу</p>
+  <div class="qa-block">
+    <div class="qa-q">БУДЬ-ЯКИЙ МУТУЮЧИЙ МЕТОД (POST, PUT, PATCH, DELETE)</div>
+    <div class="qa-a">
+      — Відповідь повинна містити <code>Cache-Control: no-store</code><br>
+      — Відсутність <code>ETag</code>, <code>Last-Modified</code>, <code>Age</code>, <code>X-Cache: HIT</code> у відповіді<br>
+      — Наступний GET на ту саму URI повинен дійти до origin-сервера, а не до будь-якого кеш-рівня<br>
+      — Перевірити що ключі Redis видалені після завершення операції<br>
+      — Перевірити що ендпоінти колекцій відображають зміну — не тільки ендпоінт конкретного ресурсу
+    </div>
+  </div>
 
-  <p><strong>На GET</strong><br>
-  — Публічні статичні ресурси повинні мати <code>max-age</code> і <code>ETag</code><br>
-  — Автентифіковані або персоналізовані відповіді повинні містити <code>private</code> або <code>no-store</code><br>
-  — Повторний запит повертає <code>304</code> або роздається з кешу з <code>X-Cache: HIT</code><br>
-  — Заголовок <code>Age</code> повинен бути присутній і збільшуватись на CDN-кешованих відповідях</p>
+  <div class="qa-block">
+    <div class="qa-q">GET</div>
+    <div class="qa-a">
+      — Публічні статичні ресурси повинні мати <code>max-age</code> і <code>ETag</code><br>
+      — Автентифіковані або персоналізовані відповіді повинні містити <code>private</code> або <code>no-store</code><br>
+      — Повторний запит повертає <code>304</code> або роздається з кешу з <code>X-Cache: HIT</code><br>
+      — Заголовок <code>Age</code> повинен бути присутній і збільшуватись на CDN-кешованих відповідях
+    </div>
+  </div>
 
   <div class="callout callout-warn">
     <div class="callout-label">ЧЕРВОНІ ПРАПОРЦІ НА БУДЬ-ЯКОМУ РІВНІ</div>
