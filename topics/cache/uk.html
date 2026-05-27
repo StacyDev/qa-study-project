@@ -52,6 +52,9 @@
 
   <div class="sidecat">Checklist</div>
   <a class="sidelink" data-sec="s05" onclick="goTo('s05')">05 — Checklist by method</a>
+
+  <div class="sidecat">Networking</div>
+  <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — DNS</a>
 </nav>
 
 <main class="main">
@@ -910,6 +913,182 @@ with jitter: 300 + random(0, 60) seconds per entry</pre>
       — <code>Access-Control-Max-Age</code> absent or zero in OPTIONS responses
     </p>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ top</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 06 ── -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">DNS — Domain Name System</span>
+    <span class="tag tag-concept">NETWORKING</span>
+    <a class="spec-ref" href="https://www.cloudflare.com/learning/dns/what-is-dns/" target="_blank">Cloudflare DNS</a>
+    <a class="spec-ref" href="https://www.rfc-editor.org/rfc/rfc1034" target="_blank">RFC 1034</a>
+  </div>
+  <div class="intro">DNS (Domain Name System) resolves human-readable domain names into IP addresses. Understanding DNS resolution order is essential for QA — it explains why test environments hit wrong servers, why DNS changes take time, and why "works on my machine" bugs happen.</div>
+
+  <h3>1. Domain name structure</h3>
+  <p>A domain name is read right to left. Each dot separates a level:</p>
+  <div class="code">
+    <div class="code-label">EXAMPLE</div>
+    <pre>https://api.example.com.</pre>
+  </div>
+  <table class="tbl">
+    <tr><th>Level</th><th>Example</th><th>Who manages it</th></tr>
+    <tr><td>Root</td><td><code>.</code> (invisible trailing dot)</td><td>ICANN</td></tr>
+    <tr><td>TLD — Top Level Domain</td><td><code>.com</code>  <code>.org</code>  <code>.ua</code>  <code>.io</code></td><td>Registry (e.g. Verisign for .com)</td></tr>
+    <tr><td>SLD — Second Level Domain</td><td><code>example.com</code></td><td>Domain owner (you / company)</td></tr>
+    <tr><td>Subdomain</td><td><code>api.example.com</code></td><td>Your DNS config (A record or CNAME)</td></tr>
+  </table>
+
+  <h3>2. DNS resolution order</h3>
+  <p>When you type a URL, the browser works through this chain before making any external network request. Each step is checked first; only on a miss does it continue to the next.</p>
+  <div class="flow">
+    <div class="flow-label">DNS RESOLUTION CHAIN</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">BROWSER DNS CACHE</div><div class="flow-desc">The browser keeps its own in-memory cache of recently resolved names.</div><div class="flow-code">chrome://net-internals/#dns</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">OS DNS CACHE</div><div class="flow-desc">If the browser cache misses, it asks the operating system resolver.</div><div class="flow-code">ipconfig /displaydns      # view cache
+ipconfig /flushdns        # clear cache</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">HOSTS FILE</div><div class="flow-desc">A static local file that overrides everything, including DNS servers. Entries here take priority over any remote lookup.</div><div class="flow-code"># Windows: C:\Windows\System32\drivers\etc\hosts
+192.168.0.5   my-api.local</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">ROUTER / LOCAL NETWORK CACHE</div><div class="flow-desc">The router caches DNS responses for all devices on the subnet. Shared cache — one device's lookup benefits all others until TTL expires.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">5</div><div class="flow-body"><div class="flow-actor">RECURSIVE RESOLVER</div><div class="flow-desc">The first external lookup. Typically your ISP's DNS server or a public alternative (Google 8.8.8.8, Cloudflare 1.1.1.1). It performs the full DNS hierarchy walk on your behalf and caches the result.</div></div></div>
+  </div>
+
+  <h3>3. External DNS hierarchy</h3>
+  <p>When the recursive resolver has no cached answer, it queries the following servers in order:</p>
+  <div class="grid3">
+    <div class="card"><div class="card-title" style="color:var(--blue)">ROOT DNS SERVERS</div><div class="card-body">13 server clusters worldwide, operated under ICANN. They do not know IP addresses — they only know which TLD server handles each top-level domain.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--amber)">TLD DNS SERVER</div><div class="card-body">One per top-level domain (.com, .ua, .org, etc.). Knows which authoritative nameserver is responsible for a specific registered domain. Does not know the final IP.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">AUTHORITATIVE DNS SERVER</div><div class="card-body">The final source of truth. Owned by the domain registrar or cloud provider (e.g. AWS Route53, Cloudflare DNS). Contains the DNS zone file with all records and returns the actual IP address.</div></div>
+  </div>
+  <div class="code">
+    <div class="code-label">FULL RESOLUTION PATH</div>
+    <pre>Browser → OS → hosts → Router → Recursive Resolver
+    → Root DNS  (who handles .com?)
+    → TLD DNS   (who handles example.com?)
+    → Authoritative DNS  (what is api.example.com?)
+    ← Returns IP, cached at each level on the way back</pre>
+  </div>
+
+  <h3>4. DNS record types</h3>
+  <p>Stored on the authoritative DNS server. Each record maps a name to a value.</p>
+  <table class="tbl">
+    <tr><th>Record type</th><th>Purpose</th><th>Example</th></tr>
+    <tr><td><strong>A</strong></td><td>Domain → IPv4 address</td><td><code>api.example.com → 93.184.216.34</code></td></tr>
+    <tr><td><strong>AAAA</strong></td><td>Domain → IPv6 address</td><td><code>api.example.com → 2606:2800::1</code></td></tr>
+    <tr><td><strong>CNAME</strong></td><td>Alias → another domain name</td><td><code>api.example.com → gateway.provider.com</code></td></tr>
+    <tr><td><strong>MX</strong></td><td>Mail server for the domain</td><td><code>example.com → mail.example.com</code></td></tr>
+    <tr><td><strong>TXT</strong></td><td>Arbitrary text, used for verification</td><td>SPF, DKIM anti-spam records</td></tr>
+  </table>
+
+  <h3>5. TTL — Time To Live</h3>
+  <p>Every DNS response includes a TTL value (in seconds). Each cache layer stores the record until TTL expires, then re-queries the next level. This is why DNS changes are not instant — old records stay alive in caches across the resolution chain.</p>
+  <div class="callout callout-info">
+    <div class="callout-label">EXAMPLE</div>
+    <p>TTL = 3600 means caches hold the record for 1 hour after the last lookup. After a DNS change, old records live in every cache layer until their TTL expires.</p>
+  </div>
+
+  <h3>6. QA relevance</h3>
+  <table class="tbl">
+    <tr><th>Scenario</th><th>Root cause</th><th>Action</th></tr>
+    <tr><td>Deploy done but old IP still returned</td><td>TTL not expired in one of the cache layers</td><td>Wait for TTL, or flush: <code>ipconfig /flushdns</code></td></tr>
+    <tr><td>Test hits wrong environment</td><td>hosts file redirecting domain to old IP</td><td>Check and edit the hosts file</td></tr>
+    <tr><td>Works on your machine, fails on CI</td><td>Different resolver or empty cache on CI agent</td><td>Verify DNS config on CI agent</td></tr>
+    <tr><td>Verify new DNS record without waiting</td><td>Caches may still hold old record</td><td>Query authoritative server directly with <code>nslookup</code></td></tr>
+    <tr><td>Subdomain points to wrong service</td><td>A or CNAME record misconfigured</td><td>Check DNS zone file on registrar panel</td></tr>
+    <tr><td>Slow DNS resolution in automated tests</td><td>Resolver cold start, no cached records yet</td><td>Pre-warm DNS or use IP addresses in test config</td></tr>
+  </table>
+
+  <h3>7. Useful commands</h3>
+  <div class="code">
+    <div class="code-label">VIEW AND FLUSH DNS CACHE (WINDOWS)</div>
+    <pre>ipconfig /displaydns          # list cached records
+ipconfig /flushdns            # clear all cached records</pre>
+  </div>
+  <div class="code">
+    <div class="code-label">QUERY A SPECIFIC DNS SERVER DIRECTLY (BYPASS CACHE)</div>
+    <pre>nslookup api.example.com                    # uses default resolver
+nslookup api.example.com 8.8.8.8            # use Google resolver
+nslookup api.example.com ns1.registrar.com  # query authoritative directly</pre>
+  </div>
+  <div class="code">
+    <div class="code-label">CHECK IF A PORT IS REACHABLE</div>
+    <pre>Test-NetConnection -ComputerName api.example.com -Port 443</pre>
+  </div>
+  <div class="code">
+    <div class="code-label">SCAN DEVICES ON SUBNET</div>
+    <pre>nmap -sn 192.168.0.0/24</pre>
+  </div>
+
+  <h3>8. Practical QA use cases</h3>
+
+  <h3>1 — Point your machine to a specific environment</h3>
+  <p>You have <code>staging.api.company.com</code> but need to test a build that is not deployed yet — it is running locally or on a dev server.</p>
+  <div class="code">
+    <div class="code-label">HOSTS FILE — REDIRECT DOMAIN TO DEV SERVER</div>
+    <pre>192.168.0.45   staging.api.company.com</pre>
+  </div>
+  <p>Your automated tests run against the real domain name but hit your local build. No test code changes needed.</p>
+
+  <h3>2 — Debug "works on my machine"</h3>
+  <p>A test passes locally but fails on CI. DNS is a common silent cause:</p>
+  <ul>
+    <li>CI agent uses a different resolver and gets a different IP (e.g. points to old deployment)</li>
+    <li>CI agent has no cached records — cold DNS lookup times out and breaks a test with a short timeout</li>
+    <li>CI is in a different network — internal service names do not resolve at all</li>
+  </ul>
+  <div class="code">
+    <div class="code-label">RUN ON BOTH MACHINES AND COMPARE</div>
+    <pre>nslookup api.company.com</pre>
+  </div>
+
+  <h3>3 — Test after a deployment or environment switch</h3>
+  <p>Team just redeployed to a new server with a new IP. Tests start hitting the old server intermittently. Cause: TTL has not expired — some machines still have the old IP cached.</p>
+  <div class="code">
+    <div class="code-label">FORCE FRESH LOOKUP AND VERIFY NEW RECORD</div>
+    <pre>ipconfig /flushdns                              # force fresh lookup on your machine
+nslookup api.company.com ns1.registrar.com     # verify new record on authoritative server</pre>
+  </div>
+
+  <h3>4 — Microservices in Docker / Kubernetes</h3>
+  <p>In containerized environments, services communicate by name (e.g. <code>http://payment-service/charge</code>). If a test fails with "host not found", DNS is the first suspect — the service discovery mechanism (internal DNS) is not resolving the name. Check whether the container's DNS is configured to reach the internal resolver, not the public internet.</p>
+
+  <h3>5 — SSL/TLS certificate errors in tests</h3>
+  <p>A CNAME record points <code>api.company.com</code> to <code>gateway.provider.com</code>. If the CNAME is wrong or missing, the TLS certificate will not match the hostname — HTTPS tests fail with certificate errors that look like generic network errors.</p>
+
+  <h3>6 — Load testing environment isolation</h3>
+  <p>Before a load test, confirm your tool is hitting the intended environment — not production — by verifying the IP the domain resolves to.</p>
+  <div class="callout callout-warn">
+    <div class="callout-label">REAL RISK</div>
+    <p>Hitting production with a load test because DNS pointed the wrong way is a real incident. Always verify before running load tests.</p>
+  </div>
+  <div class="code">
+    <div class="code-label">VERIFY BEFORE LOAD TEST</div>
+    <pre>nslookup loadtest.api.company.com</pre>
+  </div>
+
+  <h3>7 — Subdomain per microservice — API routing tests</h3>
+  <p>Modern backends expose services via subdomains:</p>
+  <div class="code">
+    <div class="code-label">SUBDOMAIN ROUTING</div>
+    <pre>api.company.com     → API gateway
+auth.company.com    → auth service
+cdn.company.com     → static assets</pre>
+  </div>
+  <p>Each subdomain has its own DNS record. When testing microservice routing, verifying DNS helps confirm requests go to the right service and are not silently swallowed by the gateway.</p>
+
+  <div class="qa-block"><div class="qa-q">QA QUICK REFERENCE</div><div class="qa-a">
+    Test against unreleased build → Edit hosts file to redirect domain to dev server IP<br>
+    Works locally, fails on CI → Run <code>nslookup</code> on both machines and compare resolved IP<br>
+    Flaky tests after deploy → Flush DNS cache, verify TTL on authoritative server<br>
+    Host not found in containers → Check internal DNS / service discovery configuration<br>
+    Certificate errors in HTTPS tests → Verify the full CNAME chain is correct<br>
+    Before load test → Confirm domain resolves to intended environment IP<br>
+    Microservice routing wrong → Check A and CNAME records on authoritative server
+  </div></div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ top</a>
 </div>

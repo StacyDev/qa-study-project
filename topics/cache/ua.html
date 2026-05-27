@@ -52,6 +52,9 @@
 
   <div class="sidecat">Checklist</div>
   <a class="sidelink" data-sec="s05" onclick="goTo('s05')">05 — Checklist за методом</a>
+
+  <div class="sidecat">Мережа</div>
+  <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — DNS</a>
 </nav>
 
 <main class="main">
@@ -910,6 +913,182 @@ GET  /api/orders/123     → браузер НЕ повертає закешов
       — <code>Access-Control-Max-Age</code> відсутній або нульовий у OPTIONS-відповідях
     </p>
   </div>
+
+  <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
+</div>
+
+<hr class="sep">
+
+<!-- ── 06 ── -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">DNS — Domain Name System</span>
+    <span class="tag tag-concept">МЕРЕЖА</span>
+    <a class="spec-ref" href="https://www.cloudflare.com/learning/dns/what-is-dns/" target="_blank">Cloudflare DNS</a>
+    <a class="spec-ref" href="https://www.rfc-editor.org/rfc/rfc1034" target="_blank">RFC 1034</a>
+  </div>
+  <div class="intro">DNS (Domain Name System) перетворює людиночитабельні доменні імена на IP-адреси. Розуміння порядку розв'язання DNS критично для QA — воно пояснює, чому тестові середовища можуть звертатись до неправильних серверів, чому DNS-зміни набирають чинності не відразу і чому виникають помилки "у мене працює".</div>
+
+  <h3>1. Структура доменного імені</h3>
+  <p>Доменне ім'я читається справа наліво. Кожна крапка розділяє рівень:</p>
+  <div class="code">
+    <div class="code-label">ПРИКЛАД</div>
+    <pre>https://api.example.com.</pre>
+  </div>
+  <table class="tbl">
+    <tr><th>Рівень</th><th>Приклад</th><th>Хто керує</th></tr>
+    <tr><td>Кореневий</td><td><code>.</code> (невидима крапка в кінці)</td><td>ICANN</td></tr>
+    <tr><td>TLD — домен верхнього рівня</td><td><code>.com</code>  <code>.org</code>  <code>.ua</code>  <code>.io</code></td><td>Реєстр (наприклад, Verisign для .com)</td></tr>
+    <tr><td>SLD — домен другого рівня</td><td><code>example.com</code></td><td>Власник домену (ви / компанія)</td></tr>
+    <tr><td>Субдомен</td><td><code>api.example.com</code></td><td>Ваша DNS-конфігурація (A-запис або CNAME)</td></tr>
+  </table>
+
+  <h3>2. Порядок розв'язання DNS</h3>
+  <p>Коли ви вводите URL, браузер проходить цей ланцюжок перед будь-яким зовнішнім мережевим запитом. Кожен крок перевіряється першим; лише при промаху відбувається перехід до наступного.</p>
+  <div class="flow">
+    <div class="flow-label">ЛАНЦЮЖОК РОЗВ'ЯЗАННЯ DNS</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">КЕШ DNS БРАУЗЕРА</div><div class="flow-desc">Браузер зберігає власний кеш недавно розв'язаних імен у пам'яті.</div><div class="flow-code">chrome://net-internals/#dns</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">КЕШ DNS ОС</div><div class="flow-desc">Якщо кеш браузера не містить відповіді, запит передається до резолвера операційної системи.</div><div class="flow-code">ipconfig /displaydns      # переглянути кеш
+ipconfig /flushdns        # очистити кеш</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">ФАЙЛ HOSTS</div><div class="flow-desc">Статичний локальний файл, що перевизначає все, включно з DNS-серверами. Записи тут мають пріоритет над будь-яким віддаленим запитом.</div><div class="flow-code"># Windows: C:\Windows\System32\drivers\etc\hosts
+192.168.0.5   my-api.local</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">РОУТЕР / КЕШ ЛОКАЛЬНОЇ МЕРЕЖІ</div><div class="flow-desc">Роутер кешує DNS-відповіді для всіх пристроїв підмережі. Спільний кеш — пошук одного пристрою корисний для всіх до закінчення TTL.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">5</div><div class="flow-body"><div class="flow-actor">РЕКУРСИВНИЙ РЕЗОЛВЕР</div><div class="flow-desc">Перший зовнішній запит. Зазвичай DNS-сервер провайдера або публічна альтернатива (Google 8.8.8.8, Cloudflare 1.1.1.1). Виконує повний обхід ієрархії DNS і кешує результат.</div></div></div>
+  </div>
+
+  <h3>3. Зовнішня ієрархія DNS</h3>
+  <p>Коли рекурсивний резолвер не має кешованої відповіді, він по черзі звертається до таких серверів:</p>
+  <div class="grid3">
+    <div class="card"><div class="card-title" style="color:var(--blue)">КОРЕНЕВІ DNS-СЕРВЕРИ</div><div class="card-body">13 серверних кластерів по всьому світу під управлінням ICANN. Не знають IP-адрес — лише який TLD-сервер відповідає за кожен домен верхнього рівня.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--amber)">TLD DNS-СЕРВЕР</div><div class="card-body">Окремий для кожного TLD (.com, .ua, .org тощо). Знає, який авторитетний сервер відповідає за конкретний зареєстрований домен. Не знає кінцевої IP-адреси.</div></div>
+    <div class="card"><div class="card-title" style="color:var(--green)">АВТОРИТЕТНИЙ DNS-СЕРВЕР</div><div class="card-body">Кінцеве джерело правди. Належить реєстратору або хмарному провайдеру (AWS Route53, Cloudflare DNS). Містить файл DNS-зони з усіма записами і повертає фактичну IP-адресу.</div></div>
+  </div>
+  <div class="code">
+    <div class="code-label">ПОВНИЙ ШЛЯХ РОЗВ'ЯЗАННЯ</div>
+    <pre>Браузер → ОС → hosts → Роутер → Рекурсивний резолвер
+    → Кореневий DNS  (хто обробляє .com?)
+    → TLD DNS        (хто обробляє example.com?)
+    → Авторитетний DNS  (що таке api.example.com?)
+    ← Повертає IP, кешується на кожному рівні на зворотньому шляху</pre>
+  </div>
+
+  <h3>4. Типи DNS-записів</h3>
+  <p>Зберігаються на авторитетному DNS-сервері. Кожен запис відображає ім'я на значення.</p>
+  <table class="tbl">
+    <tr><th>Тип запису</th><th>Призначення</th><th>Приклад</th></tr>
+    <tr><td><strong>A</strong></td><td>Домен → IPv4-адреса</td><td><code>api.example.com → 93.184.216.34</code></td></tr>
+    <tr><td><strong>AAAA</strong></td><td>Домен → IPv6-адреса</td><td><code>api.example.com → 2606:2800::1</code></td></tr>
+    <tr><td><strong>CNAME</strong></td><td>Псевдонім → інше доменне ім'я</td><td><code>api.example.com → gateway.provider.com</code></td></tr>
+    <tr><td><strong>MX</strong></td><td>Поштовий сервер для домену</td><td><code>example.com → mail.example.com</code></td></tr>
+    <tr><td><strong>TXT</strong></td><td>Довільний текст, для верифікації</td><td>SPF, DKIM антиспам-записи</td></tr>
+  </table>
+
+  <h3>5. TTL — Time To Live</h3>
+  <p>Кожна DNS-відповідь містить значення TTL (у секундах). Кожен рівень кешу зберігає запис до закінчення TTL, після чого звертається до наступного рівня. Саме тому DNS-зміни набирають чинності не миттєво — старі записи живуть у кешах на всіх рівнях ланцюжка.</p>
+  <div class="callout callout-info">
+    <div class="callout-label">ПРИКЛАД</div>
+    <p>TTL = 3600 означає, що кеші зберігають запис 1 годину після останнього пошуку. Після зміни DNS старі записи живуть у кожному рівні кешу до закінчення їхнього TTL.</p>
+  </div>
+
+  <h3>6. Релевантність для QA</h3>
+  <table class="tbl">
+    <tr><th>Сценарій</th><th>Першопричина</th><th>Дія</th></tr>
+    <tr><td>Деплой завершено, але повертається стара IP</td><td>TTL не минув на одному з рівнів кешу</td><td>Дочекатись TTL або очистити: <code>ipconfig /flushdns</code></td></tr>
+    <tr><td>Тест потрапляє у неправильне середовище</td><td>Файл hosts перенаправляє домен на стару IP</td><td>Перевірити та відредагувати файл hosts</td></tr>
+    <tr><td>Працює локально, падає на CI</td><td>Різний резолвер або порожній кеш на агенті CI</td><td>Перевірити DNS-конфігурацію на агенті CI</td></tr>
+    <tr><td>Перевірити новий DNS-запис без очікування</td><td>Кеші можуть містити старий запис</td><td>Запросити авторитетний сервер напряму через <code>nslookup</code></td></tr>
+    <tr><td>Субдомен вказує на неправильний сервіс</td><td>A або CNAME запис неправильно налаштований</td><td>Перевірити DNS-зону на панелі реєстратора</td></tr>
+    <tr><td>Повільне розв'язання DNS в автотестах</td><td>Холодний старт резолвера, немає кешованих записів</td><td>Прогріти DNS або використовувати IP-адреси в конфігурації тестів</td></tr>
+  </table>
+
+  <h3>7. Корисні команди</h3>
+  <div class="code">
+    <div class="code-label">ПЕРЕГЛЯД ТА ОЧИЩЕННЯ КЕШУ DNS (WINDOWS)</div>
+    <pre>ipconfig /displaydns          # список кешованих записів
+ipconfig /flushdns            # очистити всі кешовані записи</pre>
+  </div>
+  <div class="code">
+    <div class="code-label">ЗАПИТ ДО КОНКРЕТНОГО DNS-СЕРВЕРА НАПРЯМУ (ОБХІД КЕШУ)</div>
+    <pre>nslookup api.example.com                    # використовує резолвер за замовчуванням
+nslookup api.example.com 8.8.8.8            # використовує резолвер Google
+nslookup api.example.com ns1.registrar.com  # запит до авторитетного напряму</pre>
+  </div>
+  <div class="code">
+    <div class="code-label">ПЕРЕВІРКА ДОСТУПНОСТІ ПОРТУ</div>
+    <pre>Test-NetConnection -ComputerName api.example.com -Port 443</pre>
+  </div>
+  <div class="code">
+    <div class="code-label">СКАНУВАННЯ ПРИСТРОЇВ ПІДМЕРЕЖІ</div>
+    <pre>nmap -sn 192.168.0.0/24</pre>
+  </div>
+
+  <h3>8. Практичні кейси QA</h3>
+
+  <h3>1 — Перенаправити свою машину на конкретне середовище</h3>
+  <p>У вас є <code>staging.api.company.com</code>, але потрібно тестувати збірку, що ще не задеплоєна — вона запущена локально або на dev-сервері.</p>
+  <div class="code">
+    <div class="code-label">ФАЙЛ HOSTS — ПЕРЕНАПРАВЛЕННЯ ДОМЕНУ НА DEV-СЕРВЕР</div>
+    <pre>192.168.0.45   staging.api.company.com</pre>
+  </div>
+  <p>Автотести запускаються проти реального доменного імені, але потрапляють на вашу локальну збірку. Зміни у коді тестів не потрібні.</p>
+
+  <h3>2 — Відладка "у мене працює"</h3>
+  <p>Тест проходить локально, але падає на CI. DNS — поширена прихована причина:</p>
+  <ul>
+    <li>Агент CI використовує інший резолвер і отримує іншу IP (наприклад, вказує на старий деплой)</li>
+    <li>Агент CI не має кешованих записів — холодний DNS-запит завершується тайм-аутом і ламає тест з коротким тайм-аутом</li>
+    <li>CI в іншій мережі — внутрішні імена сервісів взагалі не розв'язуються</li>
+  </ul>
+  <div class="code">
+    <div class="code-label">ЗАПУСТИТИ НА ОБОХ МАШИНАХ І ПОРІВНЯТИ</div>
+    <pre>nslookup api.company.com</pre>
+  </div>
+
+  <h3>3 — Тестування після деплою або зміни середовища</h3>
+  <p>Команда щойно задеплоїла на новий сервер з новою IP. Тести починають час від часу потрапляти на старий сервер. Причина: TTL не минув — деякі машини ще кешують стару IP.</p>
+  <div class="code">
+    <div class="code-label">ПРИМУСОВИЙ СВІЖИЙ ЗАПИТ ТА ПЕРЕВІРКА НОВОГО ЗАПИСУ</div>
+    <pre>ipconfig /flushdns                              # примусовий свіжий запит на своїй машині
+nslookup api.company.com ns1.registrar.com     # перевірка нового запису на авторитетному сервері</pre>
+  </div>
+
+  <h3>4 — Мікросервіси в Docker / Kubernetes</h3>
+  <p>У контейнеризованих середовищах сервіси спілкуються за іменем (наприклад, <code>http://payment-service/charge</code>). Якщо тест падає з "host not found", DNS — перший підозрюваний: механізм виявлення сервісів (внутрішній DNS) не розв'язує ім'я. Перевірте, чи DNS контейнера налаштований на звернення до внутрішнього резолвера, а не публічного інтернету.</p>
+
+  <h3>5 — Помилки SSL/TLS у тестах</h3>
+  <p>CNAME-запис вказує <code>api.company.com</code> на <code>gateway.provider.com</code>. Якщо CNAME неправильний або відсутній, TLS-сертифікат не відповідатиме імені хоста — HTTPS-тести падають з помилками сертифіката, які виглядають як звичайні мережеві помилки.</p>
+
+  <h3>6 — Ізоляція середовища перед навантажувальним тестуванням</h3>
+  <p>Перед навантажувальним тестом переконайтесь, що ваш інструмент звертається до потрібного середовища, а не до продакшену, перевіривши IP, на яку розв'язується домен.</p>
+  <div class="callout callout-warn">
+    <div class="callout-label">РЕАЛЬНИЙ РИЗИК</div>
+    <p>Навантажувальний тест проти продакшену через неправильне налаштування DNS — це реальний інцидент. Завжди перевіряйте перед запуском навантажувального тесту.</p>
+  </div>
+  <div class="code">
+    <div class="code-label">ПЕРЕВІРКА ПЕРЕД НАВАНТАЖУВАЛЬНИМ ТЕСТОМ</div>
+    <pre>nslookup loadtest.api.company.com</pre>
+  </div>
+
+  <h3>7 — Субдомен для кожного мікросервісу — тести маршрутизації API</h3>
+  <p>Сучасні бекенди розкривають сервіси через субдомени:</p>
+  <div class="code">
+    <div class="code-label">МАРШРУТИЗАЦІЯ ЧЕРЕЗ СУБДОМЕНИ</div>
+    <pre>api.company.com     → API gateway
+auth.company.com    → auth service
+cdn.company.com     → static assets</pre>
+  </div>
+  <p>Кожен субдомен має власний DNS-запис. При тестуванні маршрутизації мікросервісів перевірка DNS допомагає переконатися, що запити йдуть до правильного сервісу, а не тихо поглинаються шлюзом.</p>
+
+  <div class="qa-block"><div class="qa-q">ШВИДКИЙ ДОВІДНИК QA</div><div class="qa-a">
+    Тест проти не задеплоєної збірки → Відредагувати hosts, перенаправити домен на IP dev-сервера<br>
+    Працює локально, падає на CI → Запустити <code>nslookup</code> на обох машинах і порівняти IP<br>
+    Нестабільні тести після деплою → Очистити кеш DNS, перевірити TTL на авторитетному сервері<br>
+    Host not found у контейнерах → Перевірити внутрішній DNS / конфігурацію service discovery<br>
+    Помилки сертифіката в HTTPS-тестах → Перевірити повний ланцюжок CNAME<br>
+    Перед навантажувальним тестом → Переконатися, що домен розв'язується на потрібну IP<br>
+    Неправильна маршрутизація мікросервісу → Перевірити A та CNAME записи на авторитетному сервері
+  </div></div>
 
   <a class="dia-link" onclick="goTo('s00')">↑ початок</a>
 </div>
