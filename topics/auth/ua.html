@@ -619,74 +619,394 @@ SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</pre>
     <span class="section-title">OAuth 2.0</span>
     <span class="tag tag-framework">AUTHZ FRAMEWORK</span>
     <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6749" target="_blank">RFC 6749</a>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc7636" target="_blank">RFC 7636</a>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc8628" target="_blank">RFC 8628</a>
+    <a class="spec-ref" href="https://datatracker.ietf.org/doc/html/rfc6819" target="_blank">RFC 6819</a>
   </div>
 
-  <div class="intro">
-    Per RFC 6749, OAuth 2.0 is an authorization framework that <strong>"enables a third-party application to obtain limited access to an HTTP service, either on behalf of a resource owner… or by allowing the third-party application to obtain access on its own behalf."</strong> OAuth 2.0 itself handles <strong>authorization only</strong>. It does not define authentication (that is what OIDC adds on top — see section 09). Note: when a client acts on its own behalf (Client Credentials grant), there is no user or delegation involved — just direct token issuance to the client.
-  </div>
+  <div class="intro">OAuth 2.0 is an authorization framework (RFC 6749, 2012) that enables a third-party application to obtain limited access to a service on behalf of a resource owner — without exposing the resource owner's credentials. The authorization is expressed through the issuance of a short-lived <code>access_token</code> with a defined scope. QA-oriented lesson · Personal study notes</div>
 
   <div class="callout callout-warn">
-    <div class="callout-label">OAUTH 2.0 IS NOT AN AUTHENTICATION METHOD</div>
+    <div class="callout-label">AUTHORIZATION, NOT AUTHENTICATION</div>
     <p>OAuth 2.0 tells you what a user has permitted a client to do. It does <strong>not</strong> tell you who the user is. When you "log in with Google," OAuth 2.0 grants the app access to your Google data. OpenID Connect (built on top of OAuth 2.0) provides the identity — who you are.</p>
   </div>
 
-  <h3>The four roles in OAuth 2.0</h3>
-  <div class="grid2">
-    <div class="card"><div class="card-title">RESOURCE OWNER</div><div class="card-body">The user who owns the protected data and grants access.</div></div>
-    <div class="card"><div class="card-title">CLIENT</div><div class="card-body">The third-party application that wants access to the user's resources.</div></div>
-    <div class="card"><div class="card-title">AUTHORIZATION SERVER</div><div class="card-body">Issues tokens after authenticating the user and getting consent. (e.g. Google Auth, AWS Cognito)</div></div>
-    <div class="card"><div class="card-title">RESOURCE SERVER</div><div class="card-body">The API that holds the protected data. Accepts and validates access tokens.</div></div>
-  </div>
+  <h3>Part 1 — Foundation</h3>
 
-  <h3>Flow 1: Authorization Code (user-facing apps)</h3>
-  <p>Used when a user must be present to authenticate and grant consent.</p>
-  <div class="flow">
-    <div class="flow-label">AUTHORIZATION CODE FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc">Client redirects user to auth server's /authorize endpoint.</div><div class="flow-code">GET /authorize?response_type=code
-  &amp;client_id=myapp
-  &amp;redirect_uri=https://app.com/callback
-  &amp;scope=orders:read
-  &amp;state=random_csrf_token</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">USER (at auth server)</div><div class="flow-desc">User logs in and approves the requested scopes.</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT (redirect)</div><div class="flow-desc">Auth server redirects to the redirect_uri with a short-lived authorization code and the same state value.</div><div class="flow-code">GET https://app.com/callback?code=AUTH_CODE&amp;state=random_csrf_token</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">4</div><div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Client verifies the state matches what it sent (CSRF protection).</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (back channel)</div><div class="flow-desc">Client exchanges code + client_secret for tokens. This is server-to-server — tokens never touch the browser URL.</div><div class="flow-code">POST /token
-grant_type=authorization_code&amp;code=AUTH_CODE
-&amp;client_id=myapp&amp;client_secret=SECRET
-&amp;redirect_uri=https://app.com/callback</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">Returns access_token and refresh_token.</div></div></div>
-  </div>
-
-  <h3>Flow 2: Authorization Code + PKCE (mobile/SPA)</h3>
-  <p>PKCE (Proof Key for Code Exchange) extends Auth Code flow for <strong>public clients</strong> that cannot safely store a client_secret (mobile apps, SPAs). Without PKCE, a malicious app on the same device can intercept the authorization code and exchange it for tokens.</p>
-  <div class="flow">
-    <div class="flow-label">PKCE ADDITIONS TO AUTH CODE FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">CLIENT (before step 1)</div><div class="flow-desc">Client generates a random <strong>code_verifier</strong> string, then hashes it to produce a <strong>code_challenge</strong>.</div><div class="flow-code">code_verifier = random_string(64 chars)
-code_challenge = base64url(SHA256(code_verifier))</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">B</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (step 1 modified)</div><div class="flow-desc">Client includes code_challenge in the authorization request.</div><div class="flow-code">GET /authorize?...&amp;code_challenge=HASH&amp;code_challenge_method=S256</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">C</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER (step 5 modified)</div><div class="flow-desc">At token exchange, client sends the original code_verifier (not the hash). Auth server hashes the verifier and compares to the stored challenge. Only the original requester has the verifier.</div><div class="flow-code">POST /token
-...&amp;code_verifier=ORIGINAL_RANDOM_STRING</div></div></div>
-  </div>
-
-  <h3>Flow 3: Client Credentials (machine-to-machine)</h3>
-  <p>Used when there is no user involved — a service authenticates as itself.</p>
-  <div class="flow">
-    <div class="flow-label">CLIENT CREDENTIALS FLOW</div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">SERVICE → AUTH SERVER</div><div class="flow-desc">Service sends its own client_id and client_secret directly to the /token endpoint. No user redirect, no consent.</div><div class="flow-code">POST /token
-grant_type=client_credentials
-&amp;client_id=my-service&amp;client_secret=SERVICE_SECRET
-&amp;scope=data:ingest</div></div></div>
-    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → SERVICE</div><div class="flow-desc">Returns an access_token representing the service (not any user). No refresh token — the service can re-authenticate at any time.</div><div class="flow-note">The token's sub claim is the service's client_id — not a user ID.</div></div></div>
-  </div>
-
+  <h3>1.2 Roles  (RFC 6749 §1.1)</h3>
+  <p>RFC 6749 defines exactly four roles. Every OAuth interaction involves a subset of these.</p>
   <table class="tbl">
-    <tr><th>Flow</th><th>When to use</th><th>User present?</th><th>client_secret needed?</th></tr>
-    <tr><td>Auth Code</td><td>Web apps with a backend</td><td>Yes</td><td>Yes</td></tr>
-    <tr><td>Auth Code + PKCE</td><td>Mobile apps, SPAs</td><td>Yes</td><td>No (PKCE replaces it)</td></tr>
-    <tr><td>Client Credentials</td><td>Service-to-service, background jobs</td><td>No</td><td>Yes</td></tr>
+    <tr><th>Role</th><th>Definition (RFC 6749)</th><th>Practical example</th></tr>
+    <tr><td><strong>Resource Owner</strong></td><td>Entity capable of granting access to a protected resource. When the resource owner is a person, this is referred to as an end-user.</td><td>The user clicking "Sign in with Google"</td></tr>
+    <tr><td><strong>Resource Server</strong></td><td>Server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.</td><td>Google Drive API, your own backend API</td></tr>
+    <tr><td><strong>Client</strong></td><td>Application making protected resource requests on behalf of the resource owner and with its authorization.</td><td>A web app, mobile app, or server-side service</td></tr>
+    <tr><td><strong>Authorization Server</strong></td><td>Server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorization.</td><td>Google OAuth, Auth0, Keycloak, Okta</td></tr>
   </table>
 
-  <div class="qa-block"><div class="qa-q">QA TEST ANGLES</div><div class="qa-a">① Modify redirect_uri → auth server must reject (code interception risk). ② Remove state param → server must still validate state on callback (CSRF test). ③ Auth Code: try to reuse the authorization code a second time → must return error. ④ PKCE: send token exchange without code_verifier → must be rejected. ⑤ Client Credentials token → send to user-specific endpoint → must return 403 (wrong subject type). ⑥ Verify code_challenge_method=S256, not plain.</div></div>
+  <h3>Client types</h3>
+  <table class="tbl">
+    <tr><th>Type</th><th>Can store client_secret?</th><th>Examples</th><th>Recommended grant</th></tr>
+    <tr><td><strong>Confidential client</strong></td><td>Yes — code runs server-side, secret never exposed to user</td><td>Node.js, Python, Java backend</td><td>Authorization Code</td></tr>
+    <tr><td><strong>Public client</strong></td><td>No — code runs in browser or on device the user controls</td><td>SPA (React/Vue), iOS, Android</td><td>Authorization Code + PKCE</td></tr>
+  </table>
+
+  <h3>1.3 Protocol Endpoints  (RFC 6749 §3)</h3>
+  <table class="tbl">
+    <tr><th>Endpoint</th><th>Method</th><th>Purpose</th></tr>
+    <tr><td>Authorization Endpoint</td><td>GET</td><td>Interaction with resource owner. Redirects user to AS login/consent page. Returns authorization code or token.</td></tr>
+    <tr><td>Token Endpoint</td><td>POST</td><td>Client authenticates and exchanges grant for access token. Used by all grant types except Implicit.</td></tr>
+    <tr><td>Redirection Endpoint</td><td>GET</td><td>Callback URI registered by client. AS redirects back to this with code or token.</td></tr>
+    <tr><td>Revocation Endpoint (RFC 7009)</td><td>POST</td><td>Revoke an active access token or refresh token.</td></tr>
+    <tr><td>Introspection Endpoint (RFC 7662)</td><td>POST</td><td>Resource server queries AS to validate a token and get its metadata.</td></tr>
+  </table>
+
+  <h3>1.4 Tokens</h3>
+  <table class="tbl">
+    <tr><th>Token</th><th>Lifetime</th><th>Purpose</th><th>Where stored</th></tr>
+    <tr><td><strong>Access Token</strong></td><td>Short (5–60 min)</td><td>Passed to Resource Server in <code>Authorization: Bearer</code> header. Proof of authorization.</td><td>Client memory / secure storage</td></tr>
+    <tr><td><strong>Refresh Token</strong></td><td>Long (days / weeks)</td><td>Exchanged at Token Endpoint for a new access token. Never sent to Resource Server.</td><td>Client — httpOnly cookie or secure storage</td></tr>
+    <tr><td><strong>Authorization Code</strong></td><td>Very short (≤10 min)</td><td>One-time code. Exchanged at Token Endpoint for access token.</td><td>In-flight only (URL redirect)</td></tr>
+    <tr><td><strong>ID Token (OIDC)</strong></td><td>Short</td><td>JWT with user identity claims. Not an access token.</td><td>Client</td></tr>
+  </table>
+
+  <h3>1.5 Grant Types overview  (RFC 6749 §1.3)</h3>
+  <table class="tbl">
+    <tr><th>Grant Type</th><th>RFC</th><th>Client type</th><th>User involved?</th><th>Status</th></tr>
+    <tr><td>Authorization Code</td><td>6749 §4.1</td><td>Confidential</td><td>Yes</td><td>Current standard</td></tr>
+    <tr><td>Authorization Code + PKCE</td><td>7636</td><td>Public or Confidential</td><td>Yes</td><td>Current standard for public clients</td></tr>
+    <tr><td>Implicit</td><td>6749 §4.2</td><td>Public</td><td>Yes</td><td><strong>Deprecated (OAuth 2.1)</strong></td></tr>
+    <tr><td>Resource Owner Password Credentials</td><td>6749 §4.3</td><td>Trusted apps only</td><td>Yes (password exposed)</td><td><strong>Deprecated (OAuth 2.1)</strong></td></tr>
+    <tr><td>Client Credentials</td><td>6749 §4.4</td><td>Confidential</td><td>No (M2M)</td><td>Current standard</td></tr>
+    <tr><td>Device Authorization</td><td>8628</td><td>Public</td><td>Yes (on second device)</td><td>Current — extension grant</td></tr>
+    <tr><td>Extension Grant</td><td>6749 §4.5</td><td>Any</td><td>Depends</td><td>Framework for future types</td></tr>
+  </table>
+
+  <h3>Part 2 — Abstract Authorization Flow  (RFC 6749 §1.2)</h3>
+  <p>Before any specific grant type, RFC 6749 defines a general six-step protocol flow that all grant types follow. Understanding this abstract flow is required to understand why any specific grant type works the way it does.</p>
+  <div class="flow">
+    <div class="flow-label">RFC 6749 ABSTRACT FLOW — ALL GRANT TYPES</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">A</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE OWNER</div><div class="flow-desc"><strong>Authorization Request.</strong> Client asks resource owner to grant access. May be direct (ROPC) or via AS (all other types).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">B</div><div class="flow-body"><div class="flow-actor">RESOURCE OWNER → CLIENT</div><div class="flow-desc"><strong>Authorization Grant.</strong> Resource owner grants permission. The grant is a credential representing the owner's authorization. Type depends on the grant method used.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">C</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTHORIZATION SERVER</div><div class="flow-desc"><strong>Authorization Grant (presented to AS).</strong> Client presents the grant to the Token Endpoint, along with its own credentials (<code>client_id</code>, <code>client_secret</code> or PKCE verifier).</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">D</div><div class="flow-body"><div class="flow-actor">AUTHORIZATION SERVER → CLIENT</div><div class="flow-desc"><strong>Access Token (+ optional Refresh Token).</strong> AS validates grant and client credentials, then issues access token. Refresh token issued if applicable.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">E</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE SERVER</div><div class="flow-desc"><strong>Access Token.</strong> Client uses the access token to request the protected resource.</div><div class="flow-code">Authorization: Bearer {access_token}</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">F</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → CLIENT</div><div class="flow-desc"><strong>Protected Resource.</strong> Resource server validates the access token (signature, expiry, scope, audience) and serves the requested resource.</div></div></div>
+  </div>
+  <div class="callout callout-info">
+    <div class="callout-label">KEY INSIGHT — THE TWO-STAGE STRUCTURE</div>
+    <p><strong>Stage 1 (steps A–B):</strong> Client obtains an authorization grant from the Resource Owner. This is the user-facing part — login, consent screen.<br>
+    <strong>Stage 2 (steps C–D):</strong> Client exchanges that grant for an access token from the Authorization Server. This is a back-channel exchange — the user is not involved.<br><br>
+    The grant type determines what the authorization grant looks like in step B and how the exchange in step C works. The abstract flow A–F is identical regardless of grant type.</p>
+  </div>
+
+  <h3>Part 3 — Grant Type Flows</h3>
+
+  <h3>3.1 Authorization Code  (RFC 6749 §4.1)</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">WHEN TO USE</div>
+    <p>Confidential clients — web apps with a server-side backend that can securely store a <code>client_secret</code>. The authorization grant in this flow is a short-lived, one-time-use authorization code. The actual token exchange happens server-side, meaning the <code>client_secret</code> and the access token never pass through the browser.</p>
+  </div>
+  <div class="flow">
+    <div class="flow-label">AUTHORIZATION CODE — FULL FLOW</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">USER → BROWSER</div><div class="flow-desc">Clicks "Login with [Service]"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">BROWSER → CLIENT SERVER</div><div class="flow-desc"><code>GET /login</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">CLIENT SERVER → BROWSER</div><div class="flow-desc">302 Redirect to Authorization Endpoint</div><div class="flow-code">/authorize?response_type=code&amp;client_id=X&amp;redirect_uri=Y&amp;scope=Z&amp;state=CSRF_TOKEN</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">BROWSER → AUTH SERVER</div><div class="flow-desc"><code>GET /authorize</code> (user follows redirect)</div><div class="flow-code">response_type=code  client_id=X  redirect_uri=Y  scope=Z  state=CSRF_TOKEN</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → BROWSER</div><div class="flow-desc">200 OK — Login + Consent page rendered</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">6</div><div class="flow-body"><div class="flow-actor">USER → BROWSER</div><div class="flow-desc">Enters credentials and clicks "Allow"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">7</div><div class="flow-body"><div class="flow-actor">BROWSER → AUTH SERVER</div><div class="flow-desc">POST credentials + consent submission</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">8</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → BROWSER</div><div class="flow-desc">302 Redirect to redirect_uri with code</div><div class="flow-code">/callback?code=AUTH_CODE_xyz&amp;state=CSRF_TOKEN</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">9</div><div class="flow-body"><div class="flow-actor">BROWSER → CLIENT SERVER</div><div class="flow-desc"><code>GET /callback?code=AUTH_CODE_xyz&amp;state=CSRF_TOKEN</code></div><div class="flow-note">Client validates state matches session value (CSRF protection)</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">10</div><div class="flow-body"><div class="flow-actor">CLIENT SERVER → AUTH SERVER</div><div class="flow-desc"><code>POST /token</code>  (back-channel, no browser)</div><div class="flow-code">grant_type=authorization_code  code=AUTH_CODE_xyz  redirect_uri=Y  client_id=X  client_secret=SECRET</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">11</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT SERVER</div><div class="flow-desc">200 OK</div><div class="flow-code">{access_token, token_type, expires_in, refresh_token, scope}</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">12</div><div class="flow-body"><div class="flow-actor">CLIENT SERVER → RESOURCE SERVER</div><div class="flow-desc"><code>GET /api/data</code></div><div class="flow-code">Authorization: Bearer {access_token}</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">13</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → CLIENT SERVER</div><div class="flow-desc">200 OK  {resource data}</div></div></div>
+  </div>
+
+  <h3>HTTP parameters reference</h3>
+  <table class="tbl">
+    <tr><th>Parameter</th><th>Where</th><th>Required</th><th>Description</th></tr>
+    <tr><td><code>response_type=code</code></td><td>GET /authorize</td><td>Yes</td><td>Signals Authorization Code grant type</td></tr>
+    <tr><td><code>client_id</code></td><td>GET /authorize</td><td>Yes</td><td>Identifies the registered application</td></tr>
+    <tr><td><code>redirect_uri</code></td><td>GET /authorize</td><td>Yes*</td><td>Must exactly match pre-registered URI. *Required if multiple registered.</td></tr>
+    <tr><td><code>scope</code></td><td>GET /authorize</td><td>Optional</td><td>Space-separated list of requested permissions</td></tr>
+    <tr><td><code>state</code></td><td>GET /authorize</td><td>Recommended</td><td>Opaque CSRF protection value. Client must verify on return.</td></tr>
+    <tr><td><code>grant_type=authorization_code</code></td><td>POST /token</td><td>Yes</td><td>Identifies the exchange type</td></tr>
+    <tr><td><code>code</code></td><td>POST /token</td><td>Yes</td><td>The authorization code received in the redirect</td></tr>
+    <tr><td><code>client_secret</code></td><td>POST /token</td><td>Yes (confidential)</td><td>Client authentication. Never exposed to browser.</td></tr>
+  </table>
+
+  <h3>Security considerations — Authorization Code</h3>
+  <ul>
+    <li><strong><code>state</code> parameter is mandatory in practice.</strong> Absence is a CSRF vulnerability. Generate cryptographically random value per request. Store in session. Verify on callback.</li>
+    <li><strong>Authorization code is one-time use.</strong> AS must reject second use. If code is presented twice, AS should revoke all tokens issued from it (RFC 6749 §10.5).</li>
+    <li><strong><code>redirect_uri</code> must be validated exactly.</strong> Partial match or wildcard allows open redirect — attacker can steal the code.</li>
+    <li><strong><code>client_secret</code> must never appear in browser.</strong> Token exchange is back-channel only. If secret leaks, all tokens from that client are compromised.</li>
+    <li><strong>Code has short lifetime.</strong> RFC recommends ≤10 minutes. Reduces window for interception attacks.</li>
+  </ul>
+  <div class="qa-block"><div class="qa-q">QA — AUTHORIZATION CODE</div><div class="qa-a">① <code>state</code> absent or static: CSRF vulnerability. Verify state is random per request and verified on callback.<br>② Code reuse: Send same code twice → second call must return <code>invalid_grant</code>.<br>③ Modified <code>redirect_uri</code>: Change one character → AS must reject with <code>invalid_request</code>.<br>④ Expired code: Wait &gt;10 min, exchange → <code>invalid_grant</code>.<br>⑤ <code>client_secret</code> in browser logs: Verify token exchange calls never appear in browser network tab (back-channel only).<br>⑥ Token response validation: Verify <code>access_token</code>, <code>expires_in</code>, <code>refresh_token</code>, <code>scope</code> are present and correct.</div></div>
+
+  <h3>3.2 Authorization Code + PKCE  (RFC 7636)</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">WHEN TO USE</div>
+    <p>Public clients — SPAs, mobile apps, CLI tools — that cannot store a <code>client_secret</code>. Also recommended for confidential clients as an additional layer of defense. PKCE (Proof Key for Code Exchange, "pixie") extends Authorization Code with a dynamically generated proof that binds the code to the client that requested it. The client generates a <code>code_verifier</code>, computes <code>code_challenge = BASE64URL(SHA256(code_verifier))</code>, and sends the challenge upfront. When exchanging the code, the verifier is sent — the AS verifies the hash matches.</p>
+  </div>
+  <div class="flow">
+    <div class="flow-label">AUTHORIZATION CODE + PKCE — FULL FLOW</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">1</div><div class="flow-body"><div class="flow-actor">CLIENT (internal)</div><div class="flow-desc">Generate PKCE pair</div><div class="flow-code">code_verifier = random 43–128 char string
+code_challenge = BASE64URL(SHA256(code_verifier))</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">2</div><div class="flow-body"><div class="flow-actor">USER → BROWSER</div><div class="flow-desc">Clicks "Login"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">CLIENT → BROWSER</div><div class="flow-desc">Redirect to Authorization Endpoint with challenge</div><div class="flow-code">/authorize?response_type=code&amp;client_id=X&amp;redirect_uri=Y&amp;scope=Z&amp;state=S&amp;code_challenge=HASH&amp;code_challenge_method=S256</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">BROWSER → AUTH SERVER</div><div class="flow-desc"><code>GET /authorize</code> (user follows redirect)</div><div class="flow-note">AS stores <code>code_challenge</code> and <code>code_challenge_method</code> alongside the pending authorization</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → BROWSER</div><div class="flow-desc">Login + Consent page</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">6</div><div class="flow-body"><div class="flow-actor">USER → AUTH SERVER</div><div class="flow-desc">Authenticates and consents</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">7</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → BROWSER</div><div class="flow-desc">302 → <code>redirect_uri?code=AUTH_CODE&amp;state=S</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">8</div><div class="flow-body"><div class="flow-actor">BROWSER → CLIENT</div><div class="flow-desc"><code>GET /callback?code=AUTH_CODE</code>  (client verifies state)</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">9</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc"><code>POST /token</code>  (back-channel) — <strong>NO client_secret</strong></div><div class="flow-code">grant_type=authorization_code  code=AUTH_CODE  redirect_uri=Y  client_id=X  code_verifier=VERIFIER</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">10</div><div class="flow-body"><div class="flow-actor">AUTH SERVER (internal)</div><div class="flow-desc">Verify: <code>SHA256(code_verifier) == stored code_challenge</code></div><div class="flow-note">If match: issue tokens. If not: reject with <code>invalid_grant</code>.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">11</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">200 OK</div><div class="flow-code">{access_token, refresh_token, expires_in, scope}</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">12</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE SERVER</div><div class="flow-desc"><code>GET /api/data  Authorization: Bearer {access_token}</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">13</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → CLIENT</div><div class="flow-desc">200 OK  {data}</div></div></div>
+  </div>
+
+  <h3>What changes vs plain Authorization Code</h3>
+  <table class="tbl">
+    <tr><th>Step</th><th>Authorization Code</th><th>Authorization Code + PKCE</th></tr>
+    <tr><td>Before redirect</td><td>Nothing</td><td>Client generates <code>code_verifier</code> and <code>code_challenge</code></td></tr>
+    <tr><td>GET /authorize</td><td><code>client_id</code>, <code>scope</code>, <code>state</code></td><td>Same + <code>code_challenge</code> + <code>code_challenge_method=S256</code></td></tr>
+    <tr><td>POST /token</td><td><code>code</code> + <code>client_secret</code></td><td><code>code</code> + <code>code_verifier</code> (no <code>client_secret</code> for public clients)</td></tr>
+    <tr><td>AS validates</td><td><code>client_secret</code> matches registration</td><td><code>SHA256(code_verifier) == stored code_challenge</code></td></tr>
+  </table>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">ATTACK MITIGATED BY PKCE — CODE INTERCEPTION ATTACK</div>
+    <p>Without PKCE, a malicious app on the same device (mobile) or an XSS attacker (SPA) can intercept the authorization code in the redirect and exchange it for tokens. PKCE mitigates this because the attacker does not know the <code>code_verifier</code> — even with the code, they cannot complete the exchange.</p>
+  </div>
+  <div class="qa-block"><div class="qa-q">QA — PKCE</div><div class="qa-a">① <code>code_challenge</code> missing (if PKCE enforced) → <code>invalid_request</code>.<br>② Wrong <code>code_verifier</code> at token exchange → <code>invalid_grant</code>.<br>③ <code>code_challenge_method=plain</code> → AS should reject or require S256 (plain is insecure).<br>④ <code>code_verifier</code> too short (&lt;43 chars) → <code>invalid_request</code>.<br>⑤ Reuse same <code>code_verifier</code> with second code → <code>invalid_grant</code> (code already consumed).</div></div>
+
+  <h3>3.3 Deprecated Grant Types</h3>
+  <div class="callout callout-warn">
+    <div class="callout-label">IMPLICIT GRANT — RFC 6749 §4.2 — DEPRECATED</div>
+    <p>Designed for browser-based SPAs before PKCE existed. Returned <code>access_token</code> directly in the URL redirect fragment (<code>#access_token=...</code>). Exposed tokens to browser history, Referer headers, and any JavaScript on the page (XSS). No refresh token permitted. No client authentication.<br><br>
+    <strong>Replaced by:</strong> Authorization Code + PKCE. Achieves the same goal without token exposure.</p>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">RESOURCE OWNER PASSWORD CREDENTIALS (ROPC) — RFC 6749 §4.3 — DEPRECATED</div>
+    <p>Client collects the user's username and password directly and posts them to the Token Endpoint. Violates the core OAuth principle that credentials must never pass through a third-party app. No consent screen. MFA impossible. Risk of credential logging.<br><br>
+    <strong>Replaced by:</strong> Any redirect-based flow. If absolutely unavoidable (first-party app only), treat as a migration target.</p>
+  </div>
+
+  <h3>3.4 Client Credentials  (RFC 6749 §4.4)</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">WHEN TO USE</div>
+    <p>Machine-to-machine (M2M) — microservices calling each other, background jobs, CI/CD pipelines. There is no resource owner interaction. The Client authenticates itself to the Authorization Server and receives an access token directly. There is no refresh token in this flow — when the token expires, the client simply requests a new one using the same credentials.</p>
+  </div>
+  <div class="flow">
+    <div class="flow-label">CLIENT CREDENTIALS — FULL FLOW</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">CLIENT SERVICE → AUTH SERVER</div><div class="flow-desc"><code>POST /token</code>  (client authenticates itself)</div><div class="flow-code">grant_type=client_credentials  client_id=SERVICE_ID  client_secret=SERVICE_SECRET  scope=api:read</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER (internal)</div><div class="flow-desc">Verify <code>client_id</code> + <code>client_secret</code>, check scope permissions.</div><div class="flow-note">No user involved. Token <code>sub</code> claim = <code>client_id</code>.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">3</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT SERVICE</div><div class="flow-desc">200 OK</div><div class="flow-code">{access_token, token_type:"Bearer", expires_in, scope}
+No refresh_token issued.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">CLIENT SERVICE → RESOURCE SERVER</div><div class="flow-desc"><code>GET /api/internal-data  Authorization: Bearer {access_token}</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → CLIENT SERVICE</div><div class="flow-desc">200 OK  {data}</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">6</div><div class="flow-body"><div class="flow-actor">CLIENT SERVICE → AUTH SERVER</div><div class="flow-desc">When <code>access_token</code> expires — no refresh, just re-request. Same as Step 1.</div></div></div>
+  </div>
+  <h3>Security considerations — Client Credentials</h3>
+  <ul>
+    <li><strong><code>client_secret</code> must be protected like a password.</strong> Store in environment variables or secrets manager (Vault, AWS Secrets Manager). Never in code or config files checked into version control.</li>
+    <li><strong>Principle of least privilege on scope.</strong> Request only the scopes the service actually needs. A compromised token should not grant access to everything.</li>
+    <li><strong>Token expiry and rotation.</strong> Short expiry limits blast radius of a leaked token. Since no refresh token is used, expiry is the natural invalidation mechanism.</li>
+    <li><strong>No resource owner context.</strong> The <code>sub</code> claim in the JWT is the <code>client_id</code>, not a user ID. Resource server must not confuse M2M tokens with user tokens.</li>
+  </ul>
+  <div class="qa-block"><div class="qa-q">QA — CLIENT CREDENTIALS</div><div class="qa-a">① Wrong <code>client_secret</code> → <code>invalid_client</code>.<br>② Scope exceeds granted permissions → <code>invalid_scope</code>.<br>③ Expired <code>access_token</code> → Resource server returns 401. Client re-requests new token from /token. Verify no <code>refresh_token</code> is in the response.<br>④ <code>sub</code> claim in JWT: Must be <code>client_id</code>, not a user identifier.<br>⑤ Token scope enforcement: Request token with scope A. Verify it cannot access endpoint requiring scope B.<br>⑥ <code>client_secret</code> rotation: Rotate the secret in AS config. Verify old secret is rejected immediately. Verify new secret works.</div></div>
+
+  <h3>3.5 Device Authorization Grant  (RFC 8628) — Extension</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">WHEN TO USE</div>
+    <p>Devices with limited or no browser input — Smart TVs, game consoles, IoT devices, CLI tools. The device displays a short code and a URL. The user visits that URL on a second device (phone/laptop) and enters the code. The device polls the Token Endpoint until authorization completes. This is an extension grant (RFC 8628), fitting into the Extension Grant slot defined in RFC 6749 §4.5.</p>
+  </div>
+  <div class="flow">
+    <div class="flow-label">DEVICE AUTHORIZATION GRANT — FULL FLOW</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">DEVICE → AUTH SERVER</div><div class="flow-desc"><code>POST /device_authorization</code></div><div class="flow-code">client_id=DEVICE_APP_ID  scope=profile email</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">2</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → DEVICE</div><div class="flow-desc">200 OK</div><div class="flow-code">{device_code, user_code, verification_uri, expires_in, interval}
+device_code: opaque string  user_code: "ABCD-1234"
+verification_uri: "example.com/activate"  interval: 5</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">DEVICE → USER (display)</div><div class="flow-desc">Display: "Go to <strong>example.com/activate</strong> and enter <strong>ABCD-1234</strong>"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">4</div><div class="flow-body"><div class="flow-actor">USER → AUTH SERVER</div><div class="flow-desc">Opens <code>verification_uri</code> on phone/laptop: <code>GET /activate</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">5</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → USER</div><div class="flow-desc">Login + Enter <code>user_code</code> page</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">6</div><div class="flow-body"><div class="flow-actor">USER → AUTH SERVER</div><div class="flow-desc">Authenticates + enters ABCD-1234 + approves scope</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">7</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → USER</div><div class="flow-desc">Authorization complete</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">8</div><div class="flow-body"><div class="flow-actor">DEVICE → AUTH SERVER</div><div class="flow-desc"><code>POST /token</code>  [polling every 5s]</div><div class="flow-code">grant_type=urn:ietf:params:oauth:grant-type:device_code  device_code=DEVICE_CODE  client_id=X</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">9</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → DEVICE</div><div class="flow-desc">(While user has not acted) <code>400  error=authorization_pending</code></div><div class="flow-note">Device waits interval seconds and polls again</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">10</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → DEVICE</div><div class="flow-desc">(After user approves) 200 OK</div><div class="flow-code">{access_token, refresh_token, expires_in}</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">11</div><div class="flow-body"><div class="flow-actor">DEVICE → RESOURCE SERVER</div><div class="flow-desc"><code>GET /api/content  Authorization: Bearer {access_token}</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">12</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → DEVICE</div><div class="flow-desc">200 OK  {content}</div></div></div>
+  </div>
+
+  <h3>Polling error responses</h3>
+  <table class="tbl">
+    <tr><th>Error</th><th>Meaning</th><th>Device action</th></tr>
+    <tr><td><code>authorization_pending</code></td><td>User has not yet completed authorization</td><td>Continue polling at configured interval</td></tr>
+    <tr><td><code>slow_down</code></td><td>Device is polling too frequently</td><td>Increase polling interval by 5 seconds (and keep increased)</td></tr>
+    <tr><td><code>access_denied</code></td><td>User denied the request</td><td>Stop polling, notify user</td></tr>
+    <tr><td><code>expired_token</code></td><td>device_code has expired before user completed</td><td>Restart flow from step 1</td></tr>
+  </table>
+  <div class="qa-block"><div class="qa-q">QA — DEVICE AUTHORIZATION</div><div class="qa-a">① Polling too fast → AS returns <code>slow_down</code>. Verify device increases interval and does not keep hitting the same rate.<br>② <code>device_code</code> expired → <code>expired_token</code>.<br>③ User denies → <code>access_denied</code>. Device stops polling.<br>④ User enters wrong <code>user_code</code> → AS returns error, does not authorize.<br>⑤ Verify <code>user_code</code> is case-insensitive (RFC 8628 recommendation).</div></div>
+
+  <h3>3.6 Refresh Token  (RFC 6749 §6)</h3>
+  <p>The refresh token flow is not a grant type — it is a mechanism available within grant types that issue a refresh token (Authorization Code, Device Authorization). When the access token expires, the client uses the refresh token to obtain a new access token without requiring the user to re-authenticate.</p>
+  <div class="flow">
+    <div class="flow-label">REFRESH TOKEN FLOW</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE SERVER</div><div class="flow-desc"><code>GET /api/data  Authorization: Bearer {access_token}</code></div><div class="flow-note">Access token is expired</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--red-d);color:var(--red)">2</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → CLIENT</div><div class="flow-desc">401 Unauthorized</div><div class="flow-code">WWW-Authenticate: Bearer error="invalid_token" error_description="The access token expired"</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">3</div><div class="flow-body"><div class="flow-actor">CLIENT → AUTH SERVER</div><div class="flow-desc"><code>POST /token</code>  (use refresh token)</div><div class="flow-code">grant_type=refresh_token  refresh_token=REFRESH_TOKEN_VALUE  client_id=X  (client_secret if confidential)</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">4</div><div class="flow-body"><div class="flow-actor">AUTH SERVER → CLIENT</div><div class="flow-desc">200 OK  <code>{new_access_token, new_refresh_token, expires_in}</code></div><div class="flow-note">Old refresh token is INVALIDATED (rotation). New refresh token issued.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">5</div><div class="flow-body"><div class="flow-actor">CLIENT → RESOURCE SERVER</div><div class="flow-desc"><code>GET /api/data  Authorization: Bearer {new_access_token}</code></div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--green-d);color:var(--green)">6</div><div class="flow-body"><div class="flow-actor">RESOURCE SERVER → CLIENT</div><div class="flow-desc">200 OK  {data}</div></div></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">ROTATION (RFC 6749 §10.4, RECOMMENDED IN RFC 9700)</div>
+    <p>On each use, the refresh token is invalidated and a new one is issued. If an attacker steals a refresh token and uses it, the legitimate client will next present the now-invalidated token — the AS detects reuse, revokes all tokens from that session, and the attacker loses access.<br><br>
+    <strong>Without rotation:</strong> a stolen refresh token gives the attacker permanent access until it is manually revoked.</p>
+  </div>
+  <div class="callout callout-note">
+    <div class="callout-label">WHEN NO REFRESH TOKEN IS ISSUED</div>
+    <p>• <strong>Client Credentials grant:</strong> no refresh token. Service simply re-authenticates with <code>client_id</code> + <code>client_secret</code>.<br>
+    • <strong>Implicit grant (deprecated):</strong> spec explicitly prohibits refresh tokens.<br>
+    • Short-lived access-only sessions where re-authentication is intentional.</p>
+  </div>
+  <div class="qa-block"><div class="qa-q">QA — REFRESH TOKEN</div><div class="qa-a">① Used refresh token (rotation active): Re-send the old <code>refresh_token</code> → <code>invalid_grant</code>.<br>② Expired refresh token: Use after TTL → <code>invalid_grant</code>. User must re-authenticate.<br>③ Revoked refresh token: Revoke via /revoke, then attempt use → <code>invalid_grant</code>.<br>④ Refresh token sent to Resource Server: Verify it is rejected. Refresh token is only valid at Token Endpoint.<br>⑤ New access token works after refresh: Verify the new token is accepted by Resource Server.</div></div>
+
+  <h3>Part 4 — Security Reference  (RFC 6819, RFC 9700)</h3>
+  <p>Security requirements differ by grant type. This section maps threats to the grant types they affect and the controls that mitigate them.</p>
+
+  <h3>4.1 Threat matrix by grant type</h3>
+  <table class="tbl">
+    <tr><th>Threat</th><th>Affects</th><th>Mitigation</th></tr>
+    <tr><td>CSRF on authorization endpoint</td><td>Authorization Code, Implicit</td><td><code>state</code> parameter (random, session-bound, verified on callback)</td></tr>
+    <tr><td>Authorization code interception</td><td>Authorization Code</td><td>PKCE (<code>code_challenge</code> / <code>code_verifier</code>). Short code lifetime.</td></tr>
+    <tr><td>Code reuse</td><td>Authorization Code</td><td>AS enforces single-use. Rotate or revoke all tokens on double-use.</td></tr>
+    <tr><td>Open redirect</td><td>Authorization Code, Implicit</td><td>Exact <code>redirect_uri</code> matching. No wildcard or partial match.</td></tr>
+    <tr><td>Token leakage via URL</td><td>Implicit (deprecated)</td><td>Do not use Implicit. Use Authorization Code + PKCE.</td></tr>
+    <tr><td>Stolen access token</td><td>All grant types</td><td>Short expiry. Scope limitation. Bearer-only over HTTPS.</td></tr>
+    <tr><td>Stolen refresh token</td><td>Authorization Code, Device</td><td>Refresh token rotation. Secure storage (httpOnly cookie).</td></tr>
+    <tr><td>client_secret exposure</td><td>Authorization Code (confidential)</td><td>Never in browser code. Environment variables. Rotate periodically.</td></tr>
+    <tr><td>Password harvesting</td><td>ROPC (deprecated)</td><td>Do not use ROPC. Migrate to redirect-based flows.</td></tr>
+    <tr><td>user_code brute force</td><td>Device Authorization</td><td>Rate-limit verification attempts. Short <code>user_code</code> lifetime.</td></tr>
+    <tr><td>Audience confusion</td><td>All token consumers</td><td><code>aud</code> claim in JWT must specify this Resource Server. RS must validate.</td></tr>
+  </table>
+
+  <h3>4.2 Access token validation (Resource Server)</h3>
+  <p>The Resource Server must validate every access token independently, per RFC 6750. For JWT access tokens:</p>
+  <ul>
+    <li><strong>Signature:</strong> Verify using the AS's public key (RS256) or shared secret (HS256). Fetch the JWKS from the AS's well-known endpoint.</li>
+    <li><strong><code>exp</code> claim:</strong> Current time must be before expiry. Account for clock skew (≤60 seconds).</li>
+    <li><strong><code>aud</code> claim:</strong> Must contain this Resource Server's identifier. Prevents tokens issued for Service A from being accepted by Service B.</li>
+    <li><strong><code>iss</code> claim:</strong> Must match the known Authorization Server URL.</li>
+    <li><strong><code>scope</code> claim:</strong> Must include the required permission for the requested endpoint.</li>
+    <li><strong>Not before (<code>nbf</code>):</strong> If present, current time must be at or after this value.</li>
+  </ul>
+
+  <h3>4.3 Token storage in browser (Public Clients)</h3>
+  <table class="tbl">
+    <tr><th>Storage</th><th>XSS risk</th><th>CSRF risk</th><th>Lost on reload</th><th>Recommendation</th></tr>
+    <tr><td>localStorage</td><td>High — any JS reads it</td><td>Low</td><td>No</td><td>Avoid for tokens</td></tr>
+    <tr><td>sessionStorage</td><td>High — any JS reads it</td><td>Low</td><td>Yes</td><td>Avoid for tokens</td></tr>
+    <tr><td>httpOnly cookie</td><td>Low — JS cannot read</td><td>Medium</td><td>No</td><td>Recommended + SameSite=Strict</td></tr>
+    <tr><td>In-memory (JS var)</td><td>Low — no persistence</td><td>Low</td><td>Yes</td><td>Acceptable for access tokens in SPA</td></tr>
+  </table>
+  <div class="callout callout-info">
+    <div class="callout-label">PRACTICAL RECOMMENDATION</div>
+    <p><strong>Access token:</strong> Store in memory (JS variable). Short-lived, lost on page reload — use refresh token to get a new one.<br>
+    <strong>Refresh token:</strong> Store in httpOnly, Secure, SameSite=Strict cookie. Not accessible to JS. CSRF mitigation through SameSite.</p>
+  </div>
+
+  <h3>Part 5 — QA Master Checklist</h3>
+  <p>Organised by flow stage. Use this list when testing any OAuth 2.0 implementation.</p>
+
+  <h3>5.1 Authorization Endpoint (GET /authorize)</h3>
+  <table class="tbl">
+    <tr><th>Scenario</th><th>Expected result</th><th>Grant types</th></tr>
+    <tr><td>Missing <code>client_id</code></td><td>400  <code>invalid_request</code> or <code>unauthorized_client</code></td><td>All</td></tr>
+    <tr><td>Unknown <code>client_id</code></td><td>400  <code>unauthorized_client</code></td><td>All</td></tr>
+    <tr><td>Invalid or unregistered <code>redirect_uri</code></td><td>400  <code>invalid_request</code>. No redirect performed.</td><td>Auth Code, Implicit</td></tr>
+    <tr><td>Unknown scope value</td><td>302 to <code>redirect_uri?error=invalid_scope</code></td><td>Auth Code, Implicit</td></tr>
+    <tr><td>Missing <code>response_type</code></td><td>302 to <code>redirect_uri?error=invalid_request</code></td><td>Auth Code, Implicit</td></tr>
+    <tr><td>Unsupported <code>response_type</code></td><td>302 to <code>redirect_uri?error=unsupported_response_type</code></td><td>Auth Code, Implicit</td></tr>
+    <tr><td>PKCE: missing <code>code_challenge</code> (when required)</td><td>302 <code>?error=invalid_request</code></td><td>Auth Code + PKCE</td></tr>
+    <tr><td>PKCE: <code>code_challenge_method=plain</code></td><td>AS rejects or requires S256</td><td>Auth Code + PKCE</td></tr>
+    <tr><td>Valid request</td><td>302 to login/consent page</td><td>All redirect-based</td></tr>
+  </table>
+
+  <h3>5.2 Token Endpoint (POST /token)</h3>
+  <table class="tbl">
+    <tr><th>Scenario</th><th>Expected result</th><th>Grant types</th></tr>
+    <tr><td>Authorization code used twice</td><td>400  <code>invalid_grant</code></td><td>Auth Code</td></tr>
+    <tr><td>Authorization code expired (&gt;10 min)</td><td>400  <code>invalid_grant</code></td><td>Auth Code</td></tr>
+    <tr><td><code>redirect_uri</code> mismatch at token exchange</td><td>400  <code>invalid_grant</code></td><td>Auth Code</td></tr>
+    <tr><td>Wrong <code>client_secret</code></td><td>401  <code>invalid_client</code></td><td>Auth Code (confidential), Client Creds</td></tr>
+    <tr><td>PKCE: wrong <code>code_verifier</code></td><td>400  <code>invalid_grant</code></td><td>Auth Code + PKCE</td></tr>
+    <tr><td>PKCE: <code>code_verifier</code> too short (&lt;43 chars)</td><td>400  <code>invalid_request</code></td><td>Auth Code + PKCE</td></tr>
+    <tr><td>Unsupported <code>grant_type</code></td><td>400  <code>unsupported_grant_type</code></td><td>All</td></tr>
+    <tr><td>Scope exceeds granted permissions</td><td>400  <code>invalid_scope</code></td><td>Client Credentials</td></tr>
+    <tr><td>Expired <code>refresh_token</code></td><td>400  <code>invalid_grant</code></td><td>All with refresh</td></tr>
+    <tr><td>Refresh token used twice (rotation)</td><td>400  <code>invalid_grant</code></td><td>All with refresh</td></tr>
+    <tr><td>Valid exchange</td><td>200 <code>{access_token, expires_in, token_type, (refresh_token), scope}</code></td><td>All</td></tr>
+  </table>
+
+  <h3>5.3 Resource Server (protected endpoints)</h3>
+  <table class="tbl">
+    <tr><th>Scenario</th><th>Expected result</th></tr>
+    <tr><td>No Authorization header</td><td>401  <code>WWW-Authenticate: Bearer realm="..."</code></td></tr>
+    <tr><td>Invalid token (tampered payload)</td><td>401  <code>error=invalid_token</code></td></tr>
+    <tr><td>Expired access token</td><td>401  <code>error=invalid_token  error_description="expired"</code></td></tr>
+    <tr><td>Token with insufficient scope</td><td>403  <code>error=insufficient_scope</code></td></tr>
+    <tr><td>Token issued for wrong audience (<code>aud</code>)</td><td>401  <code>error=invalid_token</code></td></tr>
+    <tr><td>Token issued by unknown AS (<code>iss</code>)</td><td>401  <code>error=invalid_token</code></td></tr>
+    <tr><td>Refresh token sent to Resource Server</td><td>401  (only Token Endpoint should accept it)</td></tr>
+    <tr><td>Valid token, correct scope</td><td>200  resource data</td></tr>
+  </table>
+
+  <h3>5.4 End-to-end flow tests</h3>
+  <ul>
+    <li><strong>Happy path per grant type:</strong> Full flow from start to protected resource access returns 200 with correct data.</li>
+    <li><strong>Token refresh:</strong> Wait for access token to expire. Verify client automatically refreshes and retries. User is not prompted to re-login.</li>
+    <li><strong>Logout:</strong> After logout, refresh token is revoked. Attempt to use it → <code>invalid_grant</code>. Access token expires within its TTL.</li>
+    <li><strong>Scope enforcement:</strong> Token with scope A cannot access endpoint requiring scope B.</li>
+    <li><strong>Revocation:</strong> Revoke token via /revoke. Subsequent use returns 401.</li>
+    <li><strong>PKCE end-to-end:</strong> Full flow without <code>client_secret</code> succeeds. Attempt with intercepted code but wrong verifier fails.</li>
+  </ul>
+
+  <h3>5.5 Common interview mistakes</h3>
+  <div class="callout callout-warn">
+    <div class="callout-label">WRONG: "OAUTH IS AUTHENTICATION"</div>
+    <p>OAuth 2.0 is an authorization framework. It does not authenticate users — it grants permission. Authentication is provided by OpenID Connect, which is built on top of OAuth 2.0.</p>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">WRONG: "IMPLICIT GRANT FOR SPA"</div>
+    <p>Implicit grant is deprecated in OAuth 2.1. Modern SPAs use Authorization Code + PKCE. Implicit grant exposed tokens in URL fragments.</p>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">WRONG: "CLIENT_SECRET IN SPA JAVASCRIPT CODE"</div>
+    <p>SPAs are public clients. A <code>client_secret</code> in browser JavaScript is visible to anyone who reads the source code. Public clients use PKCE instead.</p>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">WRONG: "REFRESH TOKEN SENT TO THE API"</div>
+    <p>Refresh tokens are only valid at the Token Endpoint. Sending a refresh token to a Resource Server (API) is incorrect — the API should reject it with 401.</p>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-label">WRONG: "STATE IS OPTIONAL SO WE SKIP IT"</div>
+    <p>While RFC 6749 labels <code>state</code> as RECOMMENDED, omitting it is a CSRF vulnerability. In practice, <code>state</code> is mandatory for secure implementations.</p>
+  </div>
+  <div class="callout callout-info">
+    <div class="callout-label">CORRECT MAPPING</div>
+    <p><strong>Public Client (SPA, mobile)</strong> → Authorization Code + PKCE<br>
+    <strong>Confidential Client (server)</strong> → Authorization Code + <code>client_secret</code> (+ PKCE recommended)<br>
+    <strong>Machine-to-machine</strong> → Client Credentials<br>
+    <strong>TV / CLI / IoT</strong> → Device Authorization Grant (RFC 8628)<br>
+    <strong>Never use</strong> → Implicit, Resource Owner Password Credentials</p>
+  </div>
 </div>
 
 <hr class="sep">
