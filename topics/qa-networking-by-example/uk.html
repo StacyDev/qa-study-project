@@ -192,7 +192,10 @@ body.dark .row-moved{background:#2a0808}
 
 <!-- SIDEBAR -->
 <nav id="sidebar">
-  <div style="padding:.5rem 1rem 1rem"><strong style="font-size:.9rem">Network Debug</strong><br><span style="font-size:.7rem;color:var(--txt3)">Tutorial</span></div>
+  <div style="padding:.5rem 1rem .75rem;border-bottom:1px solid var(--border)">
+    <a href="../../index.html" style="font-size:.7rem;color:var(--txt3);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--txt3)'">← all topics</a>
+  </div>
+  <div style="padding:.5rem 1rem .75rem"><strong style="font-size:.9rem">Network Debug</strong><br><span style="font-size:.7rem;color:var(--txt3)">Tutorial</span></div>
 
   <div class="sb-title">Overview</div>
   <a class="sb-item active" onclick="return nav('home', this)" href="#">
