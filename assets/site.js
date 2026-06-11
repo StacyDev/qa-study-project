@@ -37,6 +37,22 @@ function setFont(font, e) {
   if (saved) setFont(saved);
 })();
 
+function setTheme(theme, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('light', theme === 'light');
+  var dEl = document.getElementById('opt-dark');
+  var lEl = document.getElementById('opt-light');
+  if (dEl) dEl.classList.toggle('active', theme !== 'light');
+  if (lEl) lEl.classList.toggle('active', theme === 'light');
+  setCookie('ui_theme', theme);
+  document.getElementById('settings-menu').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+(function(){
+  var savedTheme = getCookie('ui_theme');
+  if (savedTheme === 'light') setTheme('light');
+})();
+
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
