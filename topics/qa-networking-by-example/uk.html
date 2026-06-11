@@ -195,61 +195,61 @@ body.dark .row-moved{background:#2a0808}
   <div style="padding:.5rem 1rem 1rem"><strong style="font-size:.9rem">Network Debug</strong><br><span style="font-size:.7rem;color:var(--txt3)">Tutorial</span></div>
 
   <div class="sb-title">Overview</div>
-  <a class="sb-item active" onclick="nav('home')" href="#">
+  <a class="sb-item active" onclick="return nav('home', this)" href="#">
     <span class="sb-dot" style="background:#60a5fa"></span>Introduction
   </a>
-  <a class="sb-item" onclick="nav('osi-reference')" href="#">
+  <a class="sb-item" onclick="return nav('osi-reference', this)" href="#">
     <span class="sb-dot" style="background:#60a5fa"></span>OSI model — reference
   </a>
-  <a class="sb-item" onclick="nav('tree')" href="#">
+  <a class="sb-item" onclick="return nav('tree', this)" href="#">
     <span class="sb-dot" style="background:#60a5fa"></span>Network type tree
   </a>
-  <a class="sb-item" onclick="nav('switch-tables')" href="#">
+  <a class="sb-item" onclick="return nav('switch-tables', this)" href="#">
     <span class="sb-dot" style="background:#60a5fa"></span>Switch tables explained
   </a>
-  <a class="sb-item" onclick="nav('vlans-subnets')" href="#">
+  <a class="sb-item" onclick="return nav('vlans-subnets', this)" href="#">
     <span class="sb-dot" style="background:#60a5fa"></span>VLANs vs subnets
   </a>
 
   <div class="sb-title">Local network types</div>
-  <a class="sb-item" onclick="nav('t1')" href="#">
+  <a class="sb-item" onclick="return nav('t1', this)" href="#">
     <span class="sb-dot" style="background:#10b981"></span>1 — Loopback
   </a>
-  <a class="sb-item" onclick="nav('t2')" href="#">
+  <a class="sb-item" onclick="return nav('t2', this)" href="#">
     <span class="sb-dot" style="background:#10b981"></span>2 — Direct cable
   </a>
-  <a class="sb-item" onclick="nav('t3')" href="#">
+  <a class="sb-item" onclick="return nav('t3', this)" href="#">
     <span class="sb-dot" style="background:#10b981"></span>3 — Switched local
   </a>
-  <a class="sb-item child" onclick="nav('vlan-misconfig')" href="#">
+  <a class="sb-item child" onclick="return nav('vlan-misconfig', this)" href="#">
     <span class="sb-dot" style="background:#f59e0b"></span>↳ VLAN misconfiguration
   </a>
-  <a class="sb-item" onclick="nav('t4')" href="#">
+  <a class="sb-item" onclick="return nav('t4', this)" href="#">
     <span class="sb-dot" style="background:#10b981"></span>4 — Routed local
   </a>
 
   <div class="sb-title">Internet types</div>
-  <a class="sb-item" onclick="nav('t5')" href="#">
+  <a class="sb-item" onclick="return nav('t5', this)" href="#">
     <span class="sb-dot" style="background:#f59e0b"></span>5 — Direct P2P
   </a>
-  <a class="sb-item" onclick="nav('t6')" href="#">
+  <a class="sb-item" onclick="return nav('t6', this)" href="#">
     <span class="sb-dot" style="background:#f59e0b"></span>6 — Via central server
   </a>
-  <a class="sb-item" onclick="nav('t7')" href="#">
+  <a class="sb-item" onclick="return nav('t7', this)" href="#">
     <span class="sb-dot" style="background:#f59e0b"></span>7 — VPN tunnel
   </a>
-  <a class="sb-item" onclick="nav('t8')" href="#">
+  <a class="sb-item" onclick="return nav('t8', this)" href="#">
     <span class="sb-dot" style="background:#f59e0b"></span>8 — P2P with relay
   </a>
 
   <div class="sb-title">Debugging reference</div>
-  <a class="sb-item" onclick="nav('osi-debug')" href="#">
+  <a class="sb-item" onclick="return nav('osi-debug', this)" href="#">
     <span class="sb-dot" style="background:#a78bfa"></span>OSI layers — all checks
   </a>
-  <a class="sb-item" onclick="nav('commands')" href="#">
+  <a class="sb-item" onclick="return nav('commands', this)" href="#">
     <span class="sb-dot" style="background:#a78bfa"></span>Commands — Linux vs Windows
   </a>
-  <a class="sb-item" onclick="nav('tcp-udp')" href="#">
+  <a class="sb-item" onclick="return nav('tcp-udp', this)" href="#">
     <span class="sb-dot" style="background:#a78bfa"></span>TCP vs UDP &amp; ports
   </a>
   <button id="theme-btn" onclick="toggleNetTheme()"><span class="theme-icon" id="theme-icon">🌙</span><span id="theme-label">Dark mode</span></button>
@@ -1537,12 +1537,14 @@ function toggleNetTheme() {
 })();
 
 // ── Sidebar navigation ──
-function nav(id) {
+function nav(id, el) {
   document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
-  document.getElementById('pg-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
-  document.getElementById('main').scrollTop = 0;
+  var page = document.getElementById('pg-' + id);
+  if (page) page.classList.add('active');
+  if (el) el.classList.add('active');
+  var main = document.getElementById('main');
+  if (main) main.scrollTop = 0;
   return false;
 }
 
