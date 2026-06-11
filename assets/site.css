@@ -13,7 +13,7 @@
 body.light{
   --bg:#ffffff;--surface:#f4f5f7;--surface2:#eceef2;--surface3:#e4e6ea;
   --border:#e5e7eb;--border2:#d1d5db;
-  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
+  --text:#0f172a;--text2:#1e293b;--text3:#64748b;
   --cyan:#007a5e;--cyan-d:rgba(0,122,94,.08);--cyan-b:rgba(0,122,94,.2);
   --blue:#2563eb;--blue-d:rgba(37,99,235,.08);--blue-b:rgba(37,99,235,.2);
   --amber:#b45309;--amber-d:rgba(180,83,9,.08);--amber-b:rgba(180,83,9,.2);
