@@ -2,264 +2,190 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔌</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Network Debugging Tutorial</title>
+<title>QA Networking by Example</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#ffffff;--bg2:#f4f5f7;--bg3:#eceef2;
-  --txt:#0f172a;--txt2:#1e293b;--txt3:#64748b;
-  --border:#e5e7eb;--border2:#d1d5db;
-  --accent:#2563eb;--accent-bg:#eff6ff;
-  --sans:system-ui,-apple-system,sans-serif;
-  --mono:'SFMono-Regular',Consolas,monospace;
-  --r:8px;
-}
-@media(prefers-color-scheme:dark){:root{
-  --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;
-  --txt:#f3f4f6;--txt2:#9ca3af;--txt3:#6b7280;
-  --border:#2d3142;--border2:#3d4260;
-  --accent:#60a5fa;--accent-bg:#1e3a5f;
-}}
-
-body{font-family:var(--sans);background:var(--bg);color:var(--txt);display:flex;min-height:100vh}
-
-/* ── Sidebar ── */
-#sidebar{
-  width:260px;min-width:260px;background:var(--bg2);border-right:1px solid var(--border);
-  height:100vh;overflow-y:auto;position:sticky;top:0;padding:1rem 0;
-  display:flex;flex-direction:column;gap:0;
-}
-.sb-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);padding:.5rem 1rem .25rem;margin-top:.5rem}
-.sb-item{
-  display:flex;align-items:center;gap:8px;padding:6px 1rem;cursor:pointer;
-  font-size:.8rem;color:var(--txt2);border-left:3px solid transparent;
-  transition:all .15s;text-decoration:none;
-}
-.sb-item:hover{background:var(--bg3);color:var(--txt)}
-.sb-item.active{background:var(--accent-bg);color:var(--accent);border-left-color:var(--accent);font-weight:500}
-.sb-item.child{padding-left:2rem;font-size:.76rem}
-.sb-item.grandchild{padding-left:2.8rem;font-size:.73rem}
-.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-
-/* ── Main ── */
-#main{flex:1;overflow-y:auto;padding:2rem;max-width:820px}
-
-/* ── Sections ── */
 .section-page{display:none}
 .section-page.active{display:block}
-
-h1{font-size:1.4rem;font-weight:700;margin-bottom:.25rem}
-h2{font-size:1.1rem;font-weight:600;margin:1.5rem 0 .5rem}
-h3{font-size:.95rem;font-weight:600;margin:1.2rem 0 .4rem}
-.page-sub{font-size:.82rem;color:var(--txt3);margin-bottom:1.5rem}
-
-.label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin:1rem 0 .4rem}
-
-p{font-size:.85rem;color:var(--txt2);line-height:1.7;margin-bottom:.6rem}
-p strong{color:var(--txt);font-weight:600}
-
-/* ── Badges ── */
+h1{font-size:1.3rem;font-weight:700;margin-bottom:.25rem;color:var(--text)}
+h2{font-size:1rem;font-weight:600;margin:1.5rem 0 .4rem;color:var(--text)}
+.page-sub{font-size:.82rem;color:var(--text3);margin-bottom:1.5rem}
+.label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin:1rem 0 .4rem}
 .badge{font-size:.65rem;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;white-space:nowrap}
-.b-blue{background:#dbeafe;color:#1e40af} @media(prefers-color-scheme:dark){.b-blue{background:#1e3a5f;color:#93c5fd}}
-.b-green{background:#d1fae5;color:#065f46} @media(prefers-color-scheme:dark){.b-green{background:#04342c;color:#6ee7b7}}
-.b-orange{background:#ffedd5;color:#9a3412} @media(prefers-color-scheme:dark){.b-orange{background:#4a1b0c;color:#fca97a}}
-.b-red{background:#fee2e2;color:#991b1b} @media(prefers-color-scheme:dark){.b-red{background:#3a1008;color:#fca5a5}}
-.b-yellow{background:#fef3c7;color:#92400e} @media(prefers-color-scheme:dark){.b-yellow{background:#412402;color:#fcd34d}}
-.b-purple{background:#ede9fe;color:#5b21b6} @media(prefers-color-scheme:dark){.b-purple{background:#2e1065;color:#c4b5fd}}
-.b-gray{background:var(--bg3);color:var(--txt2)}
-
-/* ── Notes ── */
-.note{font-size:.8rem;color:var(--txt2);background:var(--bg2);border-left:3px solid var(--border2);padding:8px 12px;border-radius:0 var(--r) var(--r) 0;line-height:1.65;margin:8px 0}
-.note strong{color:var(--txt);font-weight:600}
-.note.info{border-left-color:#60a5fa}
-.note.warn{border-left-color:#f59e0b}
-.note.err{border-left-color:#ef4444}
-.note.good{border-left-color:#10b981}
-
-/* ── Code ── */
-code{font-family:var(--mono);font-size:.72rem;background:var(--bg2);color:var(--txt);padding:1px 6px;border-radius:4px;border:1px solid var(--border)}
-.code-block{font-family:var(--mono);font-size:.75rem;background:var(--bg2);color:var(--txt);padding:10px 14px;border-radius:var(--r);border:1px solid var(--border);margin:8px 0;line-height:1.7;white-space:pre}
-
-/* ── Path flow ── */
-.flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:10px 0}
+.b-blue{background:#1e3a5f;color:#93c5fd}
+.b-green{background:#04342c;color:#6ee7b7}
+.b-orange{background:#4a1b0c;color:#fca97a}
+.b-red{background:#3a1008;color:#fca5a5}
+.b-yellow{background:#412402;color:#fcd34d}
+.b-purple{background:#2e1065;color:#c4b5fd}
+.b-gray{background:var(--surface2);color:var(--text2)}
+body.light .b-blue{background:#dbeafe;color:#1e40af}
+body.light .b-green{background:#d1fae5;color:#065f46}
+body.light .b-orange{background:#ffedd5;color:#9a3412}
+body.light .b-red{background:#fee2e2;color:#991b1b}
+body.light .b-yellow{background:#fef3c7;color:#92400e}
+body.light .b-purple{background:#ede9fe;color:#5b21b6}
+.note{font-size:.8rem;color:var(--text2);background:var(--surface);border-left:3px solid var(--border2);padding:8px 12px;border-radius:0 4px 4px 0;line-height:1.65;margin:8px 0}
+.note strong{color:var(--text)}
+.note.info{border-left-color:var(--blue)}
+.note.warn{border-left-color:var(--amber)}
+.note.err{border-left-color:var(--red)}
+.note.good{border-left-color:var(--green)}
+.net-flow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:10px 0}
 .fbox{font-size:.72rem;font-weight:500;padding:4px 10px;border-radius:6px;white-space:nowrap}
-.farrow{font-size:1rem;color:var(--txt3)}
-.f-host{background:#dbeafe;color:#1e3a8a} @media(prefers-color-scheme:dark){.f-host{background:#1e3a5f;color:#93c5fd}}
-.f-sw{background:#d1fae5;color:#065f46} @media(prefers-color-scheme:dark){.f-sw{background:#04342c;color:#6ee7b7}}
-.f-router{background:#ede9fe;color:#5b21b6} @media(prefers-color-scheme:dark){.f-router{background:#2e1065;color:#c4b5fd}}
-.f-inet{background:var(--bg3);color:var(--txt2)}
-.f-server{background:#fce7f3;color:#9d174d} @media(prefers-color-scheme:dark){.f-server{background:#4b1528;color:#f9a8d4}}
-.f-drop{background:#fee2e2;color:#991b1b} @media(prefers-color-scheme:dark){.f-drop{background:#3a1008;color:#fca5a5}}
-.f-vpn{background:#ffedd5;color:#9a3412} @media(prefers-color-scheme:dark){.f-vpn{background:#4a1b0c;color:#fca97a}}
-
-/* ── Command table ── */
-.cmd-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.cmd-table th{text-align:left;font-weight:600;font-size:.7rem;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);color:var(--txt)}
-.cmd-table td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--txt2);vertical-align:top;line-height:1.5}
+.farrow{font-size:1rem;color:var(--text3)}
+.f-host{background:#1e3a5f;color:#93c5fd}
+.f-sw{background:#04342c;color:#6ee7b7}
+.f-router{background:#2e1065;color:#c4b5fd}
+.f-inet{background:var(--surface2);color:var(--text2)}
+.f-server{background:#4b1528;color:#f9a8d4}
+.f-drop{background:#3a1008;color:#fca5a5}
+.f-vpn{background:#4a1b0c;color:#fca97a}
+body.light .f-host{background:#dbeafe;color:#1e3a8a}
+body.light .f-sw{background:#d1fae5;color:#065f46}
+body.light .f-router{background:#ede9fe;color:#5b21b6}
+body.light .f-server{background:#fce7f3;color:#9d174d}
+body.light .f-drop{background:#fee2e2;color:#991b1b}
+body.light .f-vpn{background:#ffedd5;color:#9a3412}
+.cmd-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.cmd-table th{text-align:left;font-weight:600;font-size:.7rem;padding:6px 10px;background:var(--surface);border-bottom:1px solid var(--border);color:var(--text)}
+.cmd-table td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.5}
 .cmd-table tr:last-child td{border-bottom:none}
 .cmd-table code{font-size:.7rem}
-
-/* ── Switch diagram ── */
 .switch-wrap{display:flex;gap:1rem;flex-wrap:wrap;margin:10px 0}
-.switch-box{border:1px solid var(--border);border-radius:var(--r);padding:10px 14px}
-.switch-label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:10px}
+.switch-box{border:1px solid var(--border);border-radius:4px;padding:10px 14px}
+.switch-label{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
 .ports{display:flex;gap:10px;flex-wrap:wrap}
 .port{display:flex;flex-direction:column;align-items:center;gap:3px}
 .port-box{width:36px;height:28px;border-radius:4px;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600}
 .port-vlan{font-size:.62rem;font-weight:600;padding:1px 5px;border-radius:8px}
-.port-host{font-size:.62rem;color:var(--txt2)}
+.port-host{font-size:.62rem;color:var(--text2)}
 .pv10{border-color:#378ADD;color:#378ADD}.pv20{border-color:#D85A30;color:#D85A30}
-.pv10t{background:#dbeafe;color:#1e40af}.pv20t{background:#ffedd5;color:#9a3412}
-.pchanged{border-color:#D85A30!important;color:#D85A30!important;background:#ffedd5}
-@media(prefers-color-scheme:dark){
-  .pv10t{background:#1e3a5f;color:#93c5fd}.pv20t{background:#4a1b0c;color:#fca97a}
-  .pchanged{background:#4a1b0c!important}
-}
-
-/* ── CAM table ── */
-.cam-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-.cam-table th{text-align:left;font-weight:600;font-size:.7rem;padding:6px 10px;background:var(--bg2);border-bottom:1px solid var(--border);color:var(--txt)}
-.cam-table td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--txt2);vertical-align:middle}
+.pv10t{background:#1e3a5f;color:#93c5fd}.pv20t{background:#4a1b0c;color:#fca97a}
+.pchanged{border-color:#D85A30!important;color:#D85A30!important;background:#4a1b0c}
+body.light .pv10t{background:#dbeafe;color:#1e40af}
+body.light .pv20t{background:#ffedd5;color:#9a3412}
+body.light .pchanged{background:#ffedd5!important}
+.cam-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.cam-table th{text-align:left;font-weight:600;font-size:.7rem;padding:6px 10px;background:var(--surface);border-bottom:1px solid var(--border);color:var(--text)}
+.cam-table td{padding:6px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
 .cam-table tr:last-child td{border-bottom:none}
-.row-stale{background:#fffbeb} .row-gone{background:#fef2f2} .row-moved{background:#fff0f0}
-@media(prefers-color-scheme:dark){.row-stale{background:#2a1f00}.row-gone{background:#3a1008}.row-moved{background:#2a0808}}
+.row-stale{background:#2a1f00}.row-gone{background:#3a1008}.row-moved{background:#2a0808}
+body.light .row-stale{background:#fffbeb}
+body.light .row-gone{background:#fef2f2}
+body.light .row-moved{background:#fff0f0}
 .mac{font-family:var(--mono);font-size:.7rem}
-
-/* ── Accordion ── */
-.acc{border:1px solid var(--border);border-radius:var(--r);margin:8px 0;overflow:hidden}
-.acc-h{font-size:.8rem;font-weight:600;color:var(--txt);background:var(--bg2);padding:8px 12px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
+.acc{border:1px solid var(--border);border-radius:4px;margin:8px 0;overflow:hidden}
+.acc-h{font-size:.8rem;font-weight:600;color:var(--text);background:var(--surface);padding:8px 12px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center}
 .acc-h:hover{opacity:.85}
-.acc-b{font-size:.8rem;color:var(--txt2);padding:10px 12px;line-height:1.65;display:none}
+.acc-b{font-size:.8rem;color:var(--text2);padding:10px 12px;line-height:1.65;display:none}
 .acc-b.open{display:block}
-.acc-b strong{color:var(--txt);font-weight:600}
-.acc-chev{font-size:.65rem;color:var(--txt3);transition:transform .2s}
+.acc-b strong{color:var(--text)}
+.acc-chev{font-size:.65rem;color:var(--text3);transition:transform .2s}
 .acc-chev.open{transform:rotate(90deg)}
-
-/* ── Step nav ── */
 .step-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem}
-.step-btn{font-size:.7rem;font-weight:500;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--border);color:var(--txt2);background:transparent;transition:all .15s}
-.step-btn:hover{background:var(--bg2);color:var(--txt)}
-.step-btn.active{background:var(--bg2);color:var(--txt);border-color:var(--border2)}
+.step-btn{font-size:.7rem;font-weight:500;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:transparent;transition:all .15s}
+.step-btn:hover{background:var(--surface);color:var(--text)}
+.step-btn.active{background:var(--surface);color:var(--text);border-color:var(--border2)}
 .step-panel{display:none}.step-panel.active{display:block}
 .step-nav{display:flex;gap:8px;margin-top:1rem}
-.step-nav-btn{font-size:.75rem;font-weight:500;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid var(--border);color:var(--txt2);background:transparent}
-.step-nav-btn:hover{background:var(--bg2);color:var(--txt)}
-
-/* ── Tree diagram ── */
+.step-nav-btn{font-size:.75rem;font-weight:500;padding:5px 14px;border-radius:20px;cursor:pointer;border:1px solid var(--border);color:var(--text2);background:transparent}
+.step-nav-btn:hover{background:var(--surface);color:var(--text)}
 #tree-svg{width:100%;max-width:780px;display:block;margin:0 auto}
-
-/* ── Divider ── */
 hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
-
-/* ── Responsive ── */
-@media(max-width:700px){
-  #sidebar{display:none}
-  #main{padding:1rem}
-}
-/* ── Dark theme override (class-based, for manual toggle) ── */
-body.dark{
-  --bg:#0f1117;--bg2:#1a1d27;--bg3:#22263a;
-  --txt:#f3f4f6;--txt2:#9ca3af;--txt3:#6b7280;
-  --border:#2d3142;--border2:#3d4260;
-  --accent:#60a5fa;--accent-bg:#1e3a5f;
-}
-body.dark .b-blue{background:#1e3a5f;color:#93c5fd}
-body.dark .b-green{background:#04342c;color:#6ee7b7}
-body.dark .b-orange{background:#4a1b0c;color:#fca97a}
-body.dark .b-red{background:#3a1008;color:#fca5a5}
-body.dark .b-yellow{background:#412402;color:#fcd34d}
-body.dark .b-purple{background:#2e1065;color:#c4b5fd}
-body.dark .f-host{background:#1e3a5f;color:#93c5fd}
-body.dark .f-sw{background:#04342c;color:#6ee7b7}
-body.dark .f-router{background:#2e1065;color:#c4b5fd}
-body.dark .f-server{background:#4b1528;color:#f9a8d4}
-body.dark .f-drop{background:#3a1008;color:#fca5a5}
-body.dark .f-vpn{background:#4a1b0c;color:#fca97a}
-body.dark .pv10t{background:#1e3a5f;color:#93c5fd}
-body.dark .pv20t{background:#4a1b0c;color:#fca97a}
-body.dark .pchanged{background:#4a1b0c!important}
-body.dark .row-stale{background:#2a1f00}
-body.dark .row-gone{background:#3a1008}
-body.dark .row-moved{background:#2a0808}
-/* Theme toggle button */
-#theme-btn{margin-top:auto;display:flex;align-items:center;gap:7px;padding:.5rem 1rem;cursor:pointer;font-size:.75rem;color:var(--txt3);background:none;border:none;border-top:1px solid var(--border);width:100%;transition:color .15s}
-#theme-btn:hover{color:var(--txt)}
-#theme-btn .theme-icon{font-size:.9rem}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
-<nav id="sidebar">
-  <div style="padding:.5rem 1rem .75rem;border-bottom:1px solid var(--border)">
-    <a href="../../index.html" style="font-size:.7rem;color:var(--txt3);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--txt3)'">← all topics</a>
+<div class="disclaimer"><strong>Notes:</strong> Practical network debugging guide. Commands verified on common Linux distros and Windows 10/11. Always confirm the OS before running commands.</div>
+<nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← all topics</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">FONT</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-label">THEME</span>
+        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Dark (default)</div>
+        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Light</div>
+      </div>
+    </div>
   </div>
-  <div style="padding:.5rem 1rem .75rem"><strong style="font-size:.9rem">Network Debug</strong><br><span style="font-size:.7rem;color:var(--txt3)">Tutorial</span></div>
-
-  <div class="sb-title">Overview</div>
-  <a class="sb-item active" onclick="return nav('home', this)" href="#">
-    <span class="sb-dot" style="background:#60a5fa"></span>Introduction
-  </a>
-  <a class="sb-item" onclick="return nav('osi-reference', this)" href="#">
-    <span class="sb-dot" style="background:#60a5fa"></span>OSI model — reference
-  </a>
-  <a class="sb-item" onclick="return nav('tree', this)" href="#">
-    <span class="sb-dot" style="background:#60a5fa"></span>Network type tree
-  </a>
-  <a class="sb-item" onclick="return nav('switch-tables', this)" href="#">
-    <span class="sb-dot" style="background:#60a5fa"></span>Switch tables explained
-  </a>
-  <a class="sb-item" onclick="return nav('vlans-subnets', this)" href="#">
-    <span class="sb-dot" style="background:#60a5fa"></span>VLANs vs subnets
-  </a>
-
-  <div class="sb-title">Local network types</div>
-  <a class="sb-item" onclick="return nav('t1', this)" href="#">
-    <span class="sb-dot" style="background:#10b981"></span>1 — Loopback
-  </a>
-  <a class="sb-item" onclick="return nav('t2', this)" href="#">
-    <span class="sb-dot" style="background:#10b981"></span>2 — Direct cable
-  </a>
-  <a class="sb-item" onclick="return nav('t3', this)" href="#">
-    <span class="sb-dot" style="background:#10b981"></span>3 — Switched local
-  </a>
-  <a class="sb-item child" onclick="return nav('vlan-misconfig', this)" href="#">
-    <span class="sb-dot" style="background:#f59e0b"></span>↳ VLAN misconfiguration
-  </a>
-  <a class="sb-item" onclick="return nav('t4', this)" href="#">
-    <span class="sb-dot" style="background:#10b981"></span>4 — Routed local
-  </a>
-
-  <div class="sb-title">Internet types</div>
-  <a class="sb-item" onclick="return nav('t5', this)" href="#">
-    <span class="sb-dot" style="background:#f59e0b"></span>5 — Direct P2P
-  </a>
-  <a class="sb-item" onclick="return nav('t6', this)" href="#">
-    <span class="sb-dot" style="background:#f59e0b"></span>6 — Via central server
-  </a>
-  <a class="sb-item" onclick="return nav('t7', this)" href="#">
-    <span class="sb-dot" style="background:#f59e0b"></span>7 — VPN tunnel
-  </a>
-  <a class="sb-item" onclick="return nav('t8', this)" href="#">
-    <span class="sb-dot" style="background:#f59e0b"></span>8 — P2P with relay
-  </a>
-
-  <div class="sb-title">Debugging reference</div>
-  <a class="sb-item" onclick="return nav('osi-debug', this)" href="#">
-    <span class="sb-dot" style="background:#a78bfa"></span>OSI layers — all checks
-  </a>
-  <a class="sb-item" onclick="return nav('commands', this)" href="#">
-    <span class="sb-dot" style="background:#a78bfa"></span>Commands — Linux vs Windows
-  </a>
-  <a class="sb-item" onclick="return nav('tcp-udp', this)" href="#">
-    <span class="sb-dot" style="background:#a78bfa"></span>TCP vs UDP &amp; ports
-  </a>
-  <button id="theme-btn" onclick="toggleNetTheme()"><span class="theme-icon" id="theme-icon">🌙</span><span id="theme-label">Dark mode</span></button>
+  <button class="lang-btn active" id="lang-en">EN</button>
 </nav>
 
-<!-- MAIN CONTENT -->
-<main id="main">
+<div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidecat">Overview</div>
+  <a class="sidelink" data-sec="home" onclick="return nav('home', this)">
+    Introduction
+  </a>
+  <a class="sidelink" data-sec="osi-reference" onclick="return nav('osi-reference', this)">
+    OSI model — reference
+  </a>
+  <a class="sidelink" data-sec="tree" onclick="return nav('tree', this)">
+    Network type tree
+  </a>
+  <a class="sidelink" data-sec="switch-tables" onclick="return nav('switch-tables', this)">
+    Switch tables explained
+  </a>
+  <a class="sidelink" data-sec="vlans-subnets" onclick="return nav('vlans-subnets', this)">
+    VLANs vs subnets
+  </a>
+  <div class="sidecat">Local network types</div>
+  <a class="sidelink" data-sec="t1" onclick="return nav('t1', this)">
+    1 — Loopback
+  </a>
+  <a class="sidelink" data-sec="t2" onclick="return nav('t2', this)">
+    2 — Direct cable
+  </a>
+  <a class="sidelink" data-sec="t3" onclick="return nav('t3', this)">
+    3 — Switched local
+  </a>
+  <a class="sidelink" data-sec="vlan-misconfig" onclick="return nav('vlan-misconfig', this)" style="padding-left:28px">
+    ↳ VLAN misconfiguration
+  </a>
+  <a class="sidelink" data-sec="t4" onclick="return nav('t4', this)">
+    4 — Routed local
+  </a>
+  <div class="sidecat">Internet types</div>
+  <a class="sidelink" data-sec="t5" onclick="return nav('t5', this)">
+    5 — Direct P2P
+  </a>
+  <a class="sidelink" data-sec="t6" onclick="return nav('t6', this)">
+    6 — Via central server
+  </a>
+  <a class="sidelink" data-sec="t7" onclick="return nav('t7', this)">
+    7 — VPN tunnel
+  </a>
+  <a class="sidelink" data-sec="t8" onclick="return nav('t8', this)">
+    8 — P2P with relay
+  </a>
+  <div class="sidecat">Debugging reference</div>
+  <a class="sidelink" data-sec="osi-debug" onclick="return nav('osi-debug', this)">
+    OSI layers — all checks
+  </a>
+  <a class="sidelink" data-sec="commands" onclick="return nav('commands', this)">
+    Commands — Linux vs Windows
+  </a>
+  <a class="sidelink" data-sec="tcp-udp" onclick="return nav('tcp-udp', this)">
+    TCP vs UDP &amp; ports
+  </a>
+</nav>
+
+<main class="main" id="main">
+<div id="view-course" class="view active">
 
 <!-- HOME -->
 <div class="section-page active" id="pg-home">
@@ -485,14 +411,14 @@ show interface FastEthernet 0/2  ← shows which VLAN port 2 is assigned to</div
     <text x="120" y="188" text-anchor="middle" fill="#374151" font-size="10">3. Port reachable? (telnet)</text>
   </svg>
   <div class="note info"><strong>Branch: YES — you have access to the machine</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> No physical checks — loopback is a virtual interface. Skip directly to software.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check the application is running: <code>ps aux | grep &lt;service&gt;</code>. If the process is not in the list — start it. Nothing else matters if the process is dead.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Check the port is listening: <code>ss -tuln</code>. The port must be listed and bound to <code>127.0.0.1</code> or <code>0.0.0.0</code> — not a specific external IP which would make it unreachable on loopback.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Test the connection: <code>telnet 127.0.0.1 &lt;port&gt;</code>. Connected = working. Refused = nothing listening. Timeout = firewall rule blocking loopback traffic.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> If all above pass and it still fails — check application logs. The service may be running and listening but rejecting connections due to a configuration error or version mismatch.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> No physical checks — loopback is a virtual interface. Skip directly to software.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check the application is running: <code>ps aux | grep &lt;service&gt;</code>. If the process is not in the list — start it. Nothing else matters if the process is dead.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Check the port is listening: <code>ss -tuln</code>. The port must be listed and bound to <code>127.0.0.1</code> or <code>0.0.0.0</code> — not a specific external IP which would make it unreachable on loopback.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Test the connection: <code>telnet 127.0.0.1 &lt;port&gt;</code>. Connected = working. Refused = nothing listening. Timeout = firewall rule blocking loopback traffic.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> If all above pass and it still fails — check application logs. The service may be running and listening but rejecting connections due to a configuration error or version mismatch.</p>
   <div class="note warn"><strong>Branch: NO — no access to the machine</strong><br>You cannot debug loopback remotely. The problem is entirely inside a machine you cannot reach. Escalate to whoever manages that machine.</div>
   <hr>
-  <div class="flow">
+  <div class="net-flow">
     <span class="fbox f-host">Process A</span><span class="farrow">→</span>
     <span class="fbox f-sw">127.0.0.1 loopback (virtual)</span><span class="farrow">→</span>
     <span class="fbox f-host">Process B</span>
@@ -552,17 +478,17 @@ show interface FastEthernet 0/2  ← shows which VLAN port 2 is assigned to</div
   </svg>
 
   <div class="note info"><strong>Branch A: access to both hosts</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Physical first — NIC LEDs on both machines must be lit. Press cable firmly on both ends. If no LED — fix physical before anything else.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check interface state: <code>ip link show</code> on both. Must show UP with carrier. NO-CARRIER means no physical signal despite the cable being present.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Check IP addresses on both: <code>ip addr show</code>. Both must have IPs in the same subnet. No IP means DHCP was expected but there is no DHCP server — assign static IPs manually.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Run ping from Host A: <code>ping &lt;B-IP&gt;</code>. If ping succeeds — L1 through L3 confirmed. Move to L4: check listening ports and firewall.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>5.</strong> If ping fails — check ARP: <code>arp -a</code> on Host A. If Host B's MAC is missing, the problem is at L2 — cable, NIC, or IP subnet mismatch.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>6.</strong> If ping succeeds but application fails — check service running on Host B, port listening (<code>ss -tuln</code>), firewall rules (<code>iptables -L</code>), then application logs.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Physical first — NIC LEDs on both machines must be lit. Press cable firmly on both ends. If no LED — fix physical before anything else.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check interface state: <code>ip link show</code> on both. Must show UP with carrier. NO-CARRIER means no physical signal despite the cable being present.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Check IP addresses on both: <code>ip addr show</code>. Both must have IPs in the same subnet. No IP means DHCP was expected but there is no DHCP server — assign static IPs manually.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Run ping from Host A: <code>ping &lt;B-IP&gt;</code>. If ping succeeds — L1 through L3 confirmed. Move to L4: check listening ports and firewall.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>5.</strong> If ping fails — check ARP: <code>arp -a</code> on Host A. If Host B's MAC is missing, the problem is at L2 — cable, NIC, or IP subnet mismatch.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>6.</strong> If ping succeeds but application fails — check service running on Host B, port listening (<code>ss -tuln</code>), firewall rules (<code>iptables -L</code>), then application logs.</p>
 
   <div class="note warn"><strong>Branch B: own host only</strong><br>
   Check your own NIC LED and <code>ip link show</code>. Verify your static IP is configured correctly. Run <code>ping &lt;B-IP&gt;</code> — if no reply you cannot confirm whether the problem is your side, the cable, or Host B. You can only confirm your own configuration is correct and report that Host B is unreachable. Escalate for access to Host B.</div>
   <hr>
-  <div class="flow">
+  <div class="net-flow">
     <span class="fbox f-host">Host A</span><span class="farrow">→</span>
     <span class="fbox f-sw">Ethernet cable (direct)</span><span class="farrow">→</span>
     <span class="fbox f-host">Host B</span>
@@ -795,12 +721,12 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </svg>
 
   <div class="note info"><strong>Branch A: both hosts + switch access — full path</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Physical first — NIC LEDs on both hosts and switch port LEDs for both ports. Cable seated. If any light is off — fix physical before continuing.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Ping sanity test immediately: <code>ping &lt;B-IP&gt;</code> from Host A. If ping succeeds — L1, L2, L3 all confirmed. Skip to step 5. If ping fails — continue step by step.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> If ping failed — check VLAN and CAM table on the switch: <code>show vlan brief</code> and <code>show mac address-table</code>. Are both hosts in the same VLAN? Is Host B's MAC mapped to the correct port? A VLAN mismatch silently drops frames — nothing on the host side reveals this.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Check IP configuration on both hosts: <code>ip addr show</code>. Same subnet? Same prefix length? Run <code>traceroute &lt;B-IP&gt;</code> — Host B should appear at hop 1. If it appears via the gateway, the subnet mask is wrong.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>5.</strong> Once ping succeeds — check service on Host B: <code>ss -tuln</code> for listening ports, <code>telnet &lt;B-IP&gt; &lt;port&gt;</code> from Host A. Connected = L4 open. Refused = not listening. Timeout = firewall on Host B.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>6.</strong> If port reachable but application fails — check process running on Host B, check firewall rules (<code>iptables -L -n -v</code>), check TLS if encrypted, check application logs (<code>journalctl -u &lt;service&gt; -f</code>).</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Physical first — NIC LEDs on both hosts and switch port LEDs for both ports. Cable seated. If any light is off — fix physical before continuing.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Ping sanity test immediately: <code>ping &lt;B-IP&gt;</code> from Host A. If ping succeeds — L1, L2, L3 all confirmed. Skip to step 5. If ping fails — continue step by step.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> If ping failed — check VLAN and CAM table on the switch: <code>show vlan brief</code> and <code>show mac address-table</code>. Are both hosts in the same VLAN? Is Host B's MAC mapped to the correct port? A VLAN mismatch silently drops frames — nothing on the host side reveals this.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Check IP configuration on both hosts: <code>ip addr show</code>. Same subnet? Same prefix length? Run <code>traceroute &lt;B-IP&gt;</code> — Host B should appear at hop 1. If it appears via the gateway, the subnet mask is wrong.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>5.</strong> Once ping succeeds — check service on Host B: <code>ss -tuln</code> for listening ports, <code>telnet &lt;B-IP&gt; &lt;port&gt;</code> from Host A. Connected = L4 open. Refused = not listening. Timeout = firewall on Host B.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>6.</strong> If port reachable but application fails — check process running on Host B, check firewall rules (<code>iptables -L -n -v</code>), check TLS if encrypted, check application logs (<code>journalctl -u &lt;service&gt; -f</code>).</p>
 
   <div class="note warn"><strong>Branch B: both hosts, no switch access</strong><br>
   Follow the same steps but skip the switch checks entirely. You cannot verify VLAN or CAM table. If ping fails and all host-side configuration looks correct, a VLAN misconfiguration on the switch is a possible cause you cannot confirm — escalate to whoever manages the switch and describe what you observed: physical looks healthy, IP configuration correct, ping fails, no ARP response.</div>
@@ -808,7 +734,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <div class="note err"><strong>Branch C: own host only</strong><br>
   Check your NIC, your IP address, and your subnet mask. Run ping — if no reply you cannot determine whether the problem is your side, the cable, the switch, or Host B. Run <code>telnet &lt;B-IP&gt; &lt;port&gt;</code> — a refused or timeout result tells you the network path is partially working or blocked. Report your findings and escalate.</div>
   <hr>
-  <div class="flow">
+  <div class="net-flow">
     <span class="fbox f-host">Host A</span><span class="farrow">→</span>
     <span class="fbox f-sw">Switch (CAM + VLAN tables)</span><span class="farrow">→</span>
     <span class="fbox f-host">Host B</span>
@@ -879,7 +805,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
       <tr><td class="mac">CC:CC:CC:CC:CC:CC</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 3</td><td><span class="badge b-green">active</span></td></tr>
       <tr><td class="mac">DD:DD:DD:DD:DD:DD</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 4</td><td><span class="badge b-green">active</span></td></tr>
     </table>
-    <div class="flow"><span class="fbox f-host">Host A — VLAN 10</span><span class="farrow">→</span><span class="fbox f-sw">CAM: BB:BB → VLAN 10 → Port 2</span><span class="farrow">→</span><span class="fbox f-sw">Host B receives ✓</span></div>
+    <div class="net-flow"><span class="fbox f-host">Host A — VLAN 10</span><span class="farrow">→</span><span class="fbox f-sw">CAM: BB:BB → VLAN 10 → Port 2</span><span class="farrow">→</span><span class="fbox f-sw">Host B receives ✓</span></div>
     <div class="note good"><strong>How the CAM table was built:</strong> passively. When Host B sent any frame, the switch read the source MAC and wrote BB:BB → VLAN 10 → Port 2. There is no manual configuration. The switch learns from observed traffic only.</div>
   </div>
 
@@ -906,7 +832,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
       <tr><td class="mac">CC:CC:CC:CC:CC:CC</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 3</td><td><span class="badge b-green">active</span></td></tr>
       <tr><td class="mac">DD:DD:DD:DD:DD:DD</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 4</td><td><span class="badge b-green">active</span></td></tr>
     </table>
-    <div class="flow"><span class="fbox f-host">Host A — VLAN 10</span><span class="farrow">→</span><span class="fbox f-sw">CAM: BB:BB → VLAN 10 → Port 2</span><span class="farrow">→</span><span class="fbox f-drop">VLAN table: port 2 is now VLAN 20 — mismatch — frame dropped ✗</span></div>
+    <div class="net-flow"><span class="fbox f-host">Host A — VLAN 10</span><span class="farrow">→</span><span class="fbox f-sw">CAM: BB:BB → VLAN 10 → Port 2</span><span class="farrow">→</span><span class="fbox f-drop">VLAN table: port 2 is now VLAN 20 — mismatch — frame dropped ✗</span></div>
     <div class="note warn">The CAM table says deliver to port 2 via VLAN 10. The VLAN table says port 2 is VLAN 20. The switch resolves this contradiction by dropping the frame silently — no error, no notification. From Host A it looks like Host B simply stopped responding.</div>
   </div>
 
@@ -919,7 +845,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
       <tr><td class="mac">CC:CC:CC:CC:CC:CC</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 3</td><td><span class="badge b-green">active</span></td></tr>
       <tr><td class="mac">DD:DD:DD:DD:DD:DD</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 4</td><td><span class="badge b-green">active</span></td></tr>
     </table>
-    <div class="flow"><span class="fbox f-host">Host A — VLAN 10</span><span class="farrow">→</span><span class="fbox f-sw">CAM: BB:BB unknown — flood all VLAN 10 ports</span><span class="farrow">→</span><span class="fbox f-drop">Port 2 is VLAN 20 — excluded from VLAN 10 flood — Host B never receives ✗</span></div>
+    <div class="net-flow"><span class="fbox f-host">Host A — VLAN 10</span><span class="farrow">→</span><span class="fbox f-sw">CAM: BB:BB unknown — flood all VLAN 10 ports</span><span class="farrow">→</span><span class="fbox f-drop">Port 2 is VLAN 20 — excluded from VLAN 10 flood — Host B never receives ✗</span></div>
     <div class="note warn">The switch floods to all ports in VLAN 10. Port 2 is no longer in VLAN 10 so it is excluded from the flood. Host B never receives the frame, never replies, and the CAM entry is never rebuilt. Permanently broken until the port configuration is corrected.</div>
   </div>
 
@@ -941,7 +867,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <div class="step-panel" id="vlan-s5">
     <h3>What if Host B sends a frame?</h3>
     <p>Host B has no idea its port was moved. It sends a frame normally. Here is what happens to the CAM table.</p>
-    <div class="flow"><span class="fbox f-host">Host B sends frame</span><span class="farrow">→</span><span class="fbox f-sw">Arrives on port 2</span><span class="farrow">→</span><span class="fbox f-drop">Port 2 is VLAN 20 — switch tags frame as VLAN 20</span><span class="farrow">→</span><span class="fbox f-sw">CAM writes: BB:BB → VLAN 20 → Port 2</span></div>
+    <div class="net-flow"><span class="fbox f-host">Host B sends frame</span><span class="farrow">→</span><span class="fbox f-sw">Arrives on port 2</span><span class="farrow">→</span><span class="fbox f-drop">Port 2 is VLAN 20 — switch tags frame as VLAN 20</span><span class="farrow">→</span><span class="fbox f-sw">CAM writes: BB:BB → VLAN 20 → Port 2</span></div>
     <table class="cam-table"><tr><th>MAC</th><th>VLAN</th><th>Port</th><th>Status</th></tr>
       <tr><td class="mac">AA:AA:AA:AA:AA:AA</td><td><span class="badge b-blue">VLAN 10</span></td><td>Port 1</td><td><span class="badge b-green">active</span></td></tr>
       <tr class="row-moved"><td class="mac">BB:BB:BB:BB:BB:BB</td><td><span class="badge b-orange">VLAN 20</span></td><td>Port 2</td><td><span class="badge b-red">moved to VLAN 20 ⚠</span></td></tr>
@@ -1015,17 +941,17 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </svg>
 
   <div class="note info"><strong>Branch A: full access to both hosts and router</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Physical checks on both hosts — LEDs, interface state.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Ping sanity test: <code>ping &lt;B-IP&gt;</code>. If ping succeeds — routing is working. Go to L4.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> If ping fails — ping the gateway first: <code>ping &lt;gateway-IP&gt;</code>. If gateway does not reply — Host A cannot even leave its own subnet. Fix local config first.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Run <code>traceroute &lt;B-IP&gt;</code>. If it stops at the router — the router's firewall is blocking inter-subnet traffic. Check router ACL (access control list) rules.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>5.</strong> Verify routing table on Host A: <code>ip route show</code>. A route for Host B's subnet must exist via the internal router.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>6.</strong> Once ping succeeds — check port and application on Host B as per Type 3 steps.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Physical checks on both hosts — LEDs, interface state.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Ping sanity test: <code>ping &lt;B-IP&gt;</code>. If ping succeeds — routing is working. Go to L4.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> If ping fails — ping the gateway first: <code>ping &lt;gateway-IP&gt;</code>. If gateway does not reply — Host A cannot even leave its own subnet. Fix local config first.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Run <code>traceroute &lt;B-IP&gt;</code>. If it stops at the router — the router's firewall is blocking inter-subnet traffic. Check router ACL (access control list) rules.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>5.</strong> Verify routing table on Host A: <code>ip route show</code>. A route for Host B's subnet must exist via the internal router.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>6.</strong> Once ping succeeds — check port and application on Host B as per Type 3 steps.</p>
 
   <div class="note warn"><strong>Branches B and C: limited or no router access</strong><br>
   You can still run <code>traceroute</code> to see where the path breaks. If it stops at the router IP, you have identified the problem location even without router access. Report: "traceroute stops at router X.X.X.X — inter-subnet routing or firewall blocking suspected." Escalate to the network team with this specific observation.</div>
   <hr>
-  <div class="flow">
+  <div class="net-flow">
     <span class="fbox f-host">Host A</span><span class="farrow">→</span>
     <span class="fbox f-sw">Switch A</span><span class="farrow">→</span>
     <span class="fbox f-router">Internal router</span><span class="farrow">→</span>
@@ -1075,11 +1001,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </svg>
 
   <div class="note info"><strong>Branch A: you control Host B</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Confirm both sides have internet: <code>ping 8.8.8.8</code> from both machines.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Find Host B's public IP: <code>curl ifconfig.me</code> on Host B. This is the address Host A needs to connect to.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Verify port forwarding is configured on Host B's router — incoming traffic on your port must be forwarded to Host B's private IP. Without this, NAT blocks all inbound connections.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Test from Host A: <code>telnet &lt;B-public-IP&gt; &lt;port&gt;</code>. Connected = working. Timeout = port forwarding missing or ISP blocking that port.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> Check Host B's firewall allows inbound on that port. Check service is running and listening on Host B.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Confirm both sides have internet: <code>ping 8.8.8.8</code> from both machines.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Find Host B's public IP: <code>curl ifconfig.me</code> on Host B. This is the address Host A needs to connect to.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Verify port forwarding is configured on Host B's router — incoming traffic on your port must be forwarded to Host B's private IP. Without this, NAT blocks all inbound connections.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Test from Host A: <code>telnet &lt;B-public-IP&gt; &lt;port&gt;</code>. Connected = working. Timeout = port forwarding missing or ISP blocking that port.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> Check Host B's firewall allows inbound on that port. Check service is running and listening on Host B.</p>
   <div class="note warn"><strong>Branch B: you do not control Host B</strong><br>
   Confirm your internet works. Ping Host B's public IP — if no reply, either B is down, its firewall blocks ICMP, or NAT blocks inbound. Run <code>traceroute</code> to see where the path breaks. You cannot configure port forwarding or check Host B's firewall — report your observations and escalate.</div>
   <hr></div>
@@ -1116,11 +1042,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </svg>
 
   <div class="note info"><strong>Branch A: your own server</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Confirm internet: <code>ping 8.8.8.8</code> and gateway.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> DNS resolution: <code>nslookup &lt;server-hostname&gt;</code>. Must return an IP. Failure = DNS broken.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Port reachable: <code>telnet &lt;server&gt; 443</code>. Timeout = outbound port 443 blocked by your firewall or ISP.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Full test: <code>curl -v https://&lt;server&gt;</code>. Then check server-side logs for the actual error.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> Check TLS: <code>openssl s_client -connect &lt;server&gt;:443</code>. Certificate expired or hostname mismatch fails here.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Confirm internet: <code>ping 8.8.8.8</code> and gateway.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> DNS resolution: <code>nslookup &lt;server-hostname&gt;</code>. Must return an IP. Failure = DNS broken.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Port reachable: <code>telnet &lt;server&gt; 443</code>. Timeout = outbound port 443 blocked by your firewall or ISP.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Full test: <code>curl -v https://&lt;server&gt;</code>. Then check server-side logs for the actual error.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> Check TLS: <code>openssl s_client -connect &lt;server&gt;:443</code>. Certificate expired or hostname mismatch fails here.</p>
   <div class="note warn"><strong>Branch B: third-party server (Slack, Teams, etc.)</strong><br>
   Check the service status page first — status.slack.com, status.atlassian.com, etc. If the service is down, stop debugging locally. If the status page shows all green, check your own internet connectivity, DNS, and whether port 443 outbound is blocked. Run <code>traceroute &lt;server&gt;</code> — if the path stops at an internal IP, a corporate proxy is intercepting traffic.</div>
   <hr></div>
@@ -1157,11 +1083,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </svg>
 
   <div class="note info"><strong>Branch A: you manage the VPN server</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Confirm internet without VPN: <code>ping 8.8.8.8</code> with VPN disconnected. Must pass first.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check VPN server port is reachable: <code>nc -zvu &lt;vpn-server&gt; 1194</code>. Corporate firewalls frequently block VPN ports.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Connect VPN. Ping the VPN gateway's virtual IP. Reply = tunnel established.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Check routing table: <code>ip route show</code> — private range must route via VPN interface.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> Ping Host B's VPN IP. If fails — routing inside the tunnel is broken. Check VPN server config and pushed routes.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Confirm internet without VPN: <code>ping 8.8.8.8</code> with VPN disconnected. Must pass first.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check VPN server port is reachable: <code>nc -zvu &lt;vpn-server&gt; 1194</code>. Corporate firewalls frequently block VPN ports.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>3.</strong> Connect VPN. Ping the VPN gateway's virtual IP. Reply = tunnel established.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>4.</strong> Check routing table: <code>ip route show</code> — private range must route via VPN interface.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>5.</strong> Ping Host B's VPN IP. If fails — routing inside the tunnel is broken. Check VPN server config and pushed routes.</p>
   <div class="note warn"><strong>Branch B: client side only</strong><br>
   Confirm your internet works. Connect the VPN client. If it connects but tunnel is broken — ping the gateway virtual IP. If that fails, the VPN server is not routing. Escalate to whoever manages the VPN server with: "client connects, gateway ping fails, route to private network not working."</div>
   <hr></div>
@@ -1196,9 +1122,9 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </svg>
 
   <div class="note info"><strong>Branch A: connection works but quality is poor — relay fallback suspected</strong></div>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Open browser DevTools during an active call. Look at WebRTC stats — a "relay" candidate type confirms the call is going through a TURN relay server instead of connecting directly. This adds significant latency.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check whether STUN port is reachable: <code>nc -zvu &lt;stun-server&gt; 3478</code>. If blocked, direct connection negotiation cannot happen at all.</p>
-  <p style="font-size:.82rem;color:var(--txt2);line-height:1.7;margin-bottom:.8rem"><strong>3.</strong> Test from a different network (mobile hotspot vs corporate WiFi). Works better on home network = corporate firewall blocking UDP media ports. Escalate to network team to open required UDP port ranges.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>1.</strong> Open browser DevTools during an active call. Look at WebRTC stats — a "relay" candidate type confirms the call is going through a TURN relay server instead of connecting directly. This adds significant latency.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.4rem"><strong>2.</strong> Check whether STUN port is reachable: <code>nc -zvu &lt;stun-server&gt; 3478</code>. If blocked, direct connection negotiation cannot happen at all.</p>
+  <p style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem"><strong>3.</strong> Test from a different network (mobile hotspot vs corporate WiFi). Works better on home network = corporate firewall blocking UDP media ports. Escalate to network team to open required UDP port ranges.</p>
   <div class="note warn"><strong>Branch B: no connection at all</strong><br>
   Confirm basic internet works. Check whether the relay server itself is reachable: <code>telnet &lt;relay-server&gt; 443</code>. Check the application's status page — the relay infrastructure may be down. If all connectivity checks pass, the problem is likely in the application's authentication or session negotiation.</div>
   <hr>
@@ -1310,7 +1236,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <div style="overflow-x:auto;margin:1rem 0">
   <table style="width:100%;border-collapse:collapse;font-size:.8rem;min-width:700px">
     <thead>
-      <tr style="background:var(--bg2)">
+      <tr style="background:var(--surface)">
         <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700;white-space:nowrap">#</th>
         <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Layer name</th>
         <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Data unit</th>
@@ -1327,11 +1253,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#fce7f3;color:#9d174d;font-weight:700;font-size:.8rem;text-align:center;line-height:28px">7</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Application</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Data</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Web browsers, email clients, web servers, DNS servers, DHCP servers, application firewalls</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">HTTP, HTTPS, FTP, SMTP, IMAP, DNS, DHCP, SSH, WebSocket</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">The interface between the network and the software the user interacts with. Defines the rules for how applications exchange data — what a request looks like, what a response looks like, and what error codes mean. This is the layer where the actual meaning of the communication lives.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Application</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Data</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Web browsers, email clients, web servers, DNS servers, DHCP servers, application firewalls</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">HTTP, HTTPS, FTP, SMTP, IMAP, DNS, DHCP, SSH, WebSocket</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">The interface between the network and the software the user interacts with. Defines the rules for how applications exchange data — what a request looks like, what a response looks like, and what error codes mean. This is the layer where the actual meaning of the communication lives.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#fce7f3;color:#9d174d;white-space:nowrap">Application</span>
         </td>
@@ -1342,11 +1268,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#ede9fe;color:#5b21b6;font-weight:700;font-size:.8rem;text-align:center;line-height:28px">6</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Presentation</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Data</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">TLS/SSL libraries, encryption software, codec software</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">TLS, SSL, JPEG, MPEG, ASCII, UTF-8</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">Translates data between the format the application uses and the format the network needs. Handles three things: <strong>encryption</strong> (scrambling data so only the intended recipient can read it), <strong>compression</strong> (reducing the size of data before sending), and <strong>encoding</strong> (converting between character sets and data formats). TLS — the encryption used in HTTPS — lives here.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Presentation</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Data</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">TLS/SSL libraries, encryption software, codec software</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">TLS, SSL, JPEG, MPEG, ASCII, UTF-8</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">Translates data between the format the application uses and the format the network needs. Handles three things: <strong>encryption</strong> (scrambling data so only the intended recipient can read it), <strong>compression</strong> (reducing the size of data before sending), and <strong>encoding</strong> (converting between character sets and data formats). TLS — the encryption used in HTTPS — lives here.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#fce7f3;color:#9d174d;white-space:nowrap">Application</span>
         </td>
@@ -1357,11 +1283,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#ffedd5;color:#9a3412;font-weight:700;font-size:.8rem;text-align:center;line-height:28px">5</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Session</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Data</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Operating system session management, RPC frameworks, NetBIOS</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">NetBIOS, RPC, PPTP, SIP</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">Manages the lifecycle of a conversation between two applications — opening it, keeping it alive, and closing it cleanly. Controls whether communication is one-way, two-way alternating, or fully two-way simultaneous. In practice, TCP handles most of what OSI assigns to this layer, so L5 is rarely discussed separately in modern networks.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Session</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Data</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Operating system session management, RPC frameworks, NetBIOS</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">NetBIOS, RPC, PPTP, SIP</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">Manages the lifecycle of a conversation between two applications — opening it, keeping it alive, and closing it cleanly. Controls whether communication is one-way, two-way alternating, or fully two-way simultaneous. In practice, TCP handles most of what OSI assigns to this layer, so L5 is rarely discussed separately in modern networks.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#fce7f3;color:#9d174d;white-space:nowrap">Application</span>
         </td>
@@ -1372,11 +1298,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#fef3c7;color:#92400e;font-weight:700;font-size:.8rem;text-align:center;line-height:28px">4</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Transport</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Segment (TCP)<br>Datagram (UDP)</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Operating system network stack, firewalls (port-based), load balancers</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">TCP, UDP, SCTP</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">Delivers data between specific applications on two hosts, identified by port numbers. Manages two fundamental choices: <strong>TCP</strong> — reliable, ordered, connection-oriented delivery with acknowledgements and retransmission; or <strong>UDP</strong> — fast, connectionless, no delivery guarantee. Also handles breaking large messages into smaller pieces (segmentation) and reassembling them at the other end.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Transport</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Segment (TCP)<br>Datagram (UDP)</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Operating system network stack, firewalls (port-based), load balancers</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">TCP, UDP, SCTP</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">Delivers data between specific applications on two hosts, identified by port numbers. Manages two fundamental choices: <strong>TCP</strong> — reliable, ordered, connection-oriented delivery with acknowledgements and retransmission; or <strong>UDP</strong> — fast, connectionless, no delivery guarantee. Also handles breaking large messages into smaller pieces (segmentation) and reassembling them at the other end.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#fef3c7;color:#92400e;white-space:nowrap">Transport</span>
         </td>
@@ -1387,11 +1313,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#dbeafe;color:#1e40af;font-weight:700;font-size:.8rem;text-align:center;line-height:28px">3</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Network</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Packet</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Router, Layer 3 switch, firewall (IP-based)</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">IP (IPv4, IPv6), ICMP, ARP, OSPF, BGP</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">Handles logical addressing and routing — getting a packet from a source host to a destination host across different networks. Every device on the internet has an IP address at this layer. Routers operate here, reading the destination IP in each packet and deciding which direction to forward it. ARP technically bridges L2 and L3 — it translates IP addresses into MAC addresses so packets can be wrapped in frames.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Network</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Packet</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Router, Layer 3 switch, firewall (IP-based)</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">IP (IPv4, IPv6), ICMP, ARP, OSPF, BGP</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">Handles logical addressing and routing — getting a packet from a source host to a destination host across different networks. Every device on the internet has an IP address at this layer. Routers operate here, reading the destination IP in each packet and deciding which direction to forward it. ARP technically bridges L2 and L3 — it translates IP addresses into MAC addresses so packets can be wrapped in frames.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1e40af;white-space:nowrap">Internet</span>
         </td>
@@ -1402,11 +1328,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#d1fae5;color:#065f46;font-weight:700;font-size:.8rem;text-align:center;line-height:28px">2</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Data Link</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Frame</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Network switch (Layer 2), NIC (MAC sublayer), Wi-Fi access point, bridge</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Ethernet, Wi-Fi (802.11), PPP, MAC addressing, VLANs (802.1Q)</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">Handles node-to-node delivery within the same local network using MAC addresses — the hardware identifiers burned into each NIC. Takes packets from L3, wraps them in frames with source and destination MAC addresses, and delivers them to the correct device on the local segment. The switch operates here, using its CAM table to forward frames only to the right port. VLANs also live here — they are a logical segmentation applied at this layer.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Data Link</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Frame</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Network switch (Layer 2), NIC (MAC sublayer), Wi-Fi access point, bridge</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Ethernet, Wi-Fi (802.11), PPP, MAC addressing, VLANs (802.1Q)</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">Handles node-to-node delivery within the same local network using MAC addresses — the hardware identifiers burned into each NIC. Takes packets from L3, wraps them in frames with source and destination MAC addresses, and delivers them to the correct device on the local segment. The switch operates here, using its CAM table to forward frames only to the right port. VLANs also live here — they are a logical segmentation applied at this layer.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#d1fae5;color:#065f46;white-space:nowrap">Network Access</span>
         </td>
@@ -1417,11 +1343,11 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;width:28px;height:28px;border-radius:6px;background:#f0fdf4;color:#166534;font-weight:700;font-size:.8rem;text-align:center;line-height:28px;border:1px solid #86efac">1</span>
         </td>
-        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--txt);white-space:nowrap">Physical</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--bg2);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Bit</span></td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Ethernet cable, fibre optic cable, NIC hardware, Wi-Fi antenna, hub, repeater</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2)">Ethernet (physical signalling), USB, Bluetooth (physical), DSL, SONET</td>
-        <td style="padding:10px 12px;vertical-align:top;color:var(--txt2);line-height:1.6">Transmits raw bits — ones and zeros — over a physical medium as electrical signals, light pulses, or radio waves. Has no concept of addresses, packets, or meaning. Its only job is to get a stream of bits from one end of a cable or wireless link to the other. Every other layer depends on this one working correctly first.</td>
+        <td style="padding:10px 12px;vertical-align:top;font-weight:600;color:var(--text);white-space:nowrap">Physical</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)"><span style="font-family:var(--mono);font-size:.72rem;background:var(--surface);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">Bit</span></td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Ethernet cable, fibre optic cable, NIC hardware, Wi-Fi antenna, hub, repeater</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2)">Ethernet (physical signalling), USB, Bluetooth (physical), DSL, SONET</td>
+        <td style="padding:10px 12px;vertical-align:top;color:var(--text2);line-height:1.6">Transmits raw bits — ones and zeros — over a physical medium as electrical signals, light pulses, or radio waves. Has no concept of addresses, packets, or meaning. Its only job is to get a stream of bits from one end of a cable or wireless link to the other. Every other layer depends on this one working correctly first.</td>
         <td style="padding:10px 12px;vertical-align:top">
           <span style="display:inline-block;font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#d1fae5;color:#065f46;white-space:nowrap">Network Access</span>
         </td>
@@ -1435,7 +1361,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <div style="overflow-x:auto;margin:1rem 0">
   <table style="width:100%;border-collapse:collapse;font-size:.8rem;min-width:500px">
     <thead>
-      <tr style="background:var(--bg2)">
+      <tr style="background:var(--surface)">
         <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">OSI layer</th>
         <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">TCP/IP layer</th>
         <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Why the difference</th>
@@ -1443,24 +1369,24 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
     </thead>
     <tbody>
       <tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:8px 12px;color:var(--txt2)">L7 Application<br>L6 Presentation<br>L5 Session</td>
+        <td style="padding:8px 12px;color:var(--text2)">L7 Application<br>L6 Presentation<br>L5 Session</td>
         <td style="padding:8px 12px;vertical-align:middle"><span style="display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#fce7f3;color:#9d174d">Application</span></td>
-        <td style="padding:8px 12px;color:var(--txt2);line-height:1.6">TCP/IP was designed by engineers building a real network, not a theoretical model. In practice, the distinction between session management, data formatting, and application logic is handled inside the application itself or its libraries — there is no separate device or protocol layer for each. So TCP/IP collapses all three into one.</td>
+        <td style="padding:8px 12px;color:var(--text2);line-height:1.6">TCP/IP was designed by engineers building a real network, not a theoretical model. In practice, the distinction between session management, data formatting, and application logic is handled inside the application itself or its libraries — there is no separate device or protocol layer for each. So TCP/IP collapses all three into one.</td>
       </tr>
       <tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:8px 12px;color:var(--txt2)">L4 Transport</td>
+        <td style="padding:8px 12px;color:var(--text2)">L4 Transport</td>
         <td style="padding:8px 12px;vertical-align:middle"><span style="display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#fef3c7;color:#92400e">Transport</span></td>
-        <td style="padding:8px 12px;color:var(--txt2);line-height:1.6">Direct one-to-one mapping. TCP and UDP operate here in both models.</td>
+        <td style="padding:8px 12px;color:var(--text2);line-height:1.6">Direct one-to-one mapping. TCP and UDP operate here in both models.</td>
       </tr>
       <tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:8px 12px;color:var(--txt2)">L3 Network</td>
+        <td style="padding:8px 12px;color:var(--text2)">L3 Network</td>
         <td style="padding:8px 12px;vertical-align:middle"><span style="display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1e40af">Internet</span></td>
-        <td style="padding:8px 12px;color:var(--txt2);line-height:1.6">Renamed "Internet" in TCP/IP to reflect that IP (Internet Protocol) is the specific protocol doing this job. Functionally identical.</td>
+        <td style="padding:8px 12px;color:var(--text2);line-height:1.6">Renamed "Internet" in TCP/IP to reflect that IP (Internet Protocol) is the specific protocol doing this job. Functionally identical.</td>
       </tr>
       <tr>
-        <td style="padding:8px 12px;color:var(--txt2)">L2 Data Link<br>L1 Physical</td>
+        <td style="padding:8px 12px;color:var(--text2)">L2 Data Link<br>L1 Physical</td>
         <td style="padding:8px 12px;vertical-align:middle"><span style="display:inline-block;font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px;background:#d1fae5;color:#065f46">Network Access</span></td>
-        <td style="padding:8px 12px;color:var(--txt2);line-height:1.6">TCP/IP treats the physical medium and frame delivery as a single concern — whatever is needed to get bits across a local link. OSI separates them because the distinction matters for hardware design. For network troubleshooting both layers are still debugged separately.</td>
+        <td style="padding:8px 12px;color:var(--text2);line-height:1.6">TCP/IP treats the physical medium and frame delivery as a single concern — whatever is needed to get bits across a local link. OSI separates them because the distinction matters for hardware design. For network troubleshooting both layers are still debugged separately.</td>
       </tr>
     </tbody>
   </table>
@@ -1506,63 +1432,29 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
 
 </div>
 
+</div><!-- end view-course -->
 </main>
+</div><!-- end layout -->
 
+<script src="../../assets/site.js"></script>
 <script>
-// ── Theme toggle (synced with main site via ui_theme cookie) ──
-function getCookie(name) {
-  const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-  return m ? m[1] : null;
-}
-function setCookie(name, value) {
-  const d = new Date();
-  d.setTime(d.getTime() + 365*24*60*60*1000);
-  document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
-}
-function applyNetTheme(theme) {
-  const dark = theme === 'dark';
-  document.body.classList.toggle('dark', dark);
-  const icon = document.getElementById('theme-icon');
-  const label = document.getElementById('theme-label');
-  if (icon) icon.textContent = dark ? '☀️' : '🌙';
-  if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
-}
-function toggleNetTheme() {
-  const isDark = document.body.classList.contains('dark');
-  const next = isDark ? 'light' : 'dark';
-  applyNetTheme(next);
-  setCookie('ui_theme', next);
-}
-(function() {
-  const saved = getCookie('ui_theme');
-  applyNetTheme(saved === 'dark' ? 'dark' : 'light');
-})();
-
-// ── Sidebar navigation ──
 function nav(id, el) {
   document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.sidelink').forEach(i => i.classList.remove('active'));
   var page = document.getElementById('pg-' + id);
   if (page) page.classList.add('active');
   if (el) el.classList.add('active');
-  var main = document.getElementById('main');
-  if (main) main.scrollTop = 0;
+  window.scrollTo(0, 0);
   return false;
 }
-
-// ── Accordion ──
 function acc(el) {
   const b = el.nextElementSibling;
   const c = el.querySelector('.acc-chev');
   const open = b.classList.toggle('open');
   c.classList.toggle('open', open);
 }
-
-// ── Step tabs (VLAN section) ──
 const stepCur = {};
 function stepShow(name, n) {
-  const prev = stepCur[name] || 0;
-  const panels = document.querySelectorAll('#vlan-s' + prev + ', [id^="' + name + '-s"]');
   document.querySelectorAll('[id^="' + name + '-s"]').forEach(p => p.classList.remove('active'));
   const tabs = document.querySelectorAll('#vlan-tabs .step-btn');
   tabs.forEach(t => t.classList.remove('active'));
