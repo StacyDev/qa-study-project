@@ -131,6 +131,9 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
   <a class="sidelink" data-sec="home" onclick="return nav('home', this)">
     Introduction
   </a>
+  <a class="sidelink" data-sec="preflight" onclick="return nav('preflight', this)">
+    Pre-flight sanity checks
+  </a>
   <a class="sidelink" data-sec="osi-reference" onclick="return nav('osi-reference', this)">
     OSI model — reference
   </a>
@@ -204,6 +207,51 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
   </ol>
   <p>The bottom-up reference is most useful when you genuinely have no clue which layer is broken, or when a previous check at a higher layer already passed cleanly.</p>
   <p>The second principle: <strong>know which device to run each check on</strong>. Running <code>ss -tuln</code> on Host A tells you nothing about whether Host B's service is listening. Every command in this tutorial is labelled with the correct host.</p>
+</div>
+
+<!-- PRE-FLIGHT -->
+<div class="section-page" id="pg-preflight">
+  <h1>Pre-flight sanity checks</h1>
+  <p class="page-sub">Run these before any low-level debugging. Some failures have nothing to do with the network stack — they are configuration or architecture mismatches that no amount of packet analysis will fix.</p>
+
+  <div class="note warn"><strong>Classic example:</strong> two PCs on a local network both have Slack installed. Ping between them works fine. But Slack routes all messages through Slack's central servers on the internet — and this network has no internet access. The local network is perfectly healthy; the problem is architectural. No low-level debug tool will reveal this.</div>
+
+  <h2>1. Communication architecture</h2>
+  <table class="cmd-table">
+    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
+    <tr><td>Direct vs relay</td><td>Does the app communicate directly between peers, or through a central server?</td><td>Check the app's documentation or architecture diagram. Direct = peer-to-peer (e.g. local file share). Relay = needs a central server reachable from both ends (e.g. Slack, Teams, most SaaS apps).</td></tr>
+    <tr><td>Server location</td><td>Is that central server on the local network or on the internet?</td><td>If internet-hosted: confirm internet access exists. If local: confirm the server host is reachable and the service is running on it.</td></tr>
+    <tr><td>Internet access required</td><td>Does this specific app require internet to function?</td><td><code>ping 8.8.8.8</code> — confirms basic internet reachability. <code>curl -s https://www.google.com</code> — confirms HTTPS works.</td></tr>
+  </table>
+
+  <h2>2. Service and application state</h2>
+  <table class="cmd-table">
+    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
+    <tr><td>App installed</td><td>Is the application actually installed on both hosts?</td><td>Check the application list / <code>which app</code> / <code>Get-Command app</code>.</td></tr>
+    <tr><td>Service running</td><td>Is the service/daemon running and not crashed?</td><td><code>systemctl status &lt;service&gt;</code> / <code>Get-Service &lt;name&gt;</code> / <code>ps aux | grep &lt;name&gt;</code></td></tr>
+    <tr><td>Remote service status</td><td>Is the external server/service actually operational right now?</td><td>Check the vendor's status page (e.g. <code>status.slack.com</code>). Outages look exactly like network problems from the client side.</td></tr>
+    <tr><td>Version compatibility</td><td>Are both ends running compatible versions?</td><td>Check version numbers. A major version mismatch can prevent communication at the application protocol level even with perfect network connectivity.</td></tr>
+  </table>
+
+  <h2>3. Network access and routing</h2>
+  <table class="cmd-table">
+    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
+    <tr><td>Same network segment</td><td>Are both hosts actually on the same subnet / VLAN?</td><td><code>ipconfig /all</code> / <code>ip addr show</code> — compare subnet masks. Different VLANs may not route to each other even on the same switch.</td></tr>
+    <tr><td>DNS resolution</td><td>Can the app resolve the server's hostname?</td><td><code>nslookup &lt;server-hostname&gt;</code>. If DNS fails, the app cannot connect even with working internet. Corporate networks sometimes block external DNS.</td></tr>
+    <tr><td>Required ports open</td><td>Are the ports the app uses allowed through the local firewall or corporate network?</td><td>Check the app's required ports in its documentation. Test: <code>Test-NetConnection -ComputerName &lt;server&gt; -Port &lt;N&gt;</code> / <code>nc -zv &lt;server&gt; &lt;port&gt;</code>.</td></tr>
+    <tr><td>Proxy required</td><td>Does this network route traffic through a proxy the app must be configured for?</td><td>Check system proxy settings. Some apps (especially older desktop apps) ignore system proxy and need explicit configuration.</td></tr>
+    <tr><td>VPN interference</td><td>Is an active VPN rerouting traffic away from the intended destination?</td><td>Check VPN status. A split-tunnel VPN may route specific traffic through a tunnel that blocks other destinations.</td></tr>
+  </table>
+
+  <h2>4. Authentication and credentials</h2>
+  <table class="cmd-table">
+    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
+    <tr><td>Credentials valid</td><td>Are the login credentials correct and the account active?</td><td>Try logging in via the web interface or another device. An account that is locked, expired, or has an invalid token will fail at L7 — the connection itself is fine.</td></tr>
+    <tr><td>Clock synchronization</td><td>Are system clocks within tolerance?</td><td><code>w32tm /query /status</code> (Windows) / <code>timedatectl</code> (Linux). TLS and Kerberos authentication silently fail when clock skew exceeds ~5 minutes.</td></tr>
+    <tr><td>Certificate valid</td><td>Is the server certificate trusted and not expired?</td><td><code>curl -v https://&lt;server&gt;</code> — look for certificate errors. An expired cert causes HTTPS failures that look like generic connection failures.</td></tr>
+  </table>
+
+  <div class="note good"><strong>Decision point after pre-flight:</strong> if all checks above pass — internet accessible, app running on both ends, DNS resolves, ports reachable, credentials valid — the problem is genuinely in the network stack. Proceed with the triage strategy: physical check + ping to split the stack, then drill into the failing half.</div>
 </div>
 
 <!-- TREE -->
