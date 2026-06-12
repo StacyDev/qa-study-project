@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microservices Networking — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body>
+
+<div class="disclaimer"><strong>Notes:</strong> Personal study notes — simplified for clarity. Not a formal specification. Always verify behavior against a real system.</div>
+<nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← all topics</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">FONT</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-label">THEME</span>
+        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Dark (default)</div>
+        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Light</div>
+      </div>
+    </div>
+  </div>
+  <button class="lang-btn active" id="lang-en">EN</button>
+</nav>
+
+<div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidecat">Concepts</div>
+  <a class="sidelink" data-sec="s00" onclick="goTo('s00')">00 — What is microservice networking</a>
+  <a class="sidelink" data-sec="s01" onclick="goTo('s01')">01 — Setup types overview</a>
+
+  <div class="sidecat">By setup type</div>
+  <a class="sidelink" data-sec="s02" onclick="goTo('s02')">02 — Docker Compose (local)</a>
+  <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — Separate hosts</a>
+  <a class="sidelink" data-sec="s04" onclick="goTo('s04')">04 — Kubernetes cluster</a>
+  <a class="sidelink" data-sec="s05" onclick="goTo('s05')">05 — Hybrid (local + remote)</a>
+
+  <div class="sidecat">Diagnosis</div>
+  <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — Symptoms reference</a>
+  <a class="sidelink" data-sec="s07" onclick="goTo('s07')">07 — Debug workflow</a>
+
+  <div class="sidecat">Reference</div>
+  <a class="sidelink" data-sec="s08" onclick="goTo('s08')">08 — Commands cheatsheet</a>
+</nav>
+
+<main class="main">
+<div id="view-course" class="view active">
+
+<!-- ── 00 ── -->
+<div class="section" id="s00">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <span class="section-title">What is microservice networking</span>
+    <span class="tag tag-concept">CONCEPT</span>
+  </div>
+
+  <div class="intro">
+    In a microservices architecture, each service is a separate process — often a separate container or VM. Services must communicate over a network to do anything useful. Unlike a monolith where function calls are in-process, every service-to-service call crosses a network boundary and can fail for network reasons.
+  </div>
+
+  <h3>Key concepts</h3>
+  <table class="tbl">
+    <tr><th>Concept</th><th>What it means</th><th>Why it matters for QA</th></tr>
+    <tr><td><strong>Service discovery</strong></td><td>Mechanism by which Service A finds Service B's address at runtime. Can be internal DNS, environment variables, or a service registry.</td><td>If discovery is broken, services can't find each other — looks like a network failure but is a configuration issue.</td></tr>
+    <tr><td><strong>Internal DNS</strong></td><td>DNS resolver available only inside the container network or cluster. Resolves service names like <code>payment-service</code> to their current IP.</td><td>Works only inside the network. Calling a service name from your host machine will fail — it doesn't exist in external DNS.</td></tr>
+    <tr><td><strong>Health check endpoint</strong></td><td>An endpoint (<code>/health</code>, <code>/ping</code>) the service exposes to report whether it is alive and ready to handle traffic.</td><td>Used by load balancers and orchestrators to route traffic. A service can be running but unhealthy — still receives no traffic.</td></tr>
+    <tr><td><strong>Circuit breaker</strong></td><td>A pattern that stops routing calls to a service that keeps failing, to prevent cascading failures across the system.</td><td>A tripped circuit breaker returns errors immediately without attempting the network call — looks like the service is down.</td></tr>
+    <tr><td><strong>API Gateway</strong></td><td>A single entry point that receives external requests and routes them to the correct internal service.</td><td>Gateway errors (502, 504) usually mean the gateway itself is healthy but can't reach the upstream service.</td></tr>
+    <tr><td><strong>Service mesh</strong></td><td>Infrastructure layer (Istio, Linkerd) that proxies all service-to-service traffic via sidecars. Adds observability, retries, and mTLS.</td><td>If a service mesh is misconfigured, it silently drops traffic. Check sidecar proxy logs, not just the app logs.</td></tr>
+  </table>
+
+  <h3>How services find each other</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:var(--cyan)">INTERNAL DNS (Docker / Kubernetes)</div>
+      <div class="card-body">Service name resolves to its current IP automatically. <code>http://payment-service/charge</code> — no IP needed. Most common in container environments. Breaks if the service name doesn't exist, the service is in a different namespace, or the container is outside the network.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">ENVIRONMENT VARIABLES</div>
+      <div class="card-body">Address injected at startup: <code>PAYMENT_HOST=192.168.1.5</code>, <code>PAYMENT_PORT=8080</code>. Simple and explicit. Breaks when IPs change and the variable isn't updated — service silently calls the wrong host.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--amber)">SERVICE REGISTRY (Consul, Eureka)</div>
+      <div class="card-body">Services register themselves on startup; callers query the registry to get the current address. More dynamic than env vars. Breaks if the service fails to register, or the registry itself is unreachable.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--purple)">HARDCODED CONFIG</div>
+      <div class="card-body">Explicit IP or hostname in a config file. Easy to set up, fragile in practice. Common in early-stage projects. Breaks on any IP change, redeployment to a different host, or environment switch.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">CRITICAL DISTINCTION — NETWORK ERROR vs APPLICATION ERROR</div>
+    <p><strong>TCP connection never established</strong> (ECONNREFUSED, ETIMEDOUT, ENOTFOUND) → the problem is in the <strong>network layer</strong> — DNS, routing, firewall, service not running, wrong port.<br><br>
+    <strong>TCP connection established, error response received</strong> (4xx, 5xx) → the network is working. The problem is in the <strong>application layer</strong> — wrong credentials, missing data, app-level bug, or the app failing to reach its own dependency.</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 01 ── -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Setup types overview</span>
+    <span class="tag tag-concept">CONCEPT</span>
+  </div>
+
+  <div class="intro">
+    Microservices can run in several different configurations depending on the development or testing stage. Each setup has its own networking model, common failure modes, and debug toolset.
+  </div>
+
+  <table class="tbl">
+    <tr><th>Setup</th><th>Where services run</th><th>How they communicate</th><th>Service discovery</th><th>Typical use</th></tr>
+    <tr><td><strong>Docker Compose</strong></td><td>All containers on one machine</td><td>Docker bridge network — internal DNS by service name</td><td>Docker internal DNS (<code>service-name</code>)</td><td>Local development, local integration testing</td></tr>
+    <tr><td><strong>Separate hosts</strong></td><td>Different VMs or physical machines</td><td>Direct TCP over the network (IP:port) or via a reverse proxy</td><td>Hardcoded IP/hostname, /etc/hosts, or external DNS</td><td>Staging, simple production, legacy setups</td></tr>
+    <tr><td><strong>Kubernetes cluster</strong></td><td>Pods distributed across nodes</td><td>ClusterIP + Kubernetes internal DNS</td><td>Kubernetes DNS (<code>svc.namespace.svc.cluster.local</code>)</td><td>Production, cloud staging environments</td></tr>
+    <tr><td><strong>Hybrid</strong></td><td>Mix — some local, some on remote staging</td><td>VPN, SSH tunnel, or port-forward for cross-boundary calls</td><td>Combination: local Docker DNS + remote service URLs</td><td>Dev testing against a shared staging environment</td></tr>
+  </table>
+
+  <h3>Can microservices run on completely separate hosts?</h3>
+  <p>Yes — this is the multi-host setup. Each service runs on its own VM or physical server, connected over a network. This was common before containers became standard and still appears in staging environments, cloud VMs, or when services have different hardware requirements. The main challenges compared to Docker/Kubernetes: no automatic service discovery, firewall rules must be configured manually, and services must bind to <code>0.0.0.0</code> (not <code>127.0.0.1</code>) to accept connections from other hosts.</p>
+</div>
+
+<hr class="sep">
+
+<!-- ── 02 ── -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Docker Compose — local setup</span>
+    <span class="tag tag-component">DOCKER</span>
+  </div>
+
+  <div class="intro">
+    Docker Compose is the most common local microservices setup. All containers share a virtual bridge network created by Compose. Each service is reachable by its name in <code>docker-compose.yml</code> — no IPs needed. Internal DNS works only inside containers; calling service names from your host machine will fail.
+  </div>
+
+  <h3>How Docker networking works</h3>
+  <div class="flow">
+    <div class="flow-label">DOCKER COMPOSE NETWORK MODEL</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">DOCKER COMPOSE STARTS</div><div class="flow-desc">Creates a shared bridge network named <code>&lt;project&gt;_default</code>. All services in the file are attached to this network unless configured otherwise.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">2</div><div class="flow-body"><div class="flow-actor">SERVICE NAME = HOSTNAME</div><div class="flow-desc">Each service gets a hostname matching its name in the YAML. <code>payment-service</code> in the YAML → <code>http://payment-service:8080</code> is reachable from any other container on the same network.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">HOST MACHINE ACCESS</div><div class="flow-desc">From your host machine (outside Docker), service names don't resolve. You must use <code>localhost:mapped-port</code>. Mapped ports are declared in the <code>ports:</code> section of the YAML.</div><div class="flow-note">Example: <code>ports: "8080:80"</code> → accessible on your host as <code>localhost:8080</code></div></div></div>
+  </div>
+
+  <h3>Common issues and fixes</h3>
+  <table class="tbl">
+    <tr><th>Symptom</th><th>Root cause</th><th>Fix</th></tr>
+    <tr><td><code>ENOTFOUND service-name</code></td><td>Services are on different Docker networks, or the calling service is running outside Docker</td><td>Check <code>networks:</code> in docker-compose.yml — all services must share the same network. If calling from your host, use <code>localhost:mapped-port</code> instead.</td></tr>
+    <tr><td><code>ECONNREFUSED service-name:port</code></td><td>The target service is not running, has crashed, or is listening on a different port</td><td><code>docker ps</code> to confirm it's up. <code>docker logs &lt;container&gt;</code> for crash reason. Verify the internal port in the service's own config matches what you're calling.</td></tr>
+    <tr><td>Service A can't reach B, but B is running</td><td>B started but is not yet ready (still initializing), or A cached a failed DNS result before B was up</td><td>Add <code>depends_on</code> with <code>condition: service_healthy</code> in docker-compose.yml. Or restart A after B is fully up.</td></tr>
+    <tr><td>Works locally when calling <code>localhost</code>, fails in container</td><td><code>localhost</code> inside a container refers to the container itself, not your host machine</td><td>Use the service name instead of localhost. To reach your host from a container: <code>host.docker.internal</code> (Docker Desktop) or the host's bridge IP.</td></tr>
+    <tr><td>Intermittent timeouts between services</td><td>The target container is restarting (crash loop) or is under memory pressure and GC-pausing</td><td><code>docker stats</code> to check resource usage. <code>docker logs &lt;container&gt; --follow</code> to watch for restarts.</td></tr>
+  </table>
+
+  <h3>Debug commands</h3>
+  <div class="code">
+    <div class="code-label">DOCKER COMPOSE — ESSENTIAL DEBUG COMMANDS</div>
+    <pre><span class="cm"># Are all containers running?</span>
+docker ps
+docker compose ps
+
+<span class="cm"># Read logs from a specific service</span>
+docker compose logs payment-service
+docker compose logs --follow --tail=50 payment-service
+
+<span class="cm"># Test DNS resolution from inside a container</span>
+docker exec -it &lt;container-name&gt; nslookup payment-service
+
+<span class="cm"># Test HTTP connectivity from inside a container</span>
+docker exec -it &lt;container-name&gt; curl http://payment-service:8080/health
+
+<span class="cm"># Inspect the shared network — see all containers and their IPs</span>
+docker network ls
+docker network inspect &lt;project&gt;_default
+
+<span class="cm"># Open a shell inside a container to debug interactively</span>
+docker exec -it &lt;container-name&gt; sh</pre>
+  </div>
+
+  <div class="qa-block"><div class="qa-q">QA TEST ANGLES — DOCKER COMPOSE</div><div class="qa-a">① Verify <code>/health</code> endpoint of every service returns 200 before running integration tests — don't assume a running container is a healthy one.<br>② Test with one service deliberately stopped — the calling service should return a clear error, not hang indefinitely (timeout should be configured).<br>③ Check <code>depends_on</code> ordering — start services in wrong order and verify the stack recovers or fails with a clear message.<br>④ Test port conflicts: try starting the stack when another process is using a mapped port — Compose should fail with a clear error, not silently use a different port.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 03 ── -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Separate hosts — services on different machines</span>
+    <span class="tag tag-component">MULTI-HOST</span>
+  </div>
+
+  <div class="intro">
+    In a multi-host setup, each service (or group of services) runs on a separate VM or physical server. There is no automatic service discovery — services must be configured with the explicit addresses of their dependencies. Each machine is a separate network entity with its own firewall rules.
+  </div>
+
+  <h3>Critical: service binding address</h3>
+  <div class="callout callout-warn">
+    <div class="callout-label">MOST COMMON MULTI-HOST FAILURE</div>
+    <p>A service listening on <code>127.0.0.1:8080</code> is only reachable from the same machine. To accept connections from other hosts, the service must bind to <code>0.0.0.0:8080</code> (all interfaces) or the specific network interface IP.<br><br>
+    This is invisible from a running process perspective — the service appears healthy but is unreachable from any other host.</p>
+  </div>
+
+  <div class="code">
+    <div class="code-label">CHECK WHAT THE SERVICE IS BOUND TO</div>
+    <pre><span class="cm"># Linux — check listening sockets</span>
+ss -tuln | grep 8080
+<span class="cm"># 0.0.0.0:8080  → reachable from any host on the network ✓</span>
+<span class="cm"># 127.0.0.1:8080 → only reachable locally — THIS blocks multi-host access ✗</span>
+
+<span class="cm"># Windows</span>
+netstat -ano | findstr 8080</pre>
+  </div>
+
+  <h3>Common issues and fixes</h3>
+  <table class="tbl">
+    <tr><th>Symptom</th><th>Root cause</th><th>Fix</th></tr>
+    <tr><td><code>ETIMEDOUT</code> connecting to other host</td><td>Firewall on the target machine is blocking the port (silently drops packets)</td><td>From the calling host: <code>Test-NetConnection -ComputerName &lt;IP&gt; -Port &lt;N&gt;</code> / <code>nc -zv &lt;IP&gt; &lt;port&gt;</code>. Check firewall rules on the target: <code>iptables -L INPUT -n -v</code>.</td></tr>
+    <tr><td><code>ECONNREFUSED</code> connecting to other host</td><td>Service not running on the target, or bound to 127.0.0.1 only</td><td>SSH into target, check <code>ss -tuln</code>. If bound to 127.0.0.1, update the service's bind config.</td></tr>
+    <tr><td>DNS name doesn't resolve</td><td>No DNS entry for the hostname; hosts file not configured</td><td>Add a temporary entry to <code>/etc/hosts</code> (Linux) or <code>C:\Windows\System32\drivers\etc\hosts</code> (Windows) on the calling machine. Or use the IP directly to confirm connectivity first.</td></tr>
+    <tr><td>Works from the server itself, fails from another host</td><td>Service bound to 127.0.0.1 or firewall blocking the port</td><td>Check binding (see above). Check firewall.</td></tr>
+    <tr><td>SSL/TLS certificate errors</td><td>Certificate was issued for <code>localhost</code> or a different hostname</td><td>The cert's CN/SAN must match the hostname being called. Check with <code>openssl s_client -connect &lt;host&gt;:&lt;port&gt;</code>.</td></tr>
+    <tr><td>Connection works but is very slow</td><td>DNS reverse lookup on every connection, or routing goes through an unexpected path</td><td>Use <code>traceroute</code> / <code>tracert</code> to check the actual path. Disable DNS reverse lookup if not needed.</td></tr>
+  </table>
+
+  <h3>Firewall and connectivity checks</h3>
+  <div class="code">
+    <div class="code-label">CONNECTIVITY CHECK FROM CALLING HOST</div>
+    <pre><span class="cm"># Windows — test TCP port reachability</span>
+Test-NetConnection -ComputerName 192.168.1.50 -Port 8080
+
+<span class="cm"># Linux — test TCP port</span>
+nc -zv 192.168.1.50 8080
+<span class="cm"># or</span>
+telnet 192.168.1.50 8080
+
+<span class="cm"># Trace the route to the target</span>
+traceroute 192.168.1.50    <span class="cm"># Linux</span>
+tracert 192.168.1.50       <span class="cm"># Windows</span></pre>
+  </div>
+
+  <div class="code">
+    <div class="code-label">FIREWALL INSPECTION ON TARGET HOST (Linux)</div>
+    <pre><span class="cm"># List all input rules</span>
+iptables -L INPUT -n -v
+
+<span class="cm"># Check if a specific port is allowed</span>
+iptables -L INPUT -n -v | grep 8080</pre>
+  </div>
+
+  <div class="qa-block"><div class="qa-q">QA TEST ANGLES — MULTI-HOST</div><div class="qa-a">① From the calling host, test the target port directly before running any application tests — confirm basic TCP connectivity first.<br>② Verify the service is bound to the correct interface: <code>ss -tuln</code> must show <code>0.0.0.0:port</code>, not <code>127.0.0.1:port</code>.<br>③ Test from both directions — can A reach B AND can B reach A? Firewall rules are often asymmetric.<br>④ Verify DNS resolves to the correct IP on the calling host: <code>nslookup &lt;hostname&gt;</code> — stale /etc/hosts entries or DNS cache can point to old IPs after a server move.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 04 ── -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Kubernetes cluster</span>
+    <span class="tag tag-component">KUBERNETES</span>
+  </div>
+
+  <div class="intro">
+    In Kubernetes, services communicate via <strong>ClusterIP</strong> — a stable virtual IP assigned to each Service object. Kubernetes internal DNS resolves service names automatically. Services are not reachable from outside the cluster unless explicitly exposed. Pods are ephemeral — their IPs change on restart; always call the Service name, never the Pod IP.
+  </div>
+
+  <h3>Kubernetes DNS — how service names resolve</h3>
+  <table class="tbl">
+    <tr><th>Form</th><th>Example</th><th>Works from</th></tr>
+    <tr><td>Short name</td><td><code>payment-service</code></td><td>Same namespace only</td></tr>
+    <tr><td>Namespace-qualified</td><td><code>payment-service.payments</code></td><td>Any namespace in the cluster</td></tr>
+    <tr><td>Full DNS name</td><td><code>payment-service.payments.svc.cluster.local</code></td><td>Any namespace in the cluster</td></tr>
+  </table>
+
+  <h3>Service types — what is reachable from where</h3>
+  <table class="tbl">
+    <tr><th>Type</th><th>Reachable from</th><th>Use case</th></tr>
+    <tr><td><strong>ClusterIP</strong></td><td>Inside the cluster only</td><td>Default. Service-to-service calls within the cluster.</td></tr>
+    <tr><td><strong>NodePort</strong></td><td>Any machine that can reach a cluster node</td><td>Exposing a service for external testing without a load balancer.</td></tr>
+    <tr><td><strong>LoadBalancer</strong></td><td>Internet (via cloud provider load balancer)</td><td>Production external exposure.</td></tr>
+    <tr><td><strong>ExternalName</strong></td><td>Inside the cluster → resolves to external DNS</td><td>Aliasing an external service so internal code uses a consistent name.</td></tr>
+  </table>
+
+  <h3>Common issues and fixes</h3>
+  <table class="tbl">
+    <tr><th>Symptom</th><th>Root cause</th><th>Fix</th></tr>
+    <tr><td><code>ENOTFOUND service-name</code> from inside a pod</td><td>Wrong namespace — short name only works within the same namespace</td><td>Use the namespace-qualified name: <code>service-name.namespace</code>. Check <code>kubectl get svc -n &lt;namespace&gt;</code>.</td></tr>
+    <tr><td>Service exists, DNS resolves, but no response</td><td>Service has no healthy endpoints — pods are not running or don't match the selector</td><td><code>kubectl get endpoints &lt;service&gt; -n &lt;ns&gt;</code> — must not be empty. Check pod labels match service selector.</td></tr>
+    <tr><td>Intermittent failures (not 100%)</td><td>One pod is unhealthy but still in the endpoints list (readiness probe not configured or slow)</td><td><code>kubectl describe pod &lt;pod&gt;</code> — check Events and readiness probe status. Configure a proper readiness probe.</td></tr>
+    <tr><td>Works inside the cluster, not reachable from outside</td><td>Service type is ClusterIP — only accessible inside the cluster</td><td>Use <code>kubectl port-forward svc/&lt;name&gt; &lt;local-port&gt;:&lt;service-port&gt;</code> for local testing. Change to NodePort/LoadBalancer for persistent external access.</td></tr>
+    <tr><td>Sudden failures after a new deployment</td><td>New pods receive traffic before they are ready (no readiness probe)</td><td>Add a <code>readinessProbe</code> to the deployment. Traffic is only sent to pods that pass the probe.</td></tr>
+    <tr><td>Connection silently blocked between specific services</td><td>NetworkPolicy is restricting traffic between namespaces or pod selectors</td><td><code>kubectl get networkpolicies -n &lt;ns&gt;</code>. NetworkPolicy defaults to block-all if any policy exists in the namespace.</td></tr>
+    <tr><td>Service mesh sidecar errors (Istio/Linkerd)</td><td>mTLS misconfiguration, sidecar not injected, policy mismatch</td><td>Check sidecar logs: <code>kubectl logs &lt;pod&gt; -c istio-proxy</code>. Verify <code>PeerAuthentication</code> and <code>DestinationRule</code> policies.</td></tr>
+  </table>
+
+  <h3>Debug commands</h3>
+  <div class="code">
+    <div class="code-label">KUBERNETES — ESSENTIAL DEBUG COMMANDS</div>
+    <pre><span class="cm"># Are all pods running and ready?</span>
+kubectl get pods -n &lt;namespace&gt;
+kubectl describe pod &lt;pod-name&gt; -n &lt;namespace&gt;   <span class="cm"># look at Events section</span>
+
+<span class="cm"># Does the service exist and have healthy endpoints?</span>
+kubectl get svc -n &lt;namespace&gt;
+kubectl get endpoints &lt;service-name&gt; -n &lt;namespace&gt;  <span class="cm"># empty = no healthy pods</span>
+
+<span class="cm"># Test DNS resolution from inside a pod</span>
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- nslookup &lt;service-name&gt;
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- nslookup &lt;service-name&gt;.&lt;namespace&gt;.svc.cluster.local
+
+<span class="cm"># Test HTTP connectivity from inside a pod</span>
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- curl http://&lt;service-name&gt;/health
+
+<span class="cm"># Expose a ClusterIP service to your local machine for testing</span>
+kubectl port-forward svc/&lt;service-name&gt; 8080:80 -n &lt;namespace&gt;
+
+<span class="cm"># Stream pod logs</span>
+kubectl logs -f &lt;pod-name&gt; -n &lt;namespace&gt;
+kubectl logs &lt;pod-name&gt; -n &lt;namespace&gt; --previous   <span class="cm"># logs from crashed container</span>
+
+<span class="cm"># Check network policies</span>
+kubectl get networkpolicies -n &lt;namespace&gt;
+kubectl describe networkpolicy &lt;policy-name&gt; -n &lt;namespace&gt;</pre>
+  </div>
+
+  <div class="qa-block"><div class="qa-q">QA TEST ANGLES — KUBERNETES</div><div class="qa-a">① Always check <code>kubectl get endpoints</code> before concluding a service is broken — an empty endpoints list means no pod is passing its readiness probe, not a network problem.<br>② Test cross-namespace calls explicitly — a service name that works within a namespace fails silently from another namespace without the fully-qualified name.<br>③ Verify readiness probes are configured: deploy a version that takes 30s to start — traffic should not hit it until it's ready.<br>④ Test NetworkPolicy if present: deploy a pod in a restricted namespace and confirm it can reach only the allowed services and nothing else.<br>⑤ After a rollout, check that the old pods are fully terminated before considering the deploy complete — traffic can still hit terminating pods.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 05 ── -->
+<div class="section" id="s05">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <span class="section-title">Hybrid — local service + remote staging</span>
+    <span class="tag tag-component">HYBRID</span>
+  </div>
+
+  <div class="intro">
+    A hybrid setup runs one or two services locally (for active development) while the rest of the stack lives on a shared staging environment. The challenge is bridging two networks: your local machine and the remote cluster, in both directions.
+  </div>
+
+  <h3>Direction 1 — your local service calling remote services</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">APPROACH</div>
+    <p>Point your local service's environment variables at the remote service URLs directly. Most staging environments expose services via an ingress or load balancer with real URLs. No tunneling needed for outbound calls.</p>
+  </div>
+  <div class="code">
+    <div class="code-label">EXAMPLE — OVERRIDE CONFIG FOR LOCAL DEV</div>
+    <pre><span class="cm"># .env.local — override staging URLs</span>
+PAYMENT_SERVICE_URL=https://payment.staging.company.com
+AUTH_SERVICE_URL=https://auth.staging.company.com</pre>
+  </div>
+
+  <h3>Direction 2 — remote services calling your local service (callbacks, webhooks)</h3>
+  <p>This is the harder direction. Remote services can't reach <code>localhost</code>. Options:</p>
+  <table class="tbl">
+    <tr><th>Tool</th><th>How it works</th><th>Best for</th></tr>
+    <tr><td><strong>kubectl port-forward</strong></td><td>Tunnels a remote Kubernetes service port to your local machine. One-directional: local → remote.</td><td>Calling remote services from local. Does not solve remote → local callbacks.</td></tr>
+    <tr><td><strong>ngrok / localtunnel</strong></td><td>Creates a public URL that tunnels to your localhost port. Remote services call the ngrok URL; traffic forwards to your machine.</td><td>Webhook testing, OAuth callbacks, any scenario where the remote service must initiate the call.</td></tr>
+    <tr><td><strong>SSH reverse tunnel</strong></td><td><code>ssh -R 8080:localhost:8080 user@staging-server</code> — exposes your local port on the remote server.</td><td>When you have SSH access to the staging server and need it to call back.</td></tr>
+    <tr><td><strong>Mock / stub the local service</strong></td><td>Deploy a stub of your service to staging instead of trying to bridge networks.</td><td>When the callback logic is simple and can be stubbed.</td></tr>
+  </table>
+
+  <h3>Common issues</h3>
+  <table class="tbl">
+    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td>Local service can't reach staging</td><td>Staging is in a private network with no public endpoint</td><td>Connect VPN, or use <code>kubectl port-forward</code> to expose the service locally.</td></tr>
+    <tr><td>Works on your machine, fails when deployed</td><td>Hardcoded <code>localhost</code> URLs in config that don't exist in the cluster</td><td>Replace all <code>localhost</code> references with service names or env vars. Never hardcode <code>localhost</code> in shared config.</td></tr>
+    <tr><td>Authentication fails between environments</td><td>Different secrets, tokens, or signing keys per environment</td><td>Check environment-specific secrets. Confirm the token issued in one env is not being used in another.</td></tr>
+    <tr><td>Remote callbacks fail</td><td>Your local machine has no public IP; remote service can't initiate the connection</td><td>Use ngrok: <code>ngrok http 8080</code> — gives you a public URL that forwards to your local port.</td></tr>
+  </table>
+
+  <div class="qa-block"><div class="qa-q">QA TEST ANGLES — HYBRID</div><div class="qa-a">① Verify all env vars are pointing at the correct environment before testing — it's easy to accidentally run tests against production URLs in a hybrid config.<br>② Test the full request flow end-to-end with tracing or logging enabled to confirm which environment each service is in and that responses are from the expected source.<br>③ For webhook/callback scenarios: use ngrok and inspect its dashboard to see the exact request the remote service sends — useful for verifying payload format.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 06 ── -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">Symptoms reference — how to tell it's a network issue</span>
+    <span class="tag tag-testing">DIAGNOSIS</span>
+  </div>
+
+  <div class="intro">
+    The error message on the calling service tells you what happened at the TCP level. Learn to read these errors as precise diagnostic signals rather than generic "connection failed" messages.
+  </div>
+
+  <h3>TCP-level errors</h3>
+  <table class="tbl">
+    <tr><th>Error</th><th>Meaning</th><th>Where to look</th></tr>
+    <tr><td><code>ECONNREFUSED</code></td><td>TCP connection actively rejected by the target. The target host is reachable, but nothing is listening on that port — or a firewall sent a RST.</td><td>Is the service running? Is it listening on the right port and right interface (<code>0.0.0.0</code> not <code>127.0.0.1</code>)?</td></tr>
+    <tr><td><code>ETIMEDOUT</code> / request hangs</td><td>No response at all. Either the host is unreachable, or a firewall is silently dropping the packets.</td><td>Can you ping the host? Can you reach the port (<code>nc -zv</code>, <code>Test-NetConnection</code>)? Check firewall rules.</td></tr>
+    <tr><td><code>ECONNRESET</code></td><td>Connection was established but then forcibly closed mid-flight. The remote end sent a RST.</td><td>Proxy timeout, load balancer killing idle connections, app crashing during request, TLS mismatch.</td></tr>
+    <tr><td><code>ENOTFOUND &lt;hostname&gt;</code> / <code>getaddrinfo failed</code></td><td>DNS resolution failed — the hostname does not exist in the DNS this service is using.</td><td>Is the service name correct? Is the service in the right namespace (K8s)? Is the container on the right Docker network?</td></tr>
+    <tr><td><code>DEPTH_ZERO_SELF_SIGNED_CERT</code> / TLS errors</td><td>TLS certificate is self-signed, expired, or the hostname doesn't match the cert's CN/SAN.</td><td>Check cert with <code>openssl s_client -connect host:port</code>. Verify cert matches the hostname being called.</td></tr>
+  </table>
+
+  <h3>HTTP-level errors from a proxy or gateway</h3>
+  <table class="tbl">
+    <tr><th>Status</th><th>Meaning</th><th>Where to look</th></tr>
+    <tr><td><strong>502 Bad Gateway</strong></td><td>The proxy/gateway received an invalid response from the upstream service, or the upstream was unreachable.</td><td>Check the upstream service's logs and health. The proxy itself is healthy — its upstream is not.</td></tr>
+    <tr><td><strong>503 Service Unavailable</strong></td><td>No healthy upstream instances available. All instances failed health checks, or the service is at capacity.</td><td><code>kubectl get endpoints</code> (K8s) or check load balancer backend health. Scale up or fix failing pods.</td></tr>
+    <tr><td><strong>504 Gateway Timeout</strong></td><td>The proxy reached the upstream but got no response within the timeout. The upstream is alive but too slow or hanging.</td><td>Check upstream service logs for slow queries, locks, or high CPU. Increase timeout if the operation is legitimately slow.</td></tr>
+  </table>
+
+  <h3>Behavioral patterns that indicate network problems</h3>
+  <table class="tbl">
+    <tr><th>Pattern</th><th>What it suggests</th></tr>
+    <tr><td>Consistent ~30 second timeout</td><td>Default TCP timeout — the host exists but the port is silently dropped by a firewall. Not a slow service — the packet never arrived.</td></tr>
+    <tr><td>Works calling <code>localhost</code>, fails calling service name</td><td>Service discovery / DNS is broken. The service is healthy but not findable by name.</td></tr>
+    <tr><td>Intermittent failures (not 100%, retries fix it)</td><td>Load balancer routing traffic to an unhealthy pod. One instance is bad; others work. Check pod health.</td></tr>
+    <tr><td>A → B works, B → A fails</td><td>Asymmetric firewall rule or NetworkPolicy. Rules were only configured in one direction.</td></tr>
+    <tr><td>Works in local Docker, fails in Kubernetes</td><td>Namespace mismatch, NetworkPolicy blocking, or service not exposed correctly. K8s networking is stricter than Docker by default.</td></tr>
+    <tr><td>Works from one service, fails from another calling the same dependency</td><td>NetworkPolicy allows traffic from the first service's pod selector but not the second's. Or the second service has wrong env vars (different URL).</td></tr>
+    <tr><td>Failures only appear under load</td><td>Connection pool exhausted, too many concurrent connections hitting a limit, or one pod overwhelmed while others are fine.</td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<!-- ── 07 ── -->
+<div class="section" id="s07">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <span class="section-title">Debug workflow</span>
+    <span class="tag tag-testing">WORKFLOW</span>
+  </div>
+
+  <div class="intro">
+    A structured approach to diagnosing microservice network failures. Start with quick checks that rule out entire categories of problems before reaching for advanced tooling.
+  </div>
+
+  <h3>Step 1 — Identify which call is failing</h3>
+  <p>Determine the exact service-to-service call that fails. Check the logs of the <strong>calling service</strong> — it reports what happened at the TCP level. The called service may show nothing because the connection never arrived.</p>
+  <div class="callout callout-note">
+    <div class="callout-label">KEY PRINCIPLE</div>
+    <p>Read logs on the service that is <strong>making</strong> the call, not the one being called. The error message is on the caller's side. The called service sees nothing if the packet never arrived.</p>
+  </div>
+
+  <h3>Step 2 — Pre-flight: rule out architectural mismatches</h3>
+  <ul>
+    <li>Does the app require internet? Does this environment have internet access?</li>
+    <li>Is the target service actually running? (<code>docker ps</code>, <code>kubectl get pods</code>, <code>systemctl status</code>)</li>
+    <li>Is the target service healthy? Call its <code>/health</code> endpoint directly.</li>
+    <li>Are credentials / tokens correct for this environment?</li>
+  </ul>
+
+  <h3>Step 3 — Triage the network layer</h3>
+  <div class="flow">
+    <div class="flow-label">NETWORK TRIAGE — SPLIT THE STACK WITH TWO CHECKS</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">TOP CHECK — Can you reach the service?</div><div class="flow-desc">From inside the calling container/pod, <code>curl http://service-name/health</code>. If it responds (any HTTP status), L1–L6 are working. The problem is at the application layer. If it fails with ENOTFOUND → DNS problem. If ECONNREFUSED → service not running or wrong port. If ETIMEDOUT → firewall/routing.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">B</div><div class="flow-body"><div class="flow-actor">MIDDLE CHECK — Does ping succeed?</div><div class="flow-desc"><code>ping &lt;service-name-or-IP&gt;</code>. Success confirms L1–L3 are healthy. If ping succeeds but curl fails → problem is at L4 (port, firewall rule) or L7 (app). If ping fails → problem is at L1–L3 (routing, DNS, physical).</div></div></div>
+  </div>
+
+  <h3>Step 4 — Drill down by setup type</h3>
+  <table class="tbl">
+    <tr><th>Setup</th><th>DNS check</th><th>Port check</th><th>Logs</th></tr>
+    <tr><td>Docker Compose</td><td><code>docker exec &lt;c&gt; nslookup service-name</code></td><td><code>docker exec &lt;c&gt; curl http://service-name:port/health</code></td><td><code>docker compose logs service-name</code></td></tr>
+    <tr><td>Separate hosts</td><td><code>nslookup &lt;hostname&gt;</code> on the calling machine</td><td><code>nc -zv &lt;IP&gt; &lt;port&gt;</code> / <code>Test-NetConnection</code></td><td>SSH into target, check app logs and <code>ss -tuln</code></td></tr>
+    <tr><td>Kubernetes</td><td><code>kubectl exec &lt;pod&gt; -- nslookup service.namespace</code></td><td><code>kubectl exec &lt;pod&gt; -- curl http://service/health</code></td><td><code>kubectl logs &lt;pod&gt;</code> + <code>kubectl get endpoints</code></td></tr>
+    <tr><td>Hybrid</td><td>Verify env var URLs are correct for the environment</td><td><code>curl &lt;staging-url&gt;/health</code> from your local machine</td><td>Check both local service logs and remote staging logs</td></tr>
+  </table>
+
+  <h3>Step 5 — If still stuck</h3>
+  <ul>
+    <li><strong>Distributed tracing</strong> (Jaeger, Zipkin, AWS X-Ray) — pull the trace for the failing request. Shows exactly which hop failed and at what latency.</li>
+    <li><strong>Packet capture</strong> — <code>tcpdump -i eth0 port 8080</code> on the target. If you see the SYN but no SYN-ACK, the service is not listening. If you see no packets at all, the traffic never arrived (routing/firewall).</li>
+    <li><strong>Service mesh dashboard</strong> (Kiali for Istio) — shows real-time traffic flow, error rates, and latency per service pair.</li>
+  </ul>
+</div>
+
+<hr class="sep">
+
+<!-- ── 08 ── -->
+<div class="section" id="s08">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <span class="section-title">Commands cheatsheet</span>
+    <span class="tag tag-testing">REFERENCE</span>
+  </div>
+
+  <div class="intro">
+    Quick reference for the most useful commands, organised by setup type. All connectivity tests should be run from inside the calling container or pod — not from your host machine.
+  </div>
+
+  <h3>Docker Compose</h3>
+  <table class="tbl">
+    <tr><th>Task</th><th>Command</th></tr>
+    <tr><td>Check running containers</td><td><code>docker ps</code> / <code>docker compose ps</code></td></tr>
+    <tr><td>Read service logs</td><td><code>docker compose logs -f service-name</code></td></tr>
+    <tr><td>Shell into a container</td><td><code>docker exec -it &lt;container&gt; sh</code></td></tr>
+    <tr><td>DNS resolution check</td><td><code>docker exec -it &lt;container&gt; nslookup service-name</code></td></tr>
+    <tr><td>HTTP connectivity check</td><td><code>docker exec -it &lt;container&gt; curl http://service-name:port/health</code></td></tr>
+    <tr><td>Inspect shared network</td><td><code>docker network inspect &lt;project&gt;_default</code></td></tr>
+    <tr><td>Resource usage</td><td><code>docker stats</code></td></tr>
+  </table>
+
+  <h3>Separate hosts</h3>
+  <table class="tbl">
+    <tr><th>Task</th><th>Command</th></tr>
+    <tr><td>Check what's listening on a port</td><td><code>ss -tuln | grep &lt;port&gt;</code> (Linux) / <code>netstat -ano | findstr &lt;port&gt;</code> (Windows)</td></tr>
+    <tr><td>Test TCP port reachability</td><td><code>nc -zv &lt;IP&gt; &lt;port&gt;</code> / <code>Test-NetConnection -ComputerName &lt;IP&gt; -Port &lt;N&gt;</code></td></tr>
+    <tr><td>DNS lookup</td><td><code>nslookup &lt;hostname&gt;</code></td></tr>
+    <tr><td>Trace network path</td><td><code>traceroute &lt;IP&gt;</code> / <code>tracert &lt;IP&gt;</code></td></tr>
+    <tr><td>Check firewall rules (Linux)</td><td><code>iptables -L INPUT -n -v</code></td></tr>
+    <tr><td>TLS certificate check</td><td><code>openssl s_client -connect &lt;host&gt;:&lt;port&gt;</code></td></tr>
+  </table>
+
+  <h3>Kubernetes</h3>
+  <table class="tbl">
+    <tr><th>Task</th><th>Command</th></tr>
+    <tr><td>List pods</td><td><code>kubectl get pods -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Pod details + events</td><td><code>kubectl describe pod &lt;pod&gt; -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Pod logs</td><td><code>kubectl logs -f &lt;pod&gt; -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Previous container logs</td><td><code>kubectl logs &lt;pod&gt; -n &lt;namespace&gt; --previous</code></td></tr>
+    <tr><td>List services</td><td><code>kubectl get svc -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Check service endpoints</td><td><code>kubectl get endpoints &lt;service&gt; -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>DNS check from inside a pod</td><td><code>kubectl exec -it &lt;pod&gt; -n &lt;ns&gt; -- nslookup service.namespace</code></td></tr>
+    <tr><td>HTTP check from inside a pod</td><td><code>kubectl exec -it &lt;pod&gt; -n &lt;ns&gt; -- curl http://service/health</code></td></tr>
+    <tr><td>Expose service locally</td><td><code>kubectl port-forward svc/&lt;service&gt; 8080:80 -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Check network policies</td><td><code>kubectl get networkpolicies -n &lt;namespace&gt;</code></td></tr>
+  </table>
+
+  <h3>Universal — works in any setup</h3>
+  <table class="tbl">
+    <tr><th>Task</th><th>Command</th></tr>
+    <tr><td>Basic reachability (L3)</td><td><code>ping &lt;IP-or-hostname&gt;</code></td></tr>
+    <tr><td>HTTP health check</td><td><code>curl -v http://&lt;host&gt;:&lt;port&gt;/health</code></td></tr>
+    <tr><td>HTTPS with cert details</td><td><code>curl -v https://&lt;host&gt;/health</code></td></tr>
+    <tr><td>DNS lookup</td><td><code>nslookup &lt;hostname&gt;</code></td></tr>
+    <tr><td>Packet capture on port</td><td><code>tcpdump -i eth0 port &lt;N&gt;</code></td></tr>
+  </table>
+</div>
+
+</div><!-- end view-course -->
+</main>
+</div><!-- end layout -->
+
+<script src="../../assets/site.js"></script>
+</body>
+</html>
