@@ -195,8 +195,14 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
   <h2>What this covers</h2>
   <p>Two computers cannot communicate. This tutorial walks through every possible reason — from a loose cable to a VLAN misconfiguration to a TLS certificate mismatch — organised by the OSI model and by the type of network the computers are on.</p>
   <div class="note warn"><strong>First question to always ask before debugging:</strong> do you have access to all devices in the path — both hosts, the switch, the router? The answer changes which checks are possible and which require escalation.</div>
-  <h2>The core principle</h2>
-  <p>Always debug <strong>bottom up</strong> — start at the physical layer and move up. A problem at Layer 1 makes every higher layer appear broken. Jumping to application logs before confirming the cable is seated is wasted effort.</p>
+  <h2>Debugging strategy</h2>
+  <p>The table in this tutorial uses a bottom-up <strong>reference order</strong> — it is not a mandatory execution order. In practice, start with a quick three-point triage:</p>
+  <ol>
+    <li><strong>Top check</strong> — try to reach the service (<code>curl</code>, <code>telnet</code>, <code>Test-NetConnection</code>). If it responds, most of the stack is already working — focus on L4–L7 only.</li>
+    <li><strong>Middle check</strong> — <code>ping</code> the target IP. If ping succeeds, L1–L3 are healthy. Skip physical and cable checks entirely.</li>
+    <li><strong>Bottom-up drill-down</strong> — only start from L1 when the middle check fails, or when you have no other signal of where the problem is.</li>
+  </ol>
+  <p>The bottom-up reference is most useful when you genuinely have no clue which layer is broken, or when a previous check at a higher layer already passed cleanly.</p>
   <p>The second principle: <strong>know which device to run each check on</strong>. Running <code>ss -tuln</code> on Host A tells you nothing about whether Host B's service is listening. Every command in this tutorial is labelled with the correct host.</p>
 </div>
 
@@ -659,7 +665,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </div>
   <div class="note info"><strong>Key point for debugging all alternatives:</strong> regardless of the physical medium — cable, WiFi, Bluetooth, USB — once the link is established the OS presents it as a network interface. You still check <code>ip link show</code> or <code>Get-NetAdapter</code>, still configure IP addresses in the same subnet, still use <code>ping</code>, still check ARP. The physical medium only affects Layer 1 checks — instead of looking at an Ethernet LED you check WiFi signal strength or Bluetooth connection status. Layer 3 and above is identical.</div>
 
-  <h2>Debugging — bottom up</h2>
+  <h2>Debugging reference</h2>
   <table class="cmd-table">
     <tr><th>Layer</th><th>Physical check</th><th>What this step does</th><th>Where</th></tr>
     <tr><td>L1</td><td>NIC LED on both machines — must be lit green. No light = no physical link. Press cable firmly into port until click. Check both ends.</td><td>Confirms the physical electrical signal is present on the cable. This is the most basic check possible — if there is no light, no data can travel regardless of any software configuration.</td><td>Eyes — both hosts</td></tr>
@@ -750,7 +756,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
     <tr><td>Switch power</td><td>Switch</td><td>Confirms the switch itself is operational. A switch can partially fail — keeping some ports working while silently dropping others.</td><td>System LED green. A partially failed switch may keep some ports active while dropping others.</td></tr>
     <tr><td>Correct port</td><td>Switch</td><td>Confirms each host is plugged into the port you think it is. In a VLAN-configured environment, the wrong port means the wrong VLAN assignment, which silently breaks communication.</td><td>Each host is plugged into the intended port. Wrong port = wrong VLAN in a configured environment.</td></tr>
   </table>
-  <h2>Debugging — OSI bottom up</h2>
+  <h2>OSI debugging reference</h2>
   <table class="cmd-table">
     <tr><th>Layer</th><th>Command</th><th>Run on</th><th>What this step does</th><th>What to look for</th></tr>
     <tr><td>L1–L2</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Both</td><td>Asks the OS whether the interface is active and has a physical signal. Covers both the software state (UP/DOWN) and the physical signal state (carrier detected or NO-CARRIER).</td><td>Interface UP and carrier detected. If DOWN: bring it up with <code>ip link set eth0 up</code>.</td></tr>
@@ -1134,7 +1140,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
 <div class="section-page" id="pg-osi-debug">
   <h1>OSI Layers — Complete Debugging Reference</h1>
   <p class="page-sub">All 7 OSI layers with physical checks, commands, and failure modes. Valid for local network types (1–4).</p>
-  <div class="note info"><strong>Core rule:</strong> always debug bottom up — start at L1, move up. A problem at L1 makes every higher layer appear broken. Never jump to application logs before confirming physical and IP layers are healthy.</div>
+  <div class="note info"><strong>How to use this table:</strong> this is a <strong>reference</strong>, not a rigid execution order. Quick triage first — top check (can you reach the service?), then ping (L3). If both pass, start at L4. Only start from L1 if the middle check fails or you have no signal at all.</div>
   <table class="cmd-table">
     <tr><th>Layer</th><th>Check</th><th>Command / action</th><th>Run on</th><th>What this step does</th><th>What to look for</th></tr>
     <tr><td><span class="badge b-green">L1 Physical</span></td><td>NIC LED, cable seating, switch LEDs</td><td>Eyes — no commands needed</td><td>Both hosts + switch</td><td>Confirms the physical electrical signal is present on the cable and between the switch and each host. No software can tell you whether a cable is unseated — this must be done physically.</td><td>All LEDs green. Cables fully clicked in on both ends.</td></tr>
