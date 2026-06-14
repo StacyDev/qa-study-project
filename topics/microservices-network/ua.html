@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мережі мікросервісів — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
+</head>
+<body>
+
+<div class="disclaimer"><strong>Нотатки:</strong> Особисті навчальні нотатки — спрощено для ясності. Не є формальною специфікацією. Завжди перевіряйте поведінку на реальній системі.</div>
+<nav class="topnav">
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Меню">☰</button>
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← всі теми</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (за замовчуванням)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-label">ТЕМА</span>
+        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Темна (за замовчуванням)</div>
+        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Світла</div>
+      </div>
+    </div>
+  </div>
+  <a class="lang-btn" id="lang-en" href="uk.html" onclick="setCookie('ui_lang','en')">EN</a>
+  <button class="lang-btn active" id="lang-ua" onclick="setCookie('ui_lang','ua')">UA</button>
+</nav>
+
+<div class="layout">
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidecat">Концепції</div>
+  <a class="sidelink" data-sec="s00" onclick="goTo('s00')">00 — Що таке мережа мікросервісів</a>
+  <a class="sidelink" data-sec="s01" onclick="goTo('s01')">01 — Огляд типів конфігурацій</a>
+
+  <div class="sidecat">За типом конфігурації</div>
+  <a class="sidelink" data-sec="s02" onclick="goTo('s02')">02 — Docker Compose (локально)</a>
+  <a class="sidelink" data-sec="s03" onclick="goTo('s03')">03 — Окремі хости</a>
+  <a class="sidelink" data-sec="s04" onclick="goTo('s04')">04 — Кластер Kubernetes</a>
+  <a class="sidelink" data-sec="s05" onclick="goTo('s05')">05 — Гібридний (локально + remote)</a>
+
+  <div class="sidecat">Діагностика</div>
+  <a class="sidelink" data-sec="s06" onclick="goTo('s06')">06 — Довідник симптомів</a>
+  <a class="sidelink" data-sec="s07" onclick="goTo('s07')">07 — Процес відлагодження</a>
+
+  <div class="sidecat">Довідник</div>
+  <a class="sidelink" data-sec="s08" onclick="goTo('s08')">08 — Шпаргалка команд</a>
+</nav>
+
+<main class="main">
+<div id="view-course" class="view active">
+
+<!-- ── 00 ── -->
+<div class="section" id="s00">
+  <div class="section-head">
+    <span class="section-num">00</span>
+    <span class="section-title">Що таке мережа мікросервісів</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+
+  <div class="intro">
+    В архітектурі мікросервісів кожен сервіс — це окремий процес, часто окремий контейнер або VM. Сервіси повинні спілкуватися через мережу, щоб виконувати корисну роботу. На відміну від моноліту, де функціональні виклики відбуваються всередині процесу, кожен виклик між сервісами перетинає мережеву межу і може зазнати збою з мережевих причин.
+  </div>
+
+  <h3>Ключові концепції</h3>
+  <table class="tbl">
+    <tr><th>Концепція</th><th>Що означає</th><th>Чому важливо для QA</th></tr>
+    <tr><td><strong>Виявлення сервісів</strong></td><td>Механізм, за допомогою якого Сервіс A знаходить адресу Сервісу B під час виконання. Може бути внутрішній DNS, змінні середовища або реєстр сервісів.</td><td>Якщо виявлення зламано, сервіси не можуть знайти один одного — виглядає як мережевий збій, але є проблемою конфігурації.</td></tr>
+    <tr><td><strong>Внутрішній DNS</strong></td><td>DNS-резолвер, доступний лише всередині контейнерної мережі або кластера. Розв'язує імена сервісів на кшталт <code>payment-service</code> до їхнього поточного IP.</td><td>Працює лише всередині мережі. Виклик імені сервісу з вашої хост-машини завершиться невдачею — воно не існує в зовнішньому DNS.</td></tr>
+    <tr><td><strong>Ендпоінт перевірки стану</strong></td><td>Ендпоінт (<code>/health</code>, <code>/ping</code>), який сервіс відкриває, щоб повідомити, чи він живий і готовий обробляти трафік.</td><td>Використовується балансувальниками навантаження та оркестраторами для маршрутизації трафіку. Сервіс може бути запущений, але нездоровим — він все одно не отримає трафік.</td></tr>
+    <tr><td><strong>Circuit Breaker</strong></td><td>Патерн, який припиняє маршрутизацію викликів до сервісу, що постійно збоїть, щоб запобігти каскадним збоям.</td><td>Спрацьований circuit breaker негайно повертає помилки без спроби мережевого виклику — виглядає як неробочий сервіс.</td></tr>
+    <tr><td><strong>API Gateway</strong></td><td>Єдина точка входу, що приймає зовнішні запити та маршрутизує їх до правильного внутрішнього сервісу.</td><td>Помилки шлюзу (502, 504) зазвичай означають, що сам шлюз здоровий, але не може дістатися до upstream-сервісу.</td></tr>
+    <tr><td><strong>Service Mesh</strong></td><td>Інфраструктурний шар (Istio, Linkerd), що проксує весь трафік між сервісами через sidecar-и. Додає спостережуваність, повторні спроби та mTLS.</td><td>Якщо service mesh неправильно налаштований, він мовчки відкидає трафік. Перевіряйте логи sidecar-проксі, а не лише логи застосунку.</td></tr>
+  </table>
+
+  <h3>Як сервіси знаходять один одного</h3>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:var(--cyan)">ВНУТРІШНІЙ DNS (Docker / Kubernetes)</div>
+      <div class="card-body">Ім'я сервісу автоматично розв'язується до його поточного IP. <code>http://payment-service/charge</code> — IP не потрібен. Найпоширеніше в контейнерних середовищах. Ламається, якщо ім'я сервісу не існує, сервіс знаходиться в іншому просторі імен або контейнер знаходиться поза мережею.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--blue)">ЗМІННІ СЕРЕДОВИЩА</div>
+      <div class="card-body">Адреса впроваджується при запуску: <code>PAYMENT_HOST=192.168.1.5</code>, <code>PAYMENT_PORT=8080</code>. Простий та явний спосіб. Ламається при зміні IP, якщо змінна не оновлена — сервіс мовчки звертається до неправильного хоста.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--amber)">РЕЄСТР СЕРВІСІВ (Consul, Eureka)</div>
+      <div class="card-body">Сервіси реєструють себе при запуску; клієнти запитують реєстр для отримання поточної адреси. Динамічніше ніж змінні середовища. Ламається, якщо сервіс не зміг зареєструватися, або якщо сам реєстр недоступний.</div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--purple)">ЖОРСТКО ЗАКОДОВАНА КОНФІГУРАЦІЯ</div>
+      <div class="card-body">Явний IP або hostname у конфіг-файлі. Просто налаштувати, але нестабільно на практиці. Поширено на ранніх етапах проекту. Ламається при будь-якій зміні IP, перерозгортанні на іншому хості або перемиканні середовища.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-label">КРИТИЧНА ВІДМІННІСТЬ — МЕРЕЖЕВА ПОМИЛКА vs ПОМИЛКА ЗАСТОСУНКУ</div>
+    <p><strong>TCP-з'єднання ніколи не встановлено</strong> (ECONNREFUSED, ETIMEDOUT, ENOTFOUND) → проблема в <strong>мережевому шарі</strong> — DNS, маршрутизація, брандмауер, сервіс не запущений, неправильний порт.<br><br>
+    <strong>TCP-з'єднання встановлено, отримано помилкову відповідь</strong> (4xx, 5xx) → мережа працює. Проблема в <strong>шарі застосунку</strong> — невірні облікові дані, відсутні дані, помилка на рівні коду або застосунок не може дістатися до власних залежностей.</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 01 ── -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Огляд типів конфігурацій</span>
+    <span class="tag tag-concept">КОНЦЕПЦІЯ</span>
+  </div>
+
+  <div class="intro">
+    Мікросервіси можуть працювати в кількох різних конфігураціях залежно від етапу розробки або тестування. Кожна конфігурація має власну мережеву модель, типові режими збоїв та набір інструментів для відлагодження.
+  </div>
+
+  <table class="tbl">
+    <tr><th>Конфігурація</th><th>Де запускаються сервіси</th><th>Як спілкуються</th><th>Виявлення сервісів</th><th>Типове застосування</th></tr>
+    <tr><td><strong>Docker Compose</strong></td><td>Всі контейнери на одній машині</td><td>Bridge-мережа Docker — внутрішній DNS за іменем сервісу</td><td>Внутрішній DNS Docker (<code>ім'я-сервісу</code>)</td><td>Локальна розробка, локальне інтеграційне тестування</td></tr>
+    <tr><td><strong>Окремі хости</strong></td><td>Різні VM або фізичні машини</td><td>Пряме TCP через мережу (IP:port) або через зворотний проксі</td><td>Жорстко закодований IP/hostname, /etc/hosts або зовнішній DNS</td><td>Staging, просте продакшен-середовище, застарілі конфігурації</td></tr>
+    <tr><td><strong>Кластер Kubernetes</strong></td><td>Поди розподілені по вузлах</td><td>ClusterIP + внутрішній DNS Kubernetes</td><td>DNS Kubernetes (<code>svc.namespace.svc.cluster.local</code>)</td><td>Продакшен, хмарні staging-середовища</td></tr>
+    <tr><td><strong>Гібридний</strong></td><td>Суміш — деякі локально, деякі на remote staging</td><td>VPN, SSH-тунель або port-forward для міжмережевих викликів</td><td>Комбінація: локальний Docker DNS + URL remote сервісів</td><td>Тестування розробника на спільному staging-середовищі</td></tr>
+  </table>
+
+  <h3>Чи можуть мікросервіси працювати на повністю окремих хостах?</h3>
+  <p>Так — це конфігурація з кількома хостами. Кожен сервіс працює на власній VM або фізичному сервері, з'єднаних через мережу. Це було поширеним до стандартизації контейнерів і досі зустрічається в staging-середовищах, хмарних VM або коли сервіси мають різні апаратні вимоги. Основні складнощі порівняно з Docker/Kubernetes: немає автоматичного виявлення сервісів, правила брандмауера необхідно налаштовувати вручну, і сервіси повинні прив'язуватися до <code>0.0.0.0</code> (а не <code>127.0.0.1</code>), щоб приймати з'єднання з інших хостів.</p>
+</div>
+
+<hr class="sep">
+
+<!-- ── 02 ── -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Docker Compose — локальна конфігурація</span>
+    <span class="tag tag-component">DOCKER</span>
+  </div>
+
+  <div class="intro">
+    Docker Compose — найпоширеніша локальна конфігурація мікросервісів. Всі контейнери спільно використовують віртуальну bridge-мережу, створену Compose. Кожен сервіс доступний за своїм іменем з <code>docker-compose.yml</code> — IP-адреси не потрібні. Внутрішній DNS працює лише всередині контейнерів; виклик імен сервісів з вашої хост-машини завершиться невдачею.
+  </div>
+
+  <h3>Як працює мережа Docker</h3>
+  <div class="flow">
+    <div class="flow-label">МЕРЕЖЕВА МОДЕЛЬ DOCKER COMPOSE</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">1</div><div class="flow-body"><div class="flow-actor">DOCKER COMPOSE ЗАПУСКАЄТЬСЯ</div><div class="flow-desc">Створює спільну bridge-мережу з іменем <code>&lt;проект&gt;_default</code>. Всі сервіси у файлі підключаються до цієї мережі, якщо не налаштовано інакше.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">2</div><div class="flow-body"><div class="flow-actor">ІМ'Я СЕРВІСУ = HOSTNAME</div><div class="flow-desc">Кожен сервіс отримує hostname, що відповідає його імені у YAML. <code>payment-service</code> у YAML → <code>http://payment-service:8080</code> доступний з будь-якого іншого контейнера в тій самій мережі.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--amber-d);color:var(--amber)">3</div><div class="flow-body"><div class="flow-actor">ДОСТУП З ХОСТ-МАШИНИ</div><div class="flow-desc">З вашої хост-машини (поза Docker) імена сервісів не розв'язуються. Необхідно використовувати <code>localhost:зіставлений-порт</code>. Зіставлені порти оголошуються у секції <code>ports:</code> YAML.</div><div class="flow-note">Приклад: <code>ports: "8080:80"</code> → доступно на вашому хості як <code>localhost:8080</code></div></div></div>
+  </div>
+
+  <h3>Типові проблеми та рішення</h3>
+  <table class="tbl">
+    <tr><th>Симптом</th><th>Першопричина</th><th>Рішення</th></tr>
+    <tr><td><code>ENOTFOUND service-name</code></td><td>Сервіси знаходяться в різних мережах Docker, або сервіс, що викликає, запущений поза Docker</td><td>Перевірте <code>networks:</code> у docker-compose.yml — всі сервіси повинні спільно використовувати одну мережу. При виклику з хоста використовуйте <code>localhost:зіставлений-порт</code>.</td></tr>
+    <tr><td><code>ECONNREFUSED service-name:port</code></td><td>Цільовий сервіс не запущений, аварійно завершився або слухає на іншому порту</td><td><code>docker ps</code> для підтвердження запуску. <code>docker logs &lt;контейнер&gt;</code> для причини збою. Перевірте, що внутрішній порт у конфіг сервісу збігається з тим, що ви викликаєте.</td></tr>
+    <tr><td>Сервіс A не може дістатися до B, але B запущений</td><td>B запустився, але ще не готовий (ще ініціалізується), або A закешував невдалий DNS-результат до того, як B запустився</td><td>Додайте <code>depends_on</code> з <code>condition: service_healthy</code> у docker-compose.yml. Або перезапустіть A після повного запуску B.</td></tr>
+    <tr><td>Працює локально при виклику <code>localhost</code>, не працює в контейнері</td><td><code>localhost</code> всередині контейнера вказує на сам контейнер, а не на вашу хост-машину</td><td>Використовуйте ім'я сервісу замість localhost. Щоб дістатися до хоста з контейнера: <code>host.docker.internal</code> (Docker Desktop) або IP bridge-інтерфейсу хоста.</td></tr>
+    <tr><td>Переривчасті тайм-аути між сервісами</td><td>Цільовий контейнер перезапускається (crash loop) або перебуває під тиском пам'яті та робить паузи GC</td><td><code>docker stats</code> для перевірки використання ресурсів. <code>docker logs &lt;контейнер&gt; --follow</code> для спостереження за перезапусками.</td></tr>
+  </table>
+
+  <h3>Команди для відлагодження</h3>
+  <div class="code">
+    <div class="code-label">DOCKER COMPOSE — ОСНОВНІ КОМАНДИ ВІДЛАГОДЖЕННЯ</div>
+    <pre><span class="cm"># Чи всі контейнери запущені?</span>
+docker ps
+docker compose ps
+
+<span class="cm"># Читання логів конкретного сервісу</span>
+docker compose logs payment-service
+docker compose logs --follow --tail=50 payment-service
+
+<span class="cm"># Перевірка DNS-розв'язання всередині контейнера</span>
+docker exec -it &lt;ім'я-контейнера&gt; nslookup payment-service
+
+<span class="cm"># Перевірка HTTP-підключення всередині контейнера</span>
+docker exec -it &lt;ім'я-контейнера&gt; curl http://payment-service:8080/health
+
+<span class="cm"># Огляд спільної мережі — всі контейнери та їхні IP</span>
+docker network ls
+docker network inspect &lt;проект&gt;_default
+
+<span class="cm"># Відкрити shell всередині контейнера для інтерактивного відлагодження</span>
+docker exec -it &lt;ім'я-контейнера&gt; sh</pre>
+  </div>
+
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA — DOCKER COMPOSE</div><div class="qa-a">① Перевірте, що ендпоінт <code>/health</code> кожного сервісу повертає 200 перед запуском інтеграційних тестів — не припускайте, що запущений контейнер є здоровим.<br>② Протестуйте з одним навмисно зупиненим сервісом — сервіс, що викликає, повинен повернути чітку помилку, а не завмирати безмежно (таймаут повинен бути налаштований).<br>③ Перевірте порядок <code>depends_on</code> — запустіть сервіси у неправильному порядку і переконайтеся, що стек відновлюється або завершується з чітким повідомленням.<br>④ Протестуйте конфлікти портів: спробуйте запустити стек, коли інший процес вже використовує зіставлений порт — Compose повинен завершитися з чіткою помилкою, а не мовчки використовувати інший порт.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 03 ── -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Окремі хости — сервіси на різних машинах</span>
+    <span class="tag tag-component">МУЛЬТИХОСТ</span>
+  </div>
+
+  <div class="intro">
+    У конфігурації з кількома хостами кожен сервіс (або група сервісів) працює на окремій VM або фізичному сервері. Автоматичного виявлення сервісів немає — сервіси повинні бути налаштовані з явними адресами своїх залежностей. Кожна машина є окремою мережевою сутністю з власними правилами брандмауера.
+  </div>
+
+  <h3>Критично: адреса прив'язки сервісу</h3>
+  <div class="callout callout-warn">
+    <div class="callout-label">НАЙПОШИРЕНІШИЙ ЗБІЙ ПРИ МУЛЬТИХОСТІ</div>
+    <p>Сервіс, що слухає на <code>127.0.0.1:8080</code>, доступний лише з тієї самої машини. Щоб приймати з'єднання з інших хостів, сервіс повинен прив'язатися до <code>0.0.0.0:8080</code> (всі інтерфейси) або до конкретного IP мережевого інтерфейсу.<br><br>
+    Це непомітно з точки зору запущеного процесу — сервіс виглядає здоровим, але є недоступним з будь-якого іншого хоста.</p>
+  </div>
+
+  <div class="code">
+    <div class="code-label">ПЕРЕВІРКА АДРЕСИ ПРИВ'ЯЗКИ СЕРВІСУ</div>
+    <pre><span class="cm"># Linux — перевірка сокетів, що слухають</span>
+ss -tuln | grep 8080
+<span class="cm"># 0.0.0.0:8080  → доступний з будь-якого хоста в мережі ✓</span>
+<span class="cm"># 127.0.0.1:8080 → доступний лише локально — ЦЕ блокує мультихост-доступ ✗</span>
+
+<span class="cm"># Windows</span>
+netstat -ano | findstr 8080</pre>
+  </div>
+
+  <h3>Типові проблеми та рішення</h3>
+  <table class="tbl">
+    <tr><th>Симптом</th><th>Першопричина</th><th>Рішення</th></tr>
+    <tr><td><code>ETIMEDOUT</code> при підключенні до іншого хоста</td><td>Брандмауер цільової машини блокує порт (мовчки відкидає пакети)</td><td>З хоста, що викликає: <code>Test-NetConnection -ComputerName &lt;IP&gt; -Port &lt;N&gt;</code> / <code>nc -zv &lt;IP&gt; &lt;порт&gt;</code>. Перевірте правила брандмауера на цілі: <code>iptables -L INPUT -n -v</code>.</td></tr>
+    <tr><td><code>ECONNREFUSED</code> при підключенні до іншого хоста</td><td>Сервіс не запущений на цілі або прив'язаний лише до 127.0.0.1</td><td>SSH на ціль, перевірте <code>ss -tuln</code>. Якщо прив'язаний до 127.0.0.1 — оновіть конфігурацію прив'язки сервісу.</td></tr>
+    <tr><td>DNS-ім'я не розв'язується</td><td>Немає DNS-запису для hostname; файл hosts не налаштований</td><td>Додайте тимчасовий запис до <code>/etc/hosts</code> (Linux) або <code>C:\Windows\System32\drivers\etc\hosts</code> (Windows) на машині, що викликає. Або тимчасово використайте IP для підтвердження підключення.</td></tr>
+    <tr><td>Працює з самого сервера, не працює з іншого хоста</td><td>Сервіс прив'язаний до 127.0.0.1 або брандмауер блокує порт</td><td>Перевірте прив'язку (вище). Перевірте брандмауер.</td></tr>
+    <tr><td>Помилки SSL/TLS-сертифіката</td><td>Сертифікат видано для <code>localhost</code> або іншого hostname</td><td>CN/SAN сертифіката повинен збігатися з hostname, що викликається. Перевірте: <code>openssl s_client -connect &lt;хост&gt;:&lt;порт&gt;</code>.</td></tr>
+    <tr><td>З'єднання працює, але дуже повільне</td><td>Зворотний DNS-пошук при кожному з'єднанні або маршрутизація через неочікуваний шлях</td><td>Використайте <code>traceroute</code> / <code>tracert</code> для перевірки фактичного шляху. Вимкніть зворотний DNS-пошук, якщо він не потрібен.</td></tr>
+  </table>
+
+  <h3>Перевірки брандмауера та підключення</h3>
+  <div class="code">
+    <div class="code-label">ПЕРЕВІРКА ПІДКЛЮЧЕННЯ З ХОСТА, ЩО ВИКЛИКАЄ</div>
+    <pre><span class="cm"># Windows — перевірка доступності TCP-порту</span>
+Test-NetConnection -ComputerName 192.168.1.50 -Port 8080
+
+<span class="cm"># Linux — перевірка TCP-порту</span>
+nc -zv 192.168.1.50 8080
+<span class="cm"># або</span>
+telnet 192.168.1.50 8080
+
+<span class="cm"># Трасування маршруту до цілі</span>
+traceroute 192.168.1.50    <span class="cm"># Linux</span>
+tracert 192.168.1.50       <span class="cm"># Windows</span></pre>
+  </div>
+
+  <div class="code">
+    <div class="code-label">ПЕРЕВІРКА БРАНДМАУЕРА НА ЦІЛЬОВОМУ ХОСТІ (Linux)</div>
+    <pre><span class="cm"># Перелік всіх правил вхідного трафіку</span>
+iptables -L INPUT -n -v
+
+<span class="cm"># Перевірка дозволу конкретного порту</span>
+iptables -L INPUT -n -v | grep 8080</pre>
+  </div>
+
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA — МУЛЬТИХОСТ</div><div class="qa-a">① З хоста, що викликає, протестуйте цільовий порт напряму перед запуском будь-яких тестів застосунку — спочатку підтвердіть базове TCP-підключення.<br>② Перевірте, що сервіс прив'язаний до правильного інтерфейсу: <code>ss -tuln</code> повинен показувати <code>0.0.0.0:порт</code>, а не <code>127.0.0.1:порт</code>.<br>③ Протестуйте в обох напрямках — чи може A дістатися до B І чи може B дістатися до A? Правила брандмауера часто асиметричні.<br>④ Перевірте, що DNS розв'язується до правильного IP на хості, що викликає: <code>nslookup &lt;hostname&gt;</code> — застарілі записи /etc/hosts або кеш DNS можуть вказувати на старі IP після переміщення сервера.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 04 ── -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Кластер Kubernetes</span>
+    <span class="tag tag-component">KUBERNETES</span>
+  </div>
+
+  <div class="intro">
+    У Kubernetes сервіси спілкуються через <strong>ClusterIP</strong> — стабільний віртуальний IP, призначений кожному об'єкту Service. Внутрішній DNS Kubernetes розв'язує імена сервісів автоматично. Сервіси недоступні ззовні кластера, якщо це не налаштовано явно. Поди — ефемерні: їхні IP змінюються при перезапуску; завжди викликайте ім'я Service, ніколи — IP пода.
+  </div>
+
+  <h3>DNS у Kubernetes — як розв'язуються імена сервісів</h3>
+  <table class="tbl">
+    <tr><th>Форма</th><th>Приклад</th><th>Працює з</th></tr>
+    <tr><td>Коротке ім'я</td><td><code>payment-service</code></td><td>Лише той самий простір імен</td></tr>
+    <tr><td>З простором імен</td><td><code>payment-service.payments</code></td><td>Будь-який простір імен кластера</td></tr>
+    <tr><td>Повне DNS-ім'я</td><td><code>payment-service.payments.svc.cluster.local</code></td><td>Будь-який простір імен кластера</td></tr>
+  </table>
+
+  <h3>Типи сервісів — що доступно звідки</h3>
+  <table class="tbl">
+    <tr><th>Тип</th><th>Доступний з</th><th>Застосування</th></tr>
+    <tr><td><strong>ClusterIP</strong></td><td>Лише всередині кластера</td><td>За замовчуванням. Виклики між сервісами всередині кластера.</td></tr>
+    <tr><td><strong>NodePort</strong></td><td>Будь-яка машина, що може дістатися до вузла кластера</td><td>Відкриття сервісу для зовнішнього тестування без балансувальника навантаження.</td></tr>
+    <tr><td><strong>LoadBalancer</strong></td><td>Інтернет (через хмарний балансувальник навантаження)</td><td>Зовнішнє відкриття у продакшені.</td></tr>
+    <tr><td><strong>ExternalName</strong></td><td>Всередині кластера → розв'язується до зовнішнього DNS</td><td>Псевдонім для зовнішнього сервісу, щоб внутрішній код використовував стале ім'я.</td></tr>
+  </table>
+
+  <h3>Типові проблеми та рішення</h3>
+  <table class="tbl">
+    <tr><th>Симптом</th><th>Першопричина</th><th>Рішення</th></tr>
+    <tr><td><code>ENOTFOUND service-name</code> з пода</td><td>Неправильний простір імен — коротке ім'я працює лише в тому самому просторі імен</td><td>Використайте ім'я з простором імен: <code>service-name.namespace</code>. Перевірте <code>kubectl get svc -n &lt;namespace&gt;</code>.</td></tr>
+    <tr><td>Сервіс існує, DNS розв'язується, але відповіді немає</td><td>У сервісу немає здорових ендпоінтів — поди не запущені або не відповідають селектору</td><td><code>kubectl get endpoints &lt;service&gt; -n &lt;ns&gt;</code> — не повинен бути порожнім. Перевірте, що мітки подів збігаються із селектором сервісу.</td></tr>
+    <tr><td>Переривчасті збої (не 100%)</td><td>Один под нездоровий, але ще в списку ендпоінтів (проба готовності не налаштована або повільна)</td><td><code>kubectl describe pod &lt;pod&gt;</code> — перевірте Events та статус проби готовності. Налаштуйте правильну пробу готовності.</td></tr>
+    <tr><td>Працює всередині кластера, недоступний ззовні</td><td>Тип сервісу ClusterIP — доступний лише всередині кластера</td><td>Використайте <code>kubectl port-forward svc/&lt;name&gt; &lt;local-port&gt;:&lt;service-port&gt;</code> для локального тестування. Змініть на NodePort/LoadBalancer для постійного зовнішнього доступу.</td></tr>
+    <tr><td>Раптові збої після нового розгортання</td><td>Нові поди отримують трафік до того, як вони готові (немає проби готовності)</td><td>Додайте <code>readinessProbe</code> до розгортання. Трафік надсилається лише подам, що пройшли пробу.</td></tr>
+    <tr><td>З'єднання мовчки заблоковано між конкретними сервісами</td><td>NetworkPolicy обмежує трафік між просторами імен або селекторами подів</td><td><code>kubectl get networkpolicies -n &lt;ns&gt;</code>. NetworkPolicy за замовчуванням блокує все, якщо в просторі імен є будь-яка політика.</td></tr>
+    <tr><td>Помилки sidecar service mesh (Istio/Linkerd)</td><td>Неправильна конфігурація mTLS, sidecar не впроваджений, невідповідність політик</td><td>Перевірте логи sidecar: <code>kubectl logs &lt;pod&gt; -c istio-proxy</code>. Перевірте політики <code>PeerAuthentication</code> та <code>DestinationRule</code>.</td></tr>
+  </table>
+
+  <h3>Команди для відлагодження</h3>
+  <div class="code">
+    <div class="code-label">KUBERNETES — ОСНОВНІ КОМАНДИ ВІДЛАГОДЖЕННЯ</div>
+    <pre><span class="cm"># Чи всі поди запущені та готові?</span>
+kubectl get pods -n &lt;namespace&gt;
+kubectl describe pod &lt;ім'я-пода&gt; -n &lt;namespace&gt;   <span class="cm"># подивіться секцію Events</span>
+
+<span class="cm"># Чи існує сервіс і чи є у нього здорові ендпоінти?</span>
+kubectl get svc -n &lt;namespace&gt;
+kubectl get endpoints &lt;ім'я-сервісу&gt; -n &lt;namespace&gt;  <span class="cm"># порожній = немає здорових подів</span>
+
+<span class="cm"># Перевірка DNS-розв'язання з пода</span>
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- nslookup &lt;ім'я-сервісу&gt;
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- nslookup &lt;ім'я-сервісу&gt;.&lt;namespace&gt;.svc.cluster.local
+
+<span class="cm"># Перевірка HTTP-підключення з пода</span>
+kubectl exec -it &lt;pod&gt; -n &lt;namespace&gt; -- curl http://&lt;ім'я-сервісу&gt;/health
+
+<span class="cm"># Відкриття ClusterIP-сервісу на локальній машині для тестування</span>
+kubectl port-forward svc/&lt;ім'я-сервісу&gt; 8080:80 -n &lt;namespace&gt;
+
+<span class="cm"># Потокові логи пода</span>
+kubectl logs -f &lt;ім'я-пода&gt; -n &lt;namespace&gt;
+kubectl logs &lt;ім'я-пода&gt; -n &lt;namespace&gt; --previous   <span class="cm"># логи аварійного контейнера</span>
+
+<span class="cm"># Перевірка мережевих політик</span>
+kubectl get networkpolicies -n &lt;namespace&gt;
+kubectl describe networkpolicy &lt;ім'я-політики&gt; -n &lt;namespace&gt;</pre>
+  </div>
+
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA — KUBERNETES</div><div class="qa-a">① Завжди перевіряйте <code>kubectl get endpoints</code> перед висновком про несправність сервісу — порожній список ендпоінтів означає, що жоден под не проходить пробу готовності, а не мережеву проблему.<br>② Явно тестуйте виклики між просторами імен — ім'я сервісу, що працює всередині простору імен, мовчки збоїть з іншого без повного імені.<br>③ Перевірте налаштування проб готовності: розгорніть версію, що запускається 30с — трафік не повинен потрапляти до неї, доки вона не готова.<br>④ Протестуйте NetworkPolicy: розгорніть под в обмеженому просторі імен та переконайтеся, що він може досягти лише дозволених сервісів.<br>⑤ Після розгортання перевірте, що старі поди повністю завершились перед висновком про успішність — трафік може ще потрапляти до подів, що завершуються.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 05 ── -->
+<div class="section" id="s05">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <span class="section-title">Гібридний — локальний сервіс + remote staging</span>
+    <span class="tag tag-component">ГІБРИДНИЙ</span>
+  </div>
+
+  <div class="intro">
+    Гібридна конфігурація запускає один або два сервіси локально (для активної розробки), тоді як решта стека знаходиться у спільному staging-середовищі. Складність полягає у з'єднанні двох мереж: вашої локальної машини та remote-кластера — в обох напрямках.
+  </div>
+
+  <h3>Напрям 1 — ваш локальний сервіс викликає remote-сервіси</h3>
+  <div class="callout callout-info">
+    <div class="callout-label">ПІДХІД</div>
+    <p>Вкажіть змінні середовища вашого локального сервісу напряму на URL remote-сервісів. Більшість staging-середовищ відкривають сервіси через ingress або балансувальник навантаження з реальними URL. Тунелювання не потрібне для вихідних викликів.</p>
+  </div>
+  <div class="code">
+    <div class="code-label">ПРИКЛАД — ПЕРЕВИЗНАЧЕННЯ КОНФІГУРАЦІЇ ДЛЯ ЛОКАЛЬНОЇ РОЗРОБКИ</div>
+    <pre><span class="cm"># .env.local — перевизначення URL staging</span>
+PAYMENT_SERVICE_URL=https://payment.staging.company.com
+AUTH_SERVICE_URL=https://auth.staging.company.com</pre>
+  </div>
+
+  <h3>Напрям 2 — remote-сервіси викликають ваш локальний сервіс (callbacks, webhooks)</h3>
+  <p>Це складніший напрям. Remote-сервіси не можуть дістатися до <code>localhost</code>. Варіанти:</p>
+  <table class="tbl">
+    <tr><th>Інструмент</th><th>Як працює</th><th>Найкраще для</th></tr>
+    <tr><td><strong>kubectl port-forward</strong></td><td>Тунелює порт remote Kubernetes-сервісу до вашої локальної машини. Односпрямований: локальний → remote.</td><td>Виклик remote-сервісів з локального. Не вирішує callback'и remote → локальний.</td></tr>
+    <tr><td><strong>ngrok / localtunnel</strong></td><td>Створює публічний URL, що тунелює до вашого localhost-порту. Remote-сервіси викликають ngrok URL; трафік пересилається на вашу машину.</td><td>Тестування webhook'ів, OAuth callbacks, будь-який сценарій де remote-сервіс повинен ініціювати виклик.</td></tr>
+    <tr><td><strong>SSH зворотний тунель</strong></td><td><code>ssh -R 8080:localhost:8080 user@staging-server</code> — відкриває ваш локальний порт на remote-сервері.</td><td>Коли є SSH-доступ до staging-сервера і потрібен callback.</td></tr>
+    <tr><td><strong>Мок / стаб локального сервісу</strong></td><td>Розгортання заглушки вашого сервісу на staging замість спроби з'єднати мережі.</td><td>Коли логіка callback проста та може бути застаблена.</td></tr>
+  </table>
+
+  <h3>Типові проблеми</h3>
+  <table class="tbl">
+    <tr><th>Симптом</th><th>Причина</th><th>Рішення</th></tr>
+    <tr><td>Локальний сервіс не може дістатися до staging</td><td>Staging знаходиться в приватній мережі без публічного ендпоінта</td><td>Підключіться VPN або використайте <code>kubectl port-forward</code> для локального відкриття сервісу.</td></tr>
+    <tr><td>Працює на вашій машині, не працює після розгортання</td><td>Жорстко закодовані URL <code>localhost</code> у конфігурації, що не існують у кластері</td><td>Замініть всі посилання на <code>localhost</code> іменами сервісів або змінними середовища. Ніколи не хардкодьте <code>localhost</code> у спільній конфігурації.</td></tr>
+    <tr><td>Аутентифікація не проходить між середовищами</td><td>Різні секрети, токени або ключі підпису для кожного середовища</td><td>Перевірте середовище-специфічні секрети. Переконайтеся, що токен, виданий в одному середовищі, не використовується в іншому.</td></tr>
+    <tr><td>Remote callbacks не проходять</td><td>Ваша локальна машина не має публічного IP; remote-сервіс не може ініціювати з'єднання</td><td>Використайте ngrok: <code>ngrok http 8080</code> — дає публічний URL, що пересилає на ваш локальний порт.</td></tr>
+  </table>
+
+  <div class="qa-block"><div class="qa-q">КУТИ ТЕСТУВАННЯ QA — ГІБРИДНИЙ</div><div class="qa-a">① Перевірте, що всі змінні середовища вказують на правильне середовище перед тестуванням — легко випадково запустити тести проти URL продакшена у гібридній конфігурації.<br>② Протестуйте повний потік запиту наскрізно з увімкненим трасуванням або логуванням — переконайтеся, яке середовище використовує кожен сервіс і що відповіді надходять з очікуваного джерела.<br>③ Для сценаріїв webhook/callback: використовуйте ngrok та перевіряйте його дашборд, щоб побачити точний запит, який надсилає remote-сервіс — корисно для перевірки формату payload.</div></div>
+</div>
+
+<hr class="sep">
+
+<!-- ── 06 ── -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">Довідник симптомів — як зрозуміти, що проблема в мережі</span>
+    <span class="tag tag-testing">ДІАГНОСТИКА</span>
+  </div>
+
+  <div class="intro">
+    Повідомлення про помилку на сервісі, що викликає, розповідає вам, що сталося на рівні TCP. Навчіться читати ці помилки як точні діагностичні сигнали, а не як загальне «з'єднання не вдалося».
+  </div>
+
+  <h3>Помилки рівня TCP</h3>
+  <table class="tbl">
+    <tr><th>Помилка</th><th>Значення</th><th>Де шукати</th></tr>
+    <tr><td><code>ECONNREFUSED</code></td><td>TCP-з'єднання активно відхилено ціллю. Цільовий хост доступний, але на цьому порту нічого не слухає — або брандмауер надіслав RST.</td><td>Чи запущений сервіс? Чи він слухає на правильному порту та правильному інтерфейсі (<code>0.0.0.0</code>, а не <code>127.0.0.1</code>)?</td></tr>
+    <tr><td><code>ETIMEDOUT</code> / запит завис</td><td>Відповіді немає взагалі. Або хост недоступний, або брандмауер мовчки відкидає пакети.</td><td>Чи можна пінгувати хост? Чи можна дістатися до порту (<code>nc -zv</code>, <code>Test-NetConnection</code>)? Перевірте правила брандмауера.</td></tr>
+    <tr><td><code>ECONNRESET</code></td><td>З'єднання встановлено, але потім примусово закрито в процесі. Інша сторона надіслала RST.</td><td>Тайм-аут проксі, балансувальник навантаження вбиває неактивні з'єднання, застосунок аварійно завершується під час запиту, невідповідність TLS.</td></tr>
+    <tr><td><code>ENOTFOUND &lt;hostname&gt;</code> / <code>getaddrinfo failed</code></td><td>DNS-розв'язання не вдалося — hostname не існує в DNS, що використовує цей сервіс.</td><td>Чи правильне ім'я сервісу? Чи знаходиться сервіс у правильному просторі імен (K8s)? Чи знаходиться контейнер у правильній мережі Docker?</td></tr>
+    <tr><td><code>DEPTH_ZERO_SELF_SIGNED_CERT</code> / TLS-помилки</td><td>TLS-сертифікат є самопідписаним, застарілим або hostname не відповідає CN/SAN сертифіката.</td><td>Перевірте сертифікат: <code>openssl s_client -connect хост:порт</code>. Переконайтеся, що сертифікат відповідає hostname, що викликається.</td></tr>
+  </table>
+
+  <h3>HTTP-помилки від проксі або шлюзу</h3>
+  <table class="tbl">
+    <tr><th>Статус</th><th>Значення</th><th>Де шукати</th></tr>
+    <tr><td><strong>502 Bad Gateway</strong></td><td>Проксі/шлюз отримав невалідну відповідь від upstream-сервісу або upstream був недоступний.</td><td>Перевірте логи та стан upstream-сервісу. Сам проксі здоровий — його upstream — ні.</td></tr>
+    <tr><td><strong>503 Service Unavailable</strong></td><td>Немає здорових upstream-екземплярів. Всі екземпляри не пройшли перевірку стану або сервіс перевантажений.</td><td><code>kubectl get endpoints</code> (K8s) або перевірте стан бекендів балансувальника. Масштабуйте або виправте несправні поди.</td></tr>
+    <tr><td><strong>504 Gateway Timeout</strong></td><td>Проксі дістався до upstream, але не отримав відповіді в межах тайм-ауту. Upstream живий, але занадто повільний або завис.</td><td>Перевірте логи upstream-сервісу на повільні запити, блокування або високе CPU. Збільшіть тайм-аут, якщо операція виправдано повільна.</td></tr>
+  </table>
+
+  <h3>Поведінкові патерни, що вказують на мережеві проблеми</h3>
+  <table class="tbl">
+    <tr><th>Патерн</th><th>Що свідчить</th></tr>
+    <tr><td>Стабільний тайм-аут ~30 секунд</td><td>Типовий TCP-тайм-аут — хост існує, але порт мовчки відкидається брандмауером. Не повільний сервіс — пакет ніколи не прибув.</td></tr>
+    <tr><td>Працює при виклику <code>localhost</code>, не працює з іменем сервісу</td><td>Виявлення сервісів / DNS зламано. Сервіс здоровий, але не знаходиться за іменем.</td></tr>
+    <tr><td>Переривчасті збої (не 100%, повторні спроби виправляють)</td><td>Балансувальник навантаження маршрутизує трафік до нездорового пода. Один екземпляр несправний; інші працюють.</td></tr>
+    <tr><td>A → B працює, B → A не працює</td><td>Асиметричне правило брандмауера або NetworkPolicy. Правила налаштовані лише в одному напрямку.</td></tr>
+    <tr><td>Працює в локальному Docker, не працює в Kubernetes</td><td>Невідповідність простору імен, блокування NetworkPolicy або сервіс неправильно відкритий. K8s за замовчуванням суворіший за Docker.</td></tr>
+    <tr><td>Працює з одного сервісу, не працює з іншого до тієї ж залежності</td><td>NetworkPolicy дозволяє трафік із селектора першого сервісу, але не другого. Або у другого сервісу неправильні змінні середовища (інший URL).</td></tr>
+    <tr><td>Збої з'являються лише під навантаженням</td><td>Пул з'єднань вичерпано, занадто багато одночасних з'єднань досягають ліміту, або один под перевантажений.</td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<!-- ── 07 ── -->
+<div class="section" id="s07">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <span class="section-title">Процес відлагодження</span>
+    <span class="tag tag-testing">ПРОЦЕС</span>
+  </div>
+
+  <div class="intro">
+    Структурований підхід до діагностики мережевих збоїв мікросервісів. Починайте зі швидких перевірок, що виключають цілі категорії проблем, перш ніж використовувати складні інструменти.
+  </div>
+
+  <h3>Крок 1 — Визначте, який виклик завершується невдачею</h3>
+  <p>Визначте точний виклик між сервісами, що збоїть. Перевірте логи <strong>сервісу, що викликає</strong> — він повідомляє, що сталося на рівні TCP. Сервіс, що викликається, може нічого не показувати, бо з'єднання ніколи не надійшло.</p>
+  <div class="callout callout-note">
+    <div class="callout-label">КЛЮЧОВИЙ ПРИНЦИП</div>
+    <p>Читайте логи сервісу, що <strong>здійснює</strong> виклик, а не того, що викликається. Повідомлення про помилку знаходиться на стороні викликача. Сервіс, що викликається, нічого не бачить, якщо пакет ніколи не прибув.</p>
+  </div>
+
+  <h3>Крок 2 — Попередня перевірка: виключіть архітектурні невідповідності</h3>
+  <ul>
+    <li>Чи потребує застосунок інтернету? Чи є доступ до інтернету в цьому середовищі?</li>
+    <li>Чи справді запущений цільовий сервіс? (<code>docker ps</code>, <code>kubectl get pods</code>, <code>systemctl status</code>)</li>
+    <li>Чи здоровий цільовий сервіс? Викличте його ендпоінт <code>/health</code> напряму.</li>
+    <li>Чи правильні облікові дані / токени для цього середовища?</li>
+  </ul>
+
+  <h3>Крок 3 — Тріаж мережевого шару</h3>
+  <div class="flow">
+    <div class="flow-label">ТРІАЖ МЕРЕЖІ — РОЗДІЛІТЬ СТЕК ДВОМА ПЕРЕВІРКАМИ</div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--cyan-d);color:var(--cyan)">A</div><div class="flow-body"><div class="flow-actor">ПЕРЕВІРКА ВЕРХНЬОГО РІВНЯ — Чи можна дістатися до сервісу?</div><div class="flow-desc">Зсередини контейнера/пода, що викликає: <code>curl http://service-name/health</code>. Якщо відповідає (будь-який HTTP-статус) — L1–L6 працюють. Проблема на рівні застосунку. ENOTFOUND → DNS-проблема. ECONNREFUSED → сервіс не запущений або неправильний порт. ETIMEDOUT → брандмауер/маршрутизація.</div></div></div>
+    <div class="flow-step"><div class="flow-n" style="background:var(--blue-d);color:var(--blue)">B</div><div class="flow-body"><div class="flow-actor">СЕРЕДНЯ ПЕРЕВІРКА — Ping проходить?</div><div class="flow-desc"><code>ping &lt;ім'я-сервісу-або-IP&gt;</code>. Успіх підтверджує здоров'я L1–L3. Ping проходить, curl — ні → проблема на L4 (порт, правило брандмауера) або L7 (застосунок). Ping не проходить → проблема на L1–L3 (маршрутизація, DNS, фізичне).</div></div></div>
+  </div>
+
+  <h3>Крок 4 — Заглиблення за типом конфігурації</h3>
+  <table class="tbl">
+    <tr><th>Конфігурація</th><th>Перевірка DNS</th><th>Перевірка порту</th><th>Логи</th></tr>
+    <tr><td>Docker Compose</td><td><code>docker exec &lt;c&gt; nslookup service-name</code></td><td><code>docker exec &lt;c&gt; curl http://service-name:port/health</code></td><td><code>docker compose logs service-name</code></td></tr>
+    <tr><td>Окремі хости</td><td><code>nslookup &lt;hostname&gt;</code> на машині, що викликає</td><td><code>nc -zv &lt;IP&gt; &lt;port&gt;</code> / <code>Test-NetConnection</code></td><td>SSH на ціль, перевірте логи застосунку та <code>ss -tuln</code></td></tr>
+    <tr><td>Kubernetes</td><td><code>kubectl exec &lt;pod&gt; -- nslookup service.namespace</code></td><td><code>kubectl exec &lt;pod&gt; -- curl http://service/health</code></td><td><code>kubectl logs &lt;pod&gt;</code> + <code>kubectl get endpoints</code></td></tr>
+    <tr><td>Гібридний</td><td>Перевірте, що URL у змінних середовища правильні для цього середовища</td><td><code>curl &lt;staging-url&gt;/health</code> з вашої локальної машини</td><td>Перевірте логи локального сервісу і remote staging</td></tr>
+  </table>
+
+  <h3>Крок 5 — Якщо все ще незрозуміло</h3>
+  <ul>
+    <li><strong>Розподілене трасування</strong> (Jaeger, Zipkin, AWS X-Ray) — отримайте трасування для запиту, що збоїть. Показує точно, який перехід завершився невдачею і з якою затримкою.</li>
+    <li><strong>Захоплення пакетів</strong> — <code>tcpdump -i eth0 port 8080</code> на цілі. Якщо бачите SYN, але немає SYN-ACK — сервіс не слухає. Якщо пакетів немає взагалі — трафік ніколи не прибув (маршрутизація/брандмауер).</li>
+    <li><strong>Дашборд service mesh</strong> (Kiali для Istio) — показує потік трафіку в реальному часі, рівень помилок та затримку для кожної пари сервісів.</li>
+  </ul>
+</div>
+
+<hr class="sep">
+
+<!-- ── 08 ── -->
+<div class="section" id="s08">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <span class="section-title">Шпаргалка команд</span>
+    <span class="tag tag-testing">ДОВІДНИК</span>
+  </div>
+
+  <div class="intro">
+    Швидкий довідник найбільш корисних команд, організований за типом конфігурації. Всі перевірки підключення слід виконувати зсередини контейнера або пода, що викликає — не з вашої хост-машини.
+  </div>
+
+  <h3>Docker Compose</h3>
+  <table class="tbl">
+    <tr><th>Завдання</th><th>Команда</th></tr>
+    <tr><td>Перевірити запущені контейнери</td><td><code>docker ps</code> / <code>docker compose ps</code></td></tr>
+    <tr><td>Читати логи сервісу</td><td><code>docker compose logs -f service-name</code></td></tr>
+    <tr><td>Shell у контейнер</td><td><code>docker exec -it &lt;контейнер&gt; sh</code></td></tr>
+    <tr><td>Перевірка DNS-розв'язання</td><td><code>docker exec -it &lt;контейнер&gt; nslookup service-name</code></td></tr>
+    <tr><td>Перевірка HTTP-підключення</td><td><code>docker exec -it &lt;контейнер&gt; curl http://service-name:port/health</code></td></tr>
+    <tr><td>Огляд спільної мережі</td><td><code>docker network inspect &lt;проект&gt;_default</code></td></tr>
+    <tr><td>Використання ресурсів</td><td><code>docker stats</code></td></tr>
+  </table>
+
+  <h3>Окремі хости</h3>
+  <table class="tbl">
+    <tr><th>Завдання</th><th>Команда</th></tr>
+    <tr><td>Що слухає на порту</td><td><code>ss -tuln | grep &lt;порт&gt;</code> (Linux) / <code>netstat -ano | findstr &lt;порт&gt;</code> (Windows)</td></tr>
+    <tr><td>Перевірка доступності TCP-порту</td><td><code>nc -zv &lt;IP&gt; &lt;порт&gt;</code> / <code>Test-NetConnection -ComputerName &lt;IP&gt; -Port &lt;N&gt;</code></td></tr>
+    <tr><td>DNS-пошук</td><td><code>nslookup &lt;hostname&gt;</code></td></tr>
+    <tr><td>Трасування мережевого шляху</td><td><code>traceroute &lt;IP&gt;</code> / <code>tracert &lt;IP&gt;</code></td></tr>
+    <tr><td>Перевірка правил брандмауера (Linux)</td><td><code>iptables -L INPUT -n -v</code></td></tr>
+    <tr><td>Перевірка TLS-сертифіката</td><td><code>openssl s_client -connect &lt;хост&gt;:&lt;порт&gt;</code></td></tr>
+  </table>
+
+  <h3>Kubernetes</h3>
+  <table class="tbl">
+    <tr><th>Завдання</th><th>Команда</th></tr>
+    <tr><td>Список подів</td><td><code>kubectl get pods -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Деталі пода + події</td><td><code>kubectl describe pod &lt;pod&gt; -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Логи пода</td><td><code>kubectl logs -f &lt;pod&gt; -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Логи попереднього контейнера</td><td><code>kubectl logs &lt;pod&gt; -n &lt;namespace&gt; --previous</code></td></tr>
+    <tr><td>Список сервісів</td><td><code>kubectl get svc -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Перевірка ендпоінтів сервісу</td><td><code>kubectl get endpoints &lt;service&gt; -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Перевірка DNS з пода</td><td><code>kubectl exec -it &lt;pod&gt; -n &lt;ns&gt; -- nslookup service.namespace</code></td></tr>
+    <tr><td>HTTP-перевірка з пода</td><td><code>kubectl exec -it &lt;pod&gt; -n &lt;ns&gt; -- curl http://service/health</code></td></tr>
+    <tr><td>Відкрити сервіс локально</td><td><code>kubectl port-forward svc/&lt;service&gt; 8080:80 -n &lt;namespace&gt;</code></td></tr>
+    <tr><td>Перевірка мережевих політик</td><td><code>kubectl get networkpolicies -n &lt;namespace&gt;</code></td></tr>
+  </table>
+
+  <h3>Універсальні — працюють у будь-якій конфігурації</h3>
+  <table class="tbl">
+    <tr><th>Завдання</th><th>Команда</th></tr>
+    <tr><td>Базова доступність (L3)</td><td><code>ping &lt;IP-або-hostname&gt;</code></td></tr>
+    <tr><td>HTTP-перевірка стану</td><td><code>curl -v http://&lt;хост&gt;:&lt;порт&gt;/health</code></td></tr>
+    <tr><td>HTTPS з деталями сертифіката</td><td><code>curl -v https://&lt;хост&gt;/health</code></td></tr>
+    <tr><td>DNS-пошук</td><td><code>nslookup &lt;hostname&gt;</code></td></tr>
+    <tr><td>Захоплення пакетів на порту</td><td><code>tcpdump -i eth0 port &lt;N&gt;</code></td></tr>
+  </table>
+</div>
+
+</div><!-- end view-course -->
+</main>
+</div><!-- end layout -->
+
+<script src="../../assets/site.js"></script>
+</body>
+</html>

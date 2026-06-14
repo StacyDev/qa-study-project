@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔌</text></svg>">
@@ -100,91 +100,91 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
 </head>
 <body>
 
-<div class="disclaimer"><strong>Notes:</strong> Practical network debugging guide. Commands verified on common Linux distros and Windows 10/11. Always confirm the OS before running commands.</div>
+<div class="disclaimer"><strong>Нотатки:</strong> Практичний посібник з відлагодження мережі. Команди перевірені на поширених дистрибутивах Linux та Windows 10/11. Завжди уточнюйте ОС перед запуском команд.</div>
 <nav class="topnav">
-  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+  <button class="menu-toggle" id="menu-toggle" onclick="toggleSidebar()" aria-label="Меню">☰</button>
   <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
-  <a class="back-link" href="../../index.html">← all topics</a>
-  <button class="tab-btn active" onclick="showTab('course',this)">Topics</button>
+  <a class="back-link" href="../../index.html">← всі теми</a>
+  <button class="tab-btn active" onclick="showTab('course',this)">Теми</button>
   <div class="settings-wrap">
-    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
     <div class="settings-menu" id="settings-menu">
       <div class="settings-section">
-        <span class="settings-label">FONT</span>
-        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (за замовчуванням)</div>
         <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
       </div>
       <div class="settings-section">
-        <span class="settings-label">THEME</span>
-        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Dark (default)</div>
-        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Light</div>
+        <span class="settings-label">ТЕМА</span>
+        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Темна (за замовчуванням)</div>
+        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Світла</div>
       </div>
     </div>
   </div>
-  <button class="lang-btn active" id="lang-en" onclick="setCookie('ui_lang','en')">EN</button>
-  <a class="lang-btn" id="lang-ua" href="ua.html" onclick="setCookie('ui_lang','ua')">UA</a>
+  <a class="lang-btn" id="lang-en" href="uk.html" onclick="setCookie('ui_lang','en')">EN</a>
+  <button class="lang-btn active" id="lang-ua" onclick="setCookie('ui_lang','ua')">UA</button>
 </nav>
 
 <div class="layout">
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <nav class="sidebar" id="sidebar">
-  <div class="sidecat">Overview</div>
+  <div class="sidecat">Огляд</div>
   <a class="sidelink" data-sec="home" onclick="return nav('home', this)">
-    Introduction
+    Вступ
   </a>
   <a class="sidelink" data-sec="preflight" onclick="return nav('preflight', this)">
-    Pre-flight sanity checks
+    Попередні перевірки
   </a>
   <a class="sidelink" data-sec="osi-reference" onclick="return nav('osi-reference', this)">
-    OSI model — reference
+    OSI модель — довідник
   </a>
   <a class="sidelink" data-sec="tree" onclick="return nav('tree', this)">
-    Network type tree
+    Дерево типів мереж
   </a>
   <a class="sidelink" data-sec="switch-tables" onclick="return nav('switch-tables', this)">
-    Switch tables explained
+    Таблиці комутатора
   </a>
   <a class="sidelink" data-sec="vlans-subnets" onclick="return nav('vlans-subnets', this)">
-    VLANs vs subnets
+    VLAN vs підмережі
   </a>
-  <div class="sidecat">Local network types</div>
+  <div class="sidecat">Типи локальних мереж</div>
   <a class="sidelink" data-sec="t1" onclick="return nav('t1', this)">
     1 — Loopback
   </a>
   <a class="sidelink" data-sec="t2" onclick="return nav('t2', this)">
-    2 — Direct cable
+    2 — Прямий кабель
   </a>
   <a class="sidelink" data-sec="t3" onclick="return nav('t3', this)">
-    3 — Switched local
+    3 — Комутована мережа
   </a>
   <a class="sidelink" data-sec="vlan-misconfig" onclick="return nav('vlan-misconfig', this)" style="padding-left:28px">
-    ↳ VLAN misconfiguration
+    ↳ Неправильна конфігурація VLAN
   </a>
   <a class="sidelink" data-sec="t4" onclick="return nav('t4', this)">
-    4 — Routed local
+    4 — Маршрутизована мережа
   </a>
-  <div class="sidecat">Internet types</div>
+  <div class="sidecat">Типи інтернет-мереж</div>
   <a class="sidelink" data-sec="t5" onclick="return nav('t5', this)">
-    5 — Direct P2P
+    5 — Пряме P2P
   </a>
   <a class="sidelink" data-sec="t6" onclick="return nav('t6', this)">
-    6 — Via central server
+    6 — Через центральний сервер
   </a>
   <a class="sidelink" data-sec="t7" onclick="return nav('t7', this)">
-    7 — VPN tunnel
+    7 — VPN тунель
   </a>
   <a class="sidelink" data-sec="t8" onclick="return nav('t8', this)">
-    8 — P2P with relay
+    8 — P2P з ретранслятором
   </a>
-  <div class="sidecat">Debugging reference</div>
+  <div class="sidecat">Довідник відлагодження</div>
   <a class="sidelink" data-sec="osi-debug" onclick="return nav('osi-debug', this)">
-    OSI layers — all checks
+    OSI рівні — всі перевірки
   </a>
   <a class="sidelink" data-sec="commands" onclick="return nav('commands', this)">
-    Commands — Linux vs Windows
+    Команди — Linux vs Windows
   </a>
   <a class="sidelink" data-sec="tcp-udp" onclick="return nav('tcp-udp', this)">
-    TCP vs UDP &amp; ports
+    TCP vs UDP та порти
   </a>
 </nav>
 
@@ -193,72 +193,72 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
 
 <!-- HOME -->
 <div class="section-page active" id="pg-home">
-  <h1>Network Debugging Tutorial</h1>
-  <p class="page-sub">A complete reference for debugging communication failures between two computers — from physical layer to application layer.</p>
-  <div class="note info"><strong>How to use this tutorial:</strong> use the sidebar to navigate by topic. Start with <em>Network type tree</em> to understand which type of network you are dealing with — that determines which debugging path to follow. The VLAN misconfiguration case study is a detailed worked example of a real switch-level failure.</div>
-  <h2>What this covers</h2>
-  <p>Two computers cannot communicate. This tutorial walks through every possible reason — from a loose cable to a VLAN misconfiguration to a TLS certificate mismatch — organised by the OSI model and by the type of network the computers are on.</p>
-  <div class="note warn"><strong>First question to always ask before debugging:</strong> do you have access to all devices in the path — both hosts, the switch, the router? The answer changes which checks are possible and which require escalation.</div>
-  <h2>Debugging strategy</h2>
-  <p>The table in this tutorial uses a bottom-up <strong>reference order</strong> — it is not a mandatory execution order. In practice, start with a quick three-point triage:</p>
+  <h1>Посібник з відлагодження мережі</h1>
+  <p class="page-sub">Повний довідник для відлагодження збоїв зв'язку між двома комп'ютерами — від фізичного рівня до рівня застосунку.</p>
+  <div class="note info"><strong>Як користуватися посібником:</strong> використовуйте бічну панель для навігації за темами. Починайте з <em>Дерева типів мереж</em>, щоб зрозуміти, який тип мережі перед вами — це визначає, який шлях відлагодження обрати. Кейс-стаді з неправильною конфігурацією VLAN — детальний практичний приклад реального збою на рівні комутатора.</div>
+  <h2>Що охоплює цей посібник</h2>
+  <p>Два комп'ютери не можуть зв'язатися. Цей посібник проходить через кожну можливу причину — від незакріпленого кабелю до неправильної конфігурації VLAN і невідповідності TLS-сертифіката — організовано за моделлю OSI та типом мережі.</p>
+  <div class="note warn"><strong>Перше питання перед відлагодженням:</strong> чи маєте ви доступ до всіх пристроїв на шляху — обидва хости, комутатор, роутер? Відповідь визначає, які перевірки можливі, а які потребують ескалації.</div>
+  <h2>Стратегія відлагодження</h2>
+  <p>Таблиця в цьому посібнику використовує висхідний <strong>довідковий порядок</strong> — це не обов'язковий порядок виконання. На практиці починайте з швидкого триточкового тріажу:</p>
   <ol>
-    <li><strong>Top check</strong> — try to reach the service (<code>curl</code>, <code>telnet</code>, <code>Test-NetConnection</code>). If it responds, most of the stack is already working — focus on L4–L7 only.</li>
-    <li><strong>Middle check</strong> — <code>ping</code> the target IP. If ping succeeds, L1–L3 are healthy. Skip physical and cable checks entirely.</li>
-    <li><strong>Bottom-up drill-down</strong> — only start from L1 when the middle check fails, or when you have no other signal of where the problem is.</li>
+    <li><strong>Перевірка верхнього рівня</strong> — спробуйте дістатися до сервісу (<code>curl</code>, <code>telnet</code>, <code>Test-NetConnection</code>). Якщо відповідає — більша частина стека вже працює, зосередьтеся лише на L4–L7.</li>
+    <li><strong>Середня перевірка</strong> — <code>ping</code> до цільового IP. Якщо ping проходить — L1–L3 здорові. Фізичні та кабельні перевірки можна пропустити повністю.</li>
+    <li><strong>Заглиблення знизу вгору</strong> — починайте від L1 лише тоді, коли середня перевірка не пройшла, або коли немає жодного іншого сигналу де знаходиться проблема.</li>
   </ol>
-  <p>The bottom-up reference is most useful when you genuinely have no clue which layer is broken, or when a previous check at a higher layer already passed cleanly.</p>
-  <p>The second principle: <strong>know which device to run each check on</strong>. Running <code>ss -tuln</code> on Host A tells you nothing about whether Host B's service is listening. Every command in this tutorial is labelled with the correct host.</p>
+  <p>Висхідний довідник найбільш корисний, коли ви справді не знаєте, який рівень зламано, або коли попередня перевірка на вищому рівні вже пройшла успішно.</p>
+  <p>Другий принцип: <strong>знайте, на якому пристрої виконувати кожну перевірку</strong>. Запуск <code>ss -tuln</code> на Хості A нічого не говорить про те, чи слухає сервіс на Хості B. Кожна команда в цьому посібнику позначена правильним хостом.</p>
 </div>
 
 <!-- PRE-FLIGHT -->
 <div class="section-page" id="pg-preflight">
-  <h1>Pre-flight sanity checks</h1>
-  <p class="page-sub">Run these before any low-level debugging. Some failures have nothing to do with the network stack — they are configuration or architecture mismatches that no amount of packet analysis will fix.</p>
+  <h1>Попередні перевірки</h1>
+  <p class="page-sub">Виконайте ці перевірки перед будь-яким низькорівневим відлагодженням. Деякі збої не мають нічого спільного з мережевим стеком — це невідповідності конфігурації або архітектури, які жоден аналіз пакетів не виправить.</p>
 
-  <div class="note warn"><strong>Classic example:</strong> two PCs on a local network both have Slack installed. Ping between them works fine. But Slack routes all messages through Slack's central servers on the internet — and this network has no internet access. The local network is perfectly healthy; the problem is architectural. No low-level debug tool will reveal this.</div>
+  <div class="note warn"><strong>Класичний приклад:</strong> два ПК в локальній мережі — на обох встановлений Slack. Ping між ними працює чудово. Але Slack маршрутизує всі повідомлення через центральні сервери Slack в інтернеті — а ця мережа не має доступу до інтернету. Локальна мережа цілком здорова; проблема архітектурна. Жоден низькорівневий інструмент відлагодження не розкриє цього.</div>
 
-  <h2>1. Communication architecture</h2>
+  <h2>1. Архітектура комунікації</h2>
   <table class="cmd-table">
-    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
-    <tr><td>Direct vs relay</td><td>Does the app communicate directly between peers, or through a central server?</td><td>Check the app's documentation or architecture diagram. Direct = peer-to-peer (e.g. local file share). Relay = needs a central server reachable from both ends (e.g. Slack, Teams, most SaaS apps).</td></tr>
-    <tr><td>Server location</td><td>Is that central server on the local network or on the internet?</td><td>If internet-hosted: confirm internet access exists. If local: confirm the server host is reachable and the service is running on it.</td></tr>
-    <tr><td>Internet access required</td><td>Does this specific app require internet to function?</td><td><code>ping 8.8.8.8</code> — confirms basic internet reachability. <code>curl -s https://www.google.com</code> — confirms HTTPS works.</td></tr>
+    <tr><th>Перевірка</th><th>Питання</th><th>Як перевірити</th></tr>
+    <tr><td>Пряме vs ретрансляційне</td><td>Чи застосунок спілкується безпосередньо між пірами, чи через центральний сервер?</td><td>Перевірте документацію або архітектурну схему застосунку. Пряме = peer-to-peer (наприклад, локальна файлова шара). Ретрансляційне = потрібен центральний сервер, доступний з обох кінців (наприклад, Slack, Teams, більшість SaaS-застосунків).</td></tr>
+    <tr><td>Розташування сервера</td><td>Центральний сервер знаходиться в локальній мережі чи в інтернеті?</td><td>Якщо розміщений в інтернеті: підтвердіть наявність доступу до інтернету. Якщо локальний: підтвердіть доступність хоста сервера і що сервіс запущений на ньому.</td></tr>
+    <tr><td>Потрібен інтернет</td><td>Чи потребує цей застосунок інтернету для роботи?</td><td><code>ping 8.8.8.8</code> — підтверджує базову досяжність інтернету. <code>curl -s https://www.google.com</code> — підтверджує роботу HTTPS.</td></tr>
   </table>
 
-  <h2>2. Service and application state</h2>
+  <h2>2. Стан сервісу та застосунку</h2>
   <table class="cmd-table">
-    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
-    <tr><td>App installed</td><td>Is the application actually installed on both hosts?</td><td>Check the application list / <code>which app</code> / <code>Get-Command app</code>.</td></tr>
-    <tr><td>Service running</td><td>Is the service/daemon running and not crashed?</td><td><code>systemctl status &lt;service&gt;</code> / <code>Get-Service &lt;name&gt;</code> / <code>ps aux | grep &lt;name&gt;</code></td></tr>
-    <tr><td>Remote service status</td><td>Is the external server/service actually operational right now?</td><td>Check the vendor's status page (e.g. <code>status.slack.com</code>). Outages look exactly like network problems from the client side.</td></tr>
-    <tr><td>Version compatibility</td><td>Are both ends running compatible versions?</td><td>Check version numbers. A major version mismatch can prevent communication at the application protocol level even with perfect network connectivity.</td></tr>
+    <tr><th>Перевірка</th><th>Питання</th><th>Як перевірити</th></tr>
+    <tr><td>Застосунок встановлено</td><td>Чи дійсно встановлений застосунок на обох хостах?</td><td>Перевірте список застосунків / <code>which app</code> / <code>Get-Command app</code>.</td></tr>
+    <tr><td>Сервіс запущено</td><td>Чи запущений сервіс/демон і не аварійно завершився?</td><td><code>systemctl status &lt;service&gt;</code> / <code>Get-Service &lt;name&gt;</code> / <code>ps aux | grep &lt;name&gt;</code></td></tr>
+    <tr><td>Статус remote-сервісу</td><td>Чи справді зараз доступний зовнішній сервер/сервіс?</td><td>Перевірте сторінку статусу постачальника (наприклад, <code>status.slack.com</code>). Збої виглядають точно як мережеві проблеми зі сторони клієнта.</td></tr>
+    <tr><td>Сумісність версій</td><td>Чи обидва кінці використовують сумісні версії?</td><td>Перевірте номери версій. Невідповідність мажорної версії може перешкоджати комунікації на рівні протоколу застосунку навіть при ідеальному мережевому з'єднанні.</td></tr>
   </table>
 
-  <h2>3. Network access and routing</h2>
+  <h2>3. Доступ до мережі та маршрутизація</h2>
   <table class="cmd-table">
-    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
-    <tr><td>Same network segment</td><td>Are both hosts actually on the same subnet / VLAN?</td><td><code>ipconfig /all</code> / <code>ip addr show</code> — compare subnet masks. Different VLANs may not route to each other even on the same switch.</td></tr>
-    <tr><td>DNS resolution</td><td>Can the app resolve the server's hostname?</td><td><code>nslookup &lt;server-hostname&gt;</code>. If DNS fails, the app cannot connect even with working internet. Corporate networks sometimes block external DNS.</td></tr>
-    <tr><td>Required ports open</td><td>Are the ports the app uses allowed through the local firewall or corporate network?</td><td>Check the app's required ports in its documentation. Test: <code>Test-NetConnection -ComputerName &lt;server&gt; -Port &lt;N&gt;</code> / <code>nc -zv &lt;server&gt; &lt;port&gt;</code>.</td></tr>
-    <tr><td>Proxy required</td><td>Does this network route traffic through a proxy the app must be configured for?</td><td>Check system proxy settings. Some apps (especially older desktop apps) ignore system proxy and need explicit configuration.</td></tr>
-    <tr><td>VPN interference</td><td>Is an active VPN rerouting traffic away from the intended destination?</td><td>Check VPN status. A split-tunnel VPN may route specific traffic through a tunnel that blocks other destinations.</td></tr>
+    <tr><th>Перевірка</th><th>Питання</th><th>Як перевірити</th></tr>
+    <tr><td>Той самий сегмент мережі</td><td>Чи дійсно обидва хости знаходяться в одній підмережі / VLAN?</td><td><code>ipconfig /all</code> / <code>ip addr show</code> — порівняйте маски підмереж. Різні VLAN можуть не маршрутизуватися один до одного навіть на одному комутаторі.</td></tr>
+    <tr><td>DNS-розв'язання</td><td>Чи може застосунок розв'язати hostname сервера?</td><td><code>nslookup &lt;server-hostname&gt;</code>. Якщо DNS не спрацьовує — застосунок не може підключитися навіть при робочому інтернеті. Корпоративні мережі іноді блокують зовнішній DNS.</td></tr>
+    <tr><td>Потрібні порти відкриті</td><td>Чи дозволені порти застосунку через локальний брандмауер або корпоративну мережу?</td><td>Перевірте потрібні порти застосунку в документації. Тест: <code>Test-NetConnection -ComputerName &lt;server&gt; -Port &lt;N&gt;</code> / <code>nc -zv &lt;server&gt; &lt;port&gt;</code>.</td></tr>
+    <tr><td>Потрібен проксі</td><td>Чи маршрутизує ця мережа трафік через проксі, для якого повинен бути налаштований застосунок?</td><td>Перевірте системні налаштування проксі. Деякі застосунки (особливо старіші десктопні) ігнорують системний проксі та потребують явного налаштування.</td></tr>
+    <tr><td>Втручання VPN</td><td>Чи перенаправляє активний VPN трафік від запланованого призначення?</td><td>Перевірте статус VPN. Роздільний тунель VPN може маршрутизувати певний трафік через тунель, що блокує інші місця призначення.</td></tr>
   </table>
 
-  <h2>4. Authentication and credentials</h2>
+  <h2>4. Аутентифікація та облікові дані</h2>
   <table class="cmd-table">
-    <tr><th>Check</th><th>Question to answer</th><th>How to verify</th></tr>
-    <tr><td>Credentials valid</td><td>Are the login credentials correct and the account active?</td><td>Try logging in via the web interface or another device. An account that is locked, expired, or has an invalid token will fail at L7 — the connection itself is fine.</td></tr>
-    <tr><td>Clock synchronization</td><td>Are system clocks within tolerance?</td><td><code>w32tm /query /status</code> (Windows) / <code>timedatectl</code> (Linux). TLS and Kerberos authentication silently fail when clock skew exceeds ~5 minutes.</td></tr>
-    <tr><td>Certificate valid</td><td>Is the server certificate trusted and not expired?</td><td><code>curl -v https://&lt;server&gt;</code> — look for certificate errors. An expired cert causes HTTPS failures that look like generic connection failures.</td></tr>
+    <tr><th>Перевірка</th><th>Питання</th><th>Як перевірити</th></tr>
+    <tr><td>Дійсні облікові дані</td><td>Чи правильні облікові дані для входу і чи активний обліковий запис?</td><td>Спробуйте увійти через веб-інтерфейс або інший пристрій. Заблокований, прострочений або з недійсним токеном обліковий запис завершиться невдачею на L7 — саме з'єднання в порядку.</td></tr>
+    <tr><td>Синхронізація часу</td><td>Чи системні годинники знаходяться в межах допустимого відхилення?</td><td><code>w32tm /query /status</code> (Windows) / <code>timedatectl</code> (Linux). TLS та Kerberos-аутентифікація мовчки завершуються невдачею при розбіжності часу понад ~5 хвилин.</td></tr>
+    <tr><td>Сертифікат дійсний</td><td>Чи є серверний сертифікат надійним і не простроченим?</td><td><code>curl -v https://&lt;server&gt;</code> — шукайте помилки сертифіката. Прострочений сертифікат викликає HTTPS-збої, що виглядають як звичайні помилки з'єднання.</td></tr>
   </table>
 
-  <div class="note good"><strong>Decision point after pre-flight:</strong> if all checks above pass — internet accessible, app running on both ends, DNS resolves, ports reachable, credentials valid — the problem is genuinely in the network stack. Proceed with the triage strategy: physical check + ping to split the stack, then drill into the failing half.</div>
+  <div class="note good"><strong>Точка рішення після попередніх перевірок:</strong> якщо всі перевірки вище пройшли — інтернет доступний, застосунок запущений на обох кінцях, DNS розв'язується, порти доступні, облікові дані дійсні — проблема дійсно в мережевому стеку. Переходьте до стратегії тріажу: фізична перевірка + ping для розділення стека, потім заглиблення у несправну половину.</div>
 </div>
 
 <!-- TREE -->
 <div class="section-page" id="pg-tree">
-  <h1>Network Type Tree</h1>
-  <p class="page-sub">All communication types classified by the path the data takes. Click any type in the sidebar to go to its debugging guide.</p>
+  <h1>Дерево типів мереж</h1>
+  <p class="page-sub">Всі типи комунікації класифіковані за шляхом передачі даних. Натисніть будь-який тип у бічній панелі для переходу до посібника з відлагодження.</p>
   <svg id="tree-svg" viewBox="0 0 780 400" xmlns="http://www.w3.org/2000/svg" style="font-family:system-ui,sans-serif">
     <!-- root to group connectors -->
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
@@ -328,7 +328,7 @@ hr{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
 
 <!-- SWITCH TABLES -->
 <div class="section-page" id="pg-switch-tables">
-  <h1>Switch Tables Explained</h1>
+  <h1>Таблиці комутатора</h1>
   <p class="page-sub">A common misconception is that a switch only has one table — the CAM table. In reality a managed switch maintains several tables, each responsible for a different aspect of frame forwarding.</p>
   <div class="note warn"><strong>Why this matters for debugging:</strong> when communication fails at Layer 2, the problem may be in any one of these tables — not necessarily the CAM table. Knowing which table does what tells you where to look.</div>
   <h2>The tables and their roles</h2>
@@ -397,8 +397,8 @@ show interface FastEthernet 0/2  ← shows which VLAN port 2 is assigned to</div
 
 <!-- VLANS vs SUBNETS -->
 <div class="section-page" id="pg-vlans-subnets">
-  <h1>VLANs vs Subnets</h1>
-  <p class="page-sub">Two concepts that are often confused because they solve similar problems at different OSI layers.</p>
+  <h1>VLAN vs Підмережі</h1>
+  <p class="page-sub">Два поняття, що часто плутають, бо вони вирішують схожі задачі на різних рівнях OSI.</p>
 
   <h2>Why VLANs exist at all</h2>
   <p>The question is: why not keep everything on one flat network on a single switch?</p>
@@ -447,7 +447,7 @@ show interface FastEthernet 0/2  ← shows which VLAN port 2 is assigned to</div
   <h1>Type 1 — Loopback</h1>
   <p class="page-sub">Two processes on the same machine communicating through the virtual loopback interface. No physical hardware involved.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:480px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="240" y1="36" x2="120" y2="80"/>
@@ -498,7 +498,7 @@ show interface FastEthernet 0/2  ← shows which VLAN port 2 is assigned to</div
   <h1>Type 2 — Direct Cable</h1>
   <p class="page-sub">Two machines connected by a single Ethernet cable with no switch, no router, and nothing else in between.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:680px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="340" y1="36" x2="170" y2="80"/>
@@ -714,19 +714,19 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </div>
   <div class="note info"><strong>Key point for debugging all alternatives:</strong> regardless of the physical medium — cable, WiFi, Bluetooth, USB — once the link is established the OS presents it as a network interface. You still check <code>ip link show</code> or <code>Get-NetAdapter</code>, still configure IP addresses in the same subnet, still use <code>ping</code>, still check ARP. The physical medium only affects Layer 1 checks — instead of looking at an Ethernet LED you check WiFi signal strength or Bluetooth connection status. Layer 3 and above is identical.</div>
 
-  <h2>Debugging reference</h2>
+  <h2>Довідник відлагодження</h2>
   <table class="cmd-table">
-    <tr><th>Layer</th><th>Physical check</th><th>What this step does</th><th>Where</th></tr>
+    <tr><th>Рівень</th><th>Фізична перевірка</th><th>Що робить цей крок</th><th>Де</th></tr>
     <tr><td>L1</td><td>NIC LED on both machines — must be lit green. No light = no physical link. Press cable firmly into port until click. Check both ends.</td><td>Confirms the physical electrical signal is present on the cable. This is the most basic check possible — if there is no light, no data can travel regardless of any software configuration.</td><td>Eyes — both hosts</td></tr>
   </table>
   <table class="cmd-table" style="margin-top:8px">
     <tr><th>Layer</th><th>Command</th><th>Run on</th><th>What this step does</th><th>What to look for</th></tr>
-    <tr><td>L1</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Both</td><td>Asks the OS whether the network interface is active and receiving a signal. Confirms both that the OS has enabled the interface (UP) and that it detects a physical connection on the cable (carrier).</td><td>Interface must show UP and carrier detected. NO-CARRIER = cable problem even if the LED looks fine.</td></tr>
-    <tr><td>L2</td><td><code>arp -a</code> / <code>ip neigh show</code></td><td>Host A</td><td>Shows the ARP cache — a list of IP addresses Host A has recently communicated with, paired with their MAC addresses. You are checking whether Host A has successfully resolved Host B's MAC, which is required before any frame can be sent.</td><td>Host B's MAC must appear with status REACHABLE. FAILED or missing = ARP resolution did not complete — most likely the IPs are not in the same subnet.</td></tr>
-    <tr><td>L3</td><td><code>ip addr show</code> / <code>ipconfig /all</code></td><td>Both</td><td>Shows the IP address and subnet mask assigned to each network interface. Since there is no DHCP in a direct cable setup, you need to verify both machines have static IPs that belong to the same subnet — otherwise they cannot communicate directly.</td><td>Both must have IPs in same subnet. /24 means first 3 octets match (e.g. both 192.168.0.x).</td></tr>
-    <tr><td>L3</td><td><code>ping 192.168.0.2</code></td><td>Host A</td><td>Sends a small test packet to Host B and waits for a reply. This is the standard end-to-end reachability test for IP-level communication. If this succeeds, Layers 1 through 3 are all confirmed healthy — the physical link, MAC resolution, and IP routing all work.</td><td>If this works, L1–L3 are confirmed healthy. Move to L4.</td></tr>
+    <tr><td>L1</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Asks the OS whether the network interface is active and receiving a signal. Confirms both that the OS has enabled the interface (UP) and that it detects a physical connection on the cable (carrier).</td><td>Interface must show UP and carrier detected. NO-CARRIER = cable problem even if the LED looks fine.</td></tr>
+    <tr><td>L2</td><td><code>arp -a</code> / <code>ip neigh show</code></td><td>Хост A</td><td>Shows the ARP cache — a list of IP addresses Host A has recently communicated with, paired with their MAC addresses. You are checking whether Host A has successfully resolved Host B's MAC, which is required before any frame can be sent.</td><td>Host B's MAC must appear with status REACHABLE. FAILED or missing = ARP resolution did not complete — most likely the IPs are not in the same subnet.</td></tr>
+    <tr><td>L3</td><td><code>ip addr show</code> / <code>ipconfig /all</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Shows the IP address and subnet mask assigned to each network interface. Since there is no DHCP in a direct cable setup, you need to verify both machines have static IPs that belong to the same subnet — otherwise they cannot communicate directly.</td><td>Both must have IPs in same subnet. /24 means first 3 octets match (e.g. both 192.168.0.x).</td></tr>
+    <tr><td>L3</td><td><code>ping 192.168.0.2</code></td><td>Хост A</td><td>Sends a small test packet to Host B and waits for a reply. This is the standard end-to-end reachability test for IP-level communication. If this succeeds, Layers 1 through 3 are all confirmed healthy — the physical link, MAC resolution, and IP routing all work.</td><td>If this works, L1–L3 are confirmed healthy. Move to L4.</td></tr>
     <tr><td>L4</td><td><code>ss -tuln</code> / <code>netstat -ano</code></td><td>Host B</td><td>Lists what ports Host B is currently listening on and which address each is bound to. Run this on Host B because that is where the service needs to be waiting for connections — running it on Host A only shows Host A's own services.</td><td>Target port listed and bound to 0.0.0.0 — not 127.0.0.1 which would mean only reachable locally.</td></tr>
-    <tr><td>L4</td><td><code>telnet &lt;B-IP&gt; &lt;port&gt;</code> / <code>Test-NetConnection</code></td><td>Host A</td><td>Attempts an actual TCP connection from Host A to Host B's specific port. This crosses the network and gives you a definitive answer about whether the port is accessible. The three possible outcomes each point to a different problem.</td><td>Connected = port open and service responding. Refused = nothing listening on that port. Timeout = a firewall is silently dropping the connection attempt.</td></tr>
+    <tr><td>L4</td><td><code>telnet &lt;B-IP&gt; &lt;port&gt;</code> / <code>Test-NetConnection</code></td><td>Хост A</td><td>Attempts an actual TCP connection from Host A to Host B's specific port. This crosses the network and gives you a definitive answer about whether the port is accessible. The three possible outcomes each point to a different problem.</td><td>Connected = port open and service responding. Refused = nothing listening on that port. Timeout = a firewall is silently dropping the connection attempt.</td></tr>
   </table>
 </div>
 
@@ -735,7 +735,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h1>Type 3 — Switched Local Network</h1>
   <p class="page-sub">Two hosts on the same subnet, connected through a switch. The most common local network configuration.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:720px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="360" y1="36" x2="200" y2="78"/>
@@ -802,27 +802,27 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
     <tr><td>Switch port LED</td><td>Switch — ports Host A and B are plugged into</td><td>Confirms the switch is receiving a signal from each host. No light on a switch port means no signal is arriving from that host — the cable or NIC on that side is the problem.</td><td>Both ports must show a link light. No light on a port = no signal from that host.</td></tr>
     <tr><td>Cable seating</td><td>Both ends of each cable</td><td>Physically ensures the connector is fully inserted and making proper contact. A half-inserted connector can look connected but have no signal.</td><td>Press RJ-45 connector firmly until you hear a click. Check both the host end and switch end.</td></tr>
     <tr><td>Cable condition</td><td>Full length of cable</td><td>Identifies physical damage to the cable that could break the signal without being obvious. Internal wire breaks from kinks or crushing are common and invisible from outside.</td><td>No sharp kinks, crushed sections, or broken locking tabs. Swap with a known-good cable if in doubt.</td></tr>
-    <tr><td>Switch power</td><td>Switch</td><td>Confirms the switch itself is operational. A switch can partially fail — keeping some ports working while silently dropping others.</td><td>System LED green. A partially failed switch may keep some ports active while dropping others.</td></tr>
-    <tr><td>Correct port</td><td>Switch</td><td>Confirms each host is plugged into the port you think it is. In a VLAN-configured environment, the wrong port means the wrong VLAN assignment, which silently breaks communication.</td><td>Each host is plugged into the intended port. Wrong port = wrong VLAN in a configured environment.</td></tr>
+    <tr><td>Switch power</td><td>Комутатор</td><td>Confirms the switch itself is operational. A switch can partially fail — keeping some ports working while silently dropping others.</td><td>System LED green. A partially failed switch may keep some ports active while dropping others.</td></tr>
+    <tr><td>Correct port</td><td>Комутатор</td><td>Confirms each host is plugged into the port you think it is. In a VLAN-configured environment, the wrong port means the wrong VLAN assignment, which silently breaks communication.</td><td>Each host is plugged into the intended port. Wrong port = wrong VLAN in a configured environment.</td></tr>
   </table>
-  <h2>OSI debugging reference</h2>
+  <h2>Довідник відлагодження OSI</h2>
   <table class="cmd-table">
     <tr><th>Layer</th><th>Command</th><th>Run on</th><th>What this step does</th><th>What to look for</th></tr>
-    <tr><td>L1–L2</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Both</td><td>Asks the OS whether the interface is active and has a physical signal. Covers both the software state (UP/DOWN) and the physical signal state (carrier detected or NO-CARRIER).</td><td>Interface UP and carrier detected. If DOWN: bring it up with <code>ip link set eth0 up</code>.</td></tr>
-    <tr><td>L2</td><td><code>arp -a</code> / <code>ip neigh show</code></td><td>Host A</td><td>Checks whether Host A has already resolved Host B's MAC address. The ARP cache stores recent IP-to-MAC mappings. If Host B's entry is missing or shows INCOMPLETE, the MAC resolution failed — frames cannot be built and delivered.</td><td>Host B MAC present and REACHABLE. INCOMPLETE = ARP request sent but no reply received.</td></tr>
-    <tr><td>L2</td><td><code>arping -I eth0 &lt;B-IP&gt;</code></td><td>Host A</td><td>Forces a fresh ARP request right now instead of reading a potentially stale cache. Directly asks the network "who has this IP?" and shows whether Host B responds. Useful when the ARP cache is empty or shows a stale entry.</td><td>Host B must reply. No reply = B is off, its NIC is down, or a firewall on B is blocking ARP responses.</td></tr>
-    <tr><td>L2</td><td><code>show mac address-table</code></td><td>Switch</td><td>Reads the switch's CAM table to see which MAC addresses it has learned and on which ports. Confirms whether the switch knows where Host B is and whether that mapping is correct. Requires physical or SSH access to the switch management interface.</td><td>Both MACs present, mapped to correct ports, under correct VLANs. A missing entry means the switch has not seen that host send any traffic recently.</td></tr>
-    <tr><td>L3</td><td><code>ip addr show</code> / <code>ipconfig /all</code></td><td>Both</td><td>Shows each host's IP address and subnet mask. You need to compare both outputs side by side — a subnet mask mismatch means each host computes different network boundaries and one may try to route local traffic through the gateway instead of directly.</td><td>Both have IPs in the same subnet with the same prefix length (/24 = 255.255.255.0).</td></tr>
-    <tr><td>L3</td><td><code>ping &lt;B-IP&gt;</code></td><td>Host A</td><td>Sends ICMP echo packets to Host B and waits for replies. This is the standard IP-level connectivity test. A successful ping proves that Layers 1 through 3 are all working — physical link, MAC resolution, and IP routing are all confirmed.</td><td>Replies received = L1–L3 healthy. No reply = check firewall (may block ICMP), or check for duplicate IP addresses.</td></tr>
-    <tr><td>L3</td><td><code>traceroute &lt;B-IP&gt;</code> / <code>tracert</code></td><td>Host A</td><td>Maps the path packets take from Host A toward Host B, showing every router hop along the way. For two hosts on the same subnet, Host B should appear at hop 1 — directly reachable with no routers in between.</td><td>Host B at hop 1 = correct. Appearing via the gateway at hop 1 = subnet mask mismatch causing local traffic to be routed externally.</td></tr>
+    <tr><td>L1–L2</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Asks the OS whether the interface is active and has a physical signal. Covers both the software state (UP/DOWN) and the physical signal state (carrier detected or NO-CARRIER).</td><td>Interface UP and carrier detected. If DOWN: bring it up with <code>ip link set eth0 up</code>.</td></tr>
+    <tr><td>L2</td><td><code>arp -a</code> / <code>ip neigh show</code></td><td>Хост A</td><td>Checks whether Host A has already resolved Host B's MAC address. The ARP cache stores recent IP-to-MAC mappings. If Host B's entry is missing or shows INCOMPLETE, the MAC resolution failed — frames cannot be built and delivered.</td><td>Host B MAC present and REACHABLE. INCOMPLETE = ARP request sent but no reply received.</td></tr>
+    <tr><td>L2</td><td><code>arping -I eth0 &lt;B-IP&gt;</code></td><td>Хост A</td><td>Forces a fresh ARP request right now instead of reading a potentially stale cache. Directly asks the network "who has this IP?" and shows whether Host B responds. Useful when the ARP cache is empty or shows a stale entry.</td><td>Host B must reply. No reply = B is off, its NIC is down, or a firewall on B is blocking ARP responses.</td></tr>
+    <tr><td>L2</td><td><code>show mac address-table</code></td><td>Комутатор</td><td>Reads the switch's CAM table to see which MAC addresses it has learned and on which ports. Confirms whether the switch knows where Host B is and whether that mapping is correct. Requires physical or SSH access to the switch management interface.</td><td>Both MACs present, mapped to correct ports, under correct VLANs. A missing entry means the switch has not seen that host send any traffic recently.</td></tr>
+    <tr><td>L3</td><td><code>ip addr show</code> / <code>ipconfig /all</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Shows each host's IP address and subnet mask. You need to compare both outputs side by side — a subnet mask mismatch means each host computes different network boundaries and one may try to route local traffic through the gateway instead of directly.</td><td>Both have IPs in the same subnet with the same prefix length (/24 = 255.255.255.0).</td></tr>
+    <tr><td>L3</td><td><code>ping &lt;B-IP&gt;</code></td><td>Хост A</td><td>Sends ICMP echo packets to Host B and waits for replies. This is the standard IP-level connectivity test. A successful ping proves that Layers 1 through 3 are all working — physical link, MAC resolution, and IP routing are all confirmed.</td><td>Replies received = L1–L3 healthy. No reply = check firewall (may block ICMP), or check for duplicate IP addresses.</td></tr>
+    <tr><td>L3</td><td><code>traceroute &lt;B-IP&gt;</code> / <code>tracert</code></td><td>Хост A</td><td>Maps the path packets take from Host A toward Host B, showing every router hop along the way. For two hosts on the same subnet, Host B should appear at hop 1 — directly reachable with no routers in between.</td><td>Host B at hop 1 = correct. Appearing via the gateway at hop 1 = subnet mask mismatch causing local traffic to be routed externally.</td></tr>
     <tr><td>L4</td><td><code>ss -tuln</code> / <code>netstat -ano</code></td><td>Host B</td><td>Lists every port Host B is currently listening on and the address each is bound to. Run this on Host B specifically — you need to verify the service on the receiving end is ready to accept connections, and that it is not accidentally bound to localhost only.</td><td>Service port listed and bound to 0.0.0.0 (all interfaces). 127.0.0.1 means only reachable from Host B itself — not from Host A.</td></tr>
-    <tr><td>L4</td><td><code>telnet &lt;B-IP&gt; &lt;port&gt;</code> / <code>nc -zv</code></td><td>Host A</td><td>Attempts a real TCP connection from Host A across the network to Host B's specific port. This is the most direct way to test whether the port is reachable from the outside. The three possible outcomes each identify a different problem layer.</td><td>Connected = port open. Refused = nothing listening on that port. Timeout = a firewall is silently dropping the packets before they reach the service.</td></tr>
+    <tr><td>L4</td><td><code>telnet &lt;B-IP&gt; &lt;port&gt;</code> / <code>nc -zv</code></td><td>Хост A</td><td>Attempts a real TCP connection from Host A across the network to Host B's specific port. This is the most direct way to test whether the port is reachable from the outside. The three possible outcomes each identify a different problem layer.</td><td>Connected = port open. Refused = nothing listening on that port. Timeout = a firewall is silently dropping the packets before they reach the service.</td></tr>
     <tr><td>L4</td><td><code>tcpdump -i eth0 port &lt;N&gt;</code></td><td>Host B</td><td>Captures raw network packets arriving at Host B on a specific port. Run on Host B to confirm packets are physically arriving — this distinguishes between packets that never reached Host B versus packets that arrived but the service rejected them.</td><td>SYN packets arriving but no SYN-ACK going back = service not responding or firewall on Host B blocking. No packets arriving at all = problem is at L2 or L3, not L4.</td></tr>
     <tr><td>L4</td><td><code>iptables -L -n -v</code> / <code>Get-NetFirewallRule</code></td><td>Host B</td><td>Lists the firewall rules currently active on Host B. Run on Host B because you are looking for rules that block incoming connections to your port. The -v flag on iptables adds a packet counter — a rising counter on a DROP rule while you test from Host A confirms that rule is the problem.</td><td>DROP or REJECT rule for your port with a rising packet counter = firewall is blocking the connection.</td></tr>
-    <tr><td>L5</td><td><code>ss -tan</code> / <code>Get-NetTCPConnection</code></td><td>Both</td><td>Shows all active TCP connections and their current states. Run on both hosts to trace the lifecycle of the connection — you can see whether it progresses from SYN_SENT on Host A through to ESTABLISHED on both sides, or where it stalls.</td><td>Host A: SYN_SENT transitions to ESTABLISHED. Host B: incoming connection reaches ESTABLISHED. Many CLOSE_WAIT on Host B = the application is not closing sockets properly after use.</td></tr>
-    <tr><td>L6</td><td><code>openssl s_client -connect &lt;B-IP&gt;:443</code></td><td>Host A</td><td>Opens a raw TLS connection and prints everything about the encryption handshake — the certificate details, its expiry date, which TLS version was negotiated, and whether the certificate is trusted. Only relevant when the application uses encrypted connections.</td><td>Handshake completes successfully. Certificate not expired. Hostname in certificate matches the address you connected to.</td></tr>
+    <tr><td>L5</td><td><code>ss -tan</code> / <code>Get-NetTCPConnection</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Shows all active TCP connections and their current states. Run on both hosts to trace the lifecycle of the connection — you can see whether it progresses from SYN_SENT on Host A through to ESTABLISHED on both sides, or where it stalls.</td><td>Host A: SYN_SENT transitions to ESTABLISHED. Host B: incoming connection reaches ESTABLISHED. Many CLOSE_WAIT on Host B = the application is not closing sockets properly after use.</td></tr>
+    <tr><td>L6</td><td><code>openssl s_client -connect &lt;B-IP&gt;:443</code></td><td>Хост A</td><td>Opens a raw TLS connection and prints everything about the encryption handshake — the certificate details, its expiry date, which TLS version was negotiated, and whether the certificate is trusted. Only relevant when the application uses encrypted connections.</td><td>Handshake completes successfully. Certificate not expired. Hostname in certificate matches the address you connected to.</td></tr>
     <tr><td>L7</td><td><code>ps aux | grep &lt;service&gt;</code></td><td>Host B</td><td>Checks whether the application process is actually running. A service can be configured correctly but have crashed silently — the port will show nothing listening and the process will be absent from this list.</td><td>Process appears in the list. If missing: check with <code>systemctl status &lt;service&gt;</code> to see why it stopped.</td></tr>
-    <tr><td>L7</td><td><code>curl -v http://&lt;B-IP&gt;:&lt;port&gt;/path</code></td><td>Host A</td><td>Makes a full HTTP request to Host B and shows the complete exchange — the request headers sent, the response status code, and response headers. The status code tells you exactly what the application decided to do with your request.</td><td>200 = success. 401/403 = authentication or permission problem. 404 = wrong path. 5xx = the server crashed or has an internal error.</td></tr>
+    <tr><td>L7</td><td><code>curl -v http://&lt;B-IP&gt;:&lt;port&gt;/path</code></td><td>Хост A</td><td>Makes a full HTTP request to Host B and shows the complete exchange — the request headers sent, the response status code, and response headers. The status code tells you exactly what the application decided to do with your request.</td><td>200 = success. 401/403 = authentication or permission problem. 404 = wrong path. 5xx = the server crashed or has an internal error.</td></tr>
     <tr><td>L7</td><td><code>journalctl -u &lt;service&gt; -f</code></td><td>Host B</td><td>Streams the live log output from the service running on Host B. This is the only place where the application's own reason for rejecting a connection is recorded — no network tool can show you what the application decided internally.</td><td>Error messages explaining exactly why the connection was rejected — authentication failure, wrong protocol version, missing configuration, etc.</td></tr>
   </table>
   <div class="note info"><strong>Key diagnostic rule:</strong> if ping succeeds but the application still fails, the network is fine — the problem is at L4 or above. Start with <code>ss -tuln</code> on Host B and <code>telnet</code> from Host A.</div>
@@ -959,7 +959,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h1>Type 4 — Routed Local Network</h1>
   <p class="page-sub">Two hosts in the same building on different subnets. Traffic must cross an internal router.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:680px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="340" y1="36" x2="170" y2="80"/>
@@ -1018,9 +1018,9 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h2>Additional debugging steps on top of Type 3</h2>
   <table class="cmd-table">
     <tr><th>Layer</th><th>Command</th><th>Run on</th><th>What this step does</th><th>What to look for</th></tr>
-    <tr><td>L3</td><td><code>ip route show</code> / <code>route print</code></td><td>Host A</td><td>Shows Host A's routing table — the rules it uses to decide where to send packets for each destination network. In a routed setup, Host A must have an explicit route for Host B's subnet via the internal router. If this route is missing, packets go to the wrong place or nowhere.</td><td>A route for Host B's subnet (e.g. 10.2.0.0/24) pointing via the internal router IP. If missing — fix static routes or DHCP configuration.</td></tr>
-    <tr><td>L3</td><td><code>ping &lt;router-IP&gt;</code></td><td>Host A</td><td>Tests whether Host A can reach its own default gateway — the first hop for any traffic leaving its subnet. If this fails, Host A cannot send anything to Host B regardless of what Host B's network looks like, because packets cannot even leave Host A's subnet.</td><td>Router must reply. If it does not — Host A's local network configuration or the router itself has a problem.</td></tr>
-    <tr><td>L3</td><td><code>traceroute &lt;B-IP&gt;</code></td><td>Host A</td><td>Maps the route packets take toward Host B hop by hop. In a correctly configured routed local network, the first hop should be the internal router and the second hop should be Host B. If it stops at the router, the router's firewall is blocking inter-subnet traffic.</td><td>Hop 1 = internal router IP. Hop 2 = Host B. If it stops at hop 1 = router firewall blocking traffic between subnets.</td></tr>
+    <tr><td>L3</td><td><code>ip route show</code> / <code>route print</code></td><td>Хост A</td><td>Shows Host A's routing table — the rules it uses to decide where to send packets for each destination network. In a routed setup, Host A must have an explicit route for Host B's subnet via the internal router. If this route is missing, packets go to the wrong place or nowhere.</td><td>A route for Host B's subnet (e.g. 10.2.0.0/24) pointing via the internal router IP. If missing — fix static routes or DHCP configuration.</td></tr>
+    <tr><td>L3</td><td><code>ping &lt;router-IP&gt;</code></td><td>Хост A</td><td>Tests whether Host A can reach its own default gateway — the first hop for any traffic leaving its subnet. If this fails, Host A cannot send anything to Host B regardless of what Host B's network looks like, because packets cannot even leave Host A's subnet.</td><td>Router must reply. If it does not — Host A's local network configuration or the router itself has a problem.</td></tr>
+    <tr><td>L3</td><td><code>traceroute &lt;B-IP&gt;</code></td><td>Хост A</td><td>Maps the route packets take toward Host B hop by hop. In a correctly configured routed local network, the first hop should be the internal router and the second hop should be Host B. If it stops at the router, the router's firewall is blocking inter-subnet traffic.</td><td>Hop 1 = internal router IP. Hop 2 = Host B. If it stops at hop 1 = router firewall blocking traffic between subnets.</td></tr>
   </table>
 </div>
 
@@ -1029,7 +1029,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h1>Type 5 — Direct Internet P2P</h1>
   <p class="page-sub">Host A connects directly to Host B's public IP over the internet. Requires port forwarding on Host B's router.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="320" y1="36" x2="160" y2="80"/>
@@ -1070,7 +1070,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h1>Type 6 — Via Central Server</h1>
   <p class="page-sub">Both hosts connect outward to the same server. Neither connects to the other directly.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="320" y1="36" x2="160" y2="80"/>
@@ -1111,7 +1111,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h1>Type 7 — VPN Tunnel</h1>
   <p class="page-sub">An encrypted tunnel through the internet that makes remote hosts appear to be on the same local network.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="320" y1="36" x2="160" y2="80"/>
@@ -1152,7 +1152,7 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   <h1>Type 8 — P2P with Relay Fallback</h1>
   <p class="page-sub">Tries direct connection first. Falls back to a relay server if NAT or corporate firewalls block the direct path.</p>
 
-  <h2>5-minute triage strategy</h2>
+  <h2>Стратегія тріажу за 5 хвилин</h2>
   <svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:640px;display:block;margin:0 0 1rem;font-family:system-ui,sans-serif">
     <g stroke="#9ca3af" stroke-width="1.2" fill="none">
       <line x1="320" y1="36" x2="160" y2="80"/>
@@ -1187,42 +1187,42 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
 
 <!-- OSI DEBUG -->
 <div class="section-page" id="pg-osi-debug">
-  <h1>OSI Layers — Complete Debugging Reference</h1>
-  <p class="page-sub">All 7 OSI layers with physical checks, commands, and failure modes. Valid for local network types (1–4).</p>
-  <div class="note info"><strong>How to use this table:</strong> this is a <strong>reference</strong> — the order depends on your situation.<br><br>
-  <strong>Option A — two-end approach</strong> (when you have access to both hosts): check the extremes simultaneously. Verify the physical connection at the bottom (L1 — cables seated, NIC LEDs) and confirm the application is installed and running at the top (L7 — <code>ps</code>, <code>systemctl status</code>). This immediately halves the search space: if both ends are healthy, the problem is somewhere in between.<br><br>
-  <strong>Option B — quick triage</strong> (limited access or initial sanity check): physically confirm your side is connected, then run <code>ping</code>. A successful ping proves L1–L3 are working — the problem is at L4 or above. A failed ping means the problem is at or below L3 — go to the physical and network layers. Either way, one command cleanly separates the stack into two halves.</div>
+  <h1>Рівні OSI — Повний довідник відлагодження</h1>
+  <p class="page-sub">Всі 7 рівнів OSI з фізичними перевірками, командами та режимами збоїв. Діє для локальних типів мереж (1–4).</p>
+  <div class="note info"><strong>Як користуватися таблицею:</strong> це <strong>довідник</strong> — порядок залежить від ситуації.<br><br>
+  <strong>Варіант A — двосторонній підхід</strong> (коли є доступ до обох хостів): перевіряйте крайнощі одночасно. Перевірте фізичне з'єднання знизу (L1 — кабелі підключені, LEDs NIC) і підтвердіть встановлення та запуск застосунку зверху (L7 — <code>ps</code>, <code>systemctl status</code>). Це одразу вдвічі звужує простір пошуку: якщо обидва кінці здорові — проблема десь посередині.<br><br>
+  <strong>Варіант B — швидкий тріаж</strong> (обмежений доступ або початкова перевірка): фізично підтвердіть підключення з вашого боку, потім виконайте <code>ping</code>. Успішний ping доводить роботу L1–L3 — проблема на L4 або вище. Невдалий ping означає проблему на L3 або нижче — перейдіть до фізичних і мережевих рівнів. В будь-якому разі одна команда чітко поділяє стек на дві половини.</div>
   <table class="cmd-table">
-    <tr><th>Layer</th><th>Check</th><th>Command / action</th><th>Run on</th><th>What this step does</th><th>What to look for</th></tr>
-    <tr><td><span class="badge b-green">L1 Physical</span></td><td>NIC LED, cable seating, switch LEDs</td><td>Eyes — no commands needed</td><td>Both hosts + switch</td><td>Confirms the physical electrical signal is present on the cable and between the switch and each host. No software can tell you whether a cable is unseated — this must be done physically.</td><td>All LEDs green. Cables fully clicked in on both ends.</td></tr>
-    <tr><td><span class="badge b-green">L1</span></td><td>NIC OS state</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Both</td><td>Asks the OS whether the interface is administratively enabled and whether it is receiving a physical signal. Catches cases where the interface was disabled in software even though the cable is fine.</td><td>Interface UP and carrier detected. NO-CARRIER = no physical signal despite cable being present.</td></tr>
-    <tr><td><span class="badge b-blue">L2 Data Link</span></td><td>ARP resolution</td><td><code>arp -a</code> / <code>ip neigh show</code></td><td>Host A</td><td>Reads Host A's ARP cache to see whether it has already resolved Host B's MAC address. MAC resolution is required before any Ethernet frame can be addressed and sent. A missing or failed entry means frames cannot be delivered.</td><td>Host B's IP paired with a MAC address, status REACHABLE. FAILED = MAC resolution did not complete.</td></tr>
-    <tr><td><span class="badge b-blue">L2</span></td><td>Force ARP request</td><td><code>arping -I eth0 &lt;B-IP&gt;</code></td><td>Host A</td><td>Sends a fresh ARP request right now instead of relying on cached data. Used when the cache is empty, stale, or shows FAILED and you want to actively probe whether Host B responds to ARP at this moment.</td><td>Host B replies with its MAC address. No reply = Host B off, NIC down, or firewall blocking ARP on Host B.</td></tr>
-    <tr><td><span class="badge b-blue">L2</span></td><td>CAM + VLAN tables</td><td><code>show mac address-table</code> / <code>show vlan brief</code></td><td>Switch</td><td>Reads the switch's internal tables directly. The CAM table shows which MAC is on which port. The VLAN table shows which ports belong to which VLAN. Together they can reveal a VLAN misconfiguration that is completely invisible from the host side.</td><td>Both MACs present under correct VLANs on correct ports. Any mismatch = potential silent drop.</td></tr>
-    <tr><td><span class="badge b-purple">L3 Network</span></td><td>IP + subnet mask</td><td><code>ip addr show</code> / <code>ipconfig /all</code></td><td>Both</td><td>Shows the IP address and subnet mask on both hosts so you can compare them. A subnet mask mismatch — even by one bit — means each host computes a different network boundary and may try to route local traffic through the gateway instead of directly.</td><td>Both hosts have IPs in the same subnet with matching prefix length.</td></tr>
-    <tr><td><span class="badge b-purple">L3</span></td><td>Routing table + gateway</td><td><code>ip route show</code> / <code>route print</code></td><td>Host A</td><td>Shows the routing table — the rules Host A uses to decide where to send each packet. The default route (via the gateway) handles all traffic that does not match a more specific rule. Verifies that local traffic is going directly and not accidentally being routed through the gateway.</td><td>Local subnet route present. Default gateway configured. No unexpected routes hijacking local traffic.</td></tr>
-    <tr><td><span class="badge b-purple">L3</span></td><td>ICMP reachability</td><td><code>ping &lt;B-IP&gt;</code></td><td>Host A</td><td>Sends ICMP echo request packets to Host B and measures whether replies come back. A successful ping confirms that all of L1 through L3 is working — physical signal, MAC resolution, IP addressing, and routing are all healthy.</td><td>Replies = L1–L3 all healthy. No reply = check if ICMP is blocked by firewall, or if there is a duplicate IP address on the network.</td></tr>
-    <tr><td><span class="badge b-purple">L3</span></td><td>Hop path</td><td><code>traceroute &lt;B-IP&gt;</code> / <code>tracert</code></td><td>Host A</td><td>Maps every router between Host A and Host B by sending packets with increasing TTL values and recording each router that responds. Shows whether traffic is taking the expected path or being routed incorrectly through unexpected devices.</td><td>Host B at hop 1 for same-subnet communication. Via gateway at hop 1 = subnet mask mismatch.</td></tr>
-    <tr><td><span class="badge b-yellow">L4 Transport</span></td><td>Listening ports</td><td><code>ss -tuln</code> / <code>netstat -ano</code></td><td><strong>Host B</strong></td><td>Lists every port Host B is currently waiting for incoming connections on, along with the bind address for each. Must be run on Host B — running it on Host A shows Host A's own services which tells you nothing about what Host B is offering.</td><td>Your target port listed. Bound to 0.0.0.0 = reachable from network. Bound to 127.0.0.1 = only reachable from Host B itself.</td></tr>
-    <tr><td><span class="badge b-yellow">L4</span></td><td>TCP port test</td><td><code>telnet &lt;B&gt; &lt;port&gt;</code> / <code>nc -zv</code> / <code>Test-NetConnection</code></td><td>Host A</td><td>Attempts a real TCP connection from Host A to Host B's port across the network. This is the definitive Layer 4 test — it tells you not just whether the port is configured but whether it is actually reachable from Host A right now. Each outcome points to a different cause.</td><td>Connected = port accessible. Refused = nothing listening on that port. Timeout = firewall silently dropping packets — these are completely different problems.</td></tr>
-    <tr><td><span class="badge b-yellow">L4</span></td><td>Packet capture</td><td><code>tcpdump -i eth0 port &lt;N&gt;</code></td><td><strong>Host B</strong></td><td>Captures raw packets arriving at Host B's network interface on the specified port. Run on Host B to answer the question: are packets even arriving here? This separates network-level problems (packets never arrive) from service-level problems (packets arrive but the service rejects them).</td><td>SYN packets visible in capture = packets arriving at Host B. No packets at all = problem at L2 or L3 — packets are not making it through the network.</td></tr>
-    <tr><td><span class="badge b-yellow">L4</span></td><td>Firewall rules</td><td><code>iptables -L -n -v</code> / <code>Get-NetFirewallRule</code></td><td><strong>Host B</strong></td><td>Lists all firewall rules currently active on Host B. Run on Host B because you are looking for rules that block incoming connections to your specific port. The packet counter shows how many packets matched each rule — a rising counter on a DROP rule while testing confirms that rule is blocking the traffic.</td><td>No DROP or REJECT rule matching your port. If one exists with rising packet count = that rule is silently blocking connections from Host A.</td></tr>
-    <tr><td><span class="badge b-orange">L5 Session</span></td><td>TCP connection states</td><td><code>ss -tan</code> / <code>Get-NetTCPConnection</code></td><td>Both</td><td>Shows all active TCP connections and their lifecycle state on both hosts. By comparing what you see on Host A versus Host B you can identify where the connection attempt stalls — whether it never leaves Host A, gets stuck mid-handshake, or reaches Host B but the application closes it immediately.</td><td>Host A SYN_SENT → ESTABLISHED. Host B connection visible and ESTABLISHED. Many CLOSE_WAIT on Host B = application not releasing sockets after use — a code-level problem.</td></tr>
-    <tr><td><span class="badge b-red">L6 Presentation</span></td><td>TLS handshake + cert</td><td><code>openssl s_client -connect &lt;B&gt;:443</code></td><td>Host A</td><td>Opens a raw TLS connection and prints everything the encryption negotiation produced — the server's certificate, who signed it, when it expires, and which TLS version and cipher suite was agreed. Only relevant when the application uses encryption.</td><td>Handshake completes. Certificate not expired. Signed by a trusted authority. TLS version matches what both sides support.</td></tr>
-    <tr><td><span class="badge b-red">L6</span></td><td>Full HTTPS exchange</td><td><code>curl -v https://&lt;B&gt;</code></td><td>Host A</td><td>Makes a complete HTTPS request and shows the entire exchange including TLS negotiation, request headers, and response. The -v flag makes the normally invisible encryption layer visible so you can see exactly where it fails.</td><td>TLS negotiation completes. HTTP response received with a status code.</td></tr>
-    <tr><td><span class="badge b-gray">L7 Application</span></td><td>Process running</td><td><code>ps aux | grep &lt;svc&gt;</code> / <code>Get-Process</code></td><td><strong>Host B</strong></td><td>Checks whether the application process is alive. A service can be configured to start automatically but crash immediately. If the process is absent here, everything else at L7 is irrelevant — the application is simply not running.</td><td>Process appears in the output. If missing — service crashed or was never started. Check service manager for the reason.</td></tr>
-    <tr><td><span class="badge b-gray">L7</span></td><td>Service status + logs</td><td><code>systemctl status &lt;svc&gt;</code> / <code>journalctl -u &lt;svc&gt; -f</code></td><td><strong>Host B</strong></td><td>Shows the current state of the service and streams its live log output. The log is the only place where the application's internal reason for rejecting a connection is recorded — no network tool can reveal what the application decided to do with a connection once it arrived.</td><td>Service state: active (running). Log output showing the actual rejection reason — wrong credentials, unsupported protocol version, missing config, etc.</td></tr>
-    <tr><td><span class="badge b-gray">L7</span></td><td>HTTP response</td><td><code>curl -v http://&lt;B&gt;:&lt;port&gt;/path</code></td><td>Host A</td><td>Makes an HTTP request and shows the response status code — a standardised number the server uses to communicate the outcome of the request. Each range of codes means something different and immediately tells you which layer of the application stack has the problem.</td><td>200 = success. 401/403 = authentication or permissions problem. 404 = the path you requested does not exist. 5xx = the server has an internal error unrelated to your request.</td></tr>
+    <tr><th>Рівень</th><th>Перевірка</th><th>Команда / дія</th><th>Запустити на</th><th>Що робить цей крок</th><th>На що звертати увагу</th></tr>
+    <tr><td><span class="badge b-green">L1 Physical</span></td><td>NIC LED, cable seating, switch LEDs</td><td>Eyes — no commands needed</td><td>Обидва хости + комутатор</td><td>Confirms the physical electrical signal is present on the cable and between the switch and each host. No software can tell you whether a cable is unseated — this must be done physically.</td><td>All LEDs green. Cables fully clicked in on both ends.</td></tr>
+    <tr><td><span class="badge b-green">L1</span></td><td>NIC OS state</td><td><code>ip link show</code> / <code>Get-NetAdapter</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Asks the OS whether the interface is administratively enabled and whether it is receiving a physical signal. Catches cases where the interface was disabled in software even though the cable is fine.</td><td>Interface UP and carrier detected. NO-CARRIER = no physical signal despite cable being present.</td></tr>
+    <tr><td><span class="badge b-blue">L2 Data Link</span></td><td>ARP resolution</td><td><code>arp -a</code> / <code>ip neigh show</code></td><td>Хост A</td><td>Reads Host A's ARP cache to see whether it has already resolved Host B's MAC address. MAC resolution is required before any Ethernet frame can be addressed and sent. A missing or failed entry means frames cannot be delivered.</td><td>Host B's IP paired with a MAC address, status REACHABLE. FAILED = MAC resolution did not complete.</td></tr>
+    <tr><td><span class="badge b-blue">L2</span></td><td>Force ARP request</td><td><code>arping -I eth0 &lt;B-IP&gt;</code></td><td>Хост A</td><td>Sends a fresh ARP request right now instead of relying on cached data. Used when the cache is empty, stale, or shows FAILED and you want to actively probe whether Host B responds to ARP at this moment.</td><td>Host B replies with its MAC address. No reply = Host B off, NIC down, or firewall blocking ARP on Host B.</td></tr>
+    <tr><td><span class="badge b-blue">L2</span></td><td>CAM + VLAN tables</td><td><code>show mac address-table</code> / <code>show vlan brief</code></td><td>Комутатор</td><td>Reads the switch's internal tables directly. The CAM table shows which MAC is on which port. The VLAN table shows which ports belong to which VLAN. Together they can reveal a VLAN misconfiguration that is completely invisible from the host side.</td><td>Both MACs present under correct VLANs on correct ports. Any mismatch = potential silent drop.</td></tr>
+    <tr><td><span class="badge b-purple">L3 Network</span></td><td>IP + subnet mask</td><td><code>ip addr show</code> / <code>ipconfig /all</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Shows the IP address and subnet mask on both hosts so you can compare them. A subnet mask mismatch — even by one bit — means each host computes a different network boundary and may try to route local traffic through the gateway instead of directly.</td><td>Both hosts have IPs in the same subnet with matching prefix length.</td></tr>
+    <tr><td><span class="badge b-purple">L3</span></td><td>Routing table + gateway</td><td><code>ip route show</code> / <code>route print</code></td><td>Хост A</td><td>Shows the routing table — the rules Host A uses to decide where to send each packet. The default route (via the gateway) handles all traffic that does not match a more specific rule. Verifies that local traffic is going directly and not accidentally being routed through the gateway.</td><td>Local subnet route present. Default gateway configured. No unexpected routes hijacking local traffic.</td></tr>
+    <tr><td><span class="badge b-purple">L3</span></td><td>ICMP reachability</td><td><code>ping &lt;B-IP&gt;</code></td><td>Хост A</td><td>Sends ICMP echo request packets to Host B and measures whether replies come back. A successful ping confirms that all of L1 through L3 is working — physical signal, MAC resolution, IP addressing, and routing are all healthy.</td><td>Replies = L1–L3 all healthy. No reply = check if ICMP is blocked by firewall, or if there is a duplicate IP address on the network.</td></tr>
+    <tr><td><span class="badge b-purple">L3</span></td><td>Hop path</td><td><code>traceroute &lt;B-IP&gt;</code> / <code>tracert</code></td><td>Хост A</td><td>Maps every router between Host A and Host B by sending packets with increasing TTL values and recording each router that responds. Shows whether traffic is taking the expected path or being routed incorrectly through unexpected devices.</td><td>Host B at hop 1 for same-subnet communication. Via gateway at hop 1 = subnet mask mismatch.</td></tr>
+    <tr><td><span class="badge b-yellow">L4 Transport</span></td><td>Listening ports</td><td><code>ss -tuln</code> / <code>netstat -ano</code></td><td><strong>Хост B</strong></td><td>Lists every port Host B is currently waiting for incoming connections on, along with the bind address for each. Must be run on Host B — running it on Host A shows Host A's own services which tells you nothing about what Host B is offering.</td><td>Your target port listed. Bound to 0.0.0.0 = reachable from network. Bound to 127.0.0.1 = only reachable from Host B itself.</td></tr>
+    <tr><td><span class="badge b-yellow">L4</span></td><td>TCP port test</td><td><code>telnet &lt;B&gt; &lt;port&gt;</code> / <code>nc -zv</code> / <code>Test-NetConnection</code></td><td>Хост A</td><td>Attempts a real TCP connection from Host A to Host B's port across the network. This is the definitive Layer 4 test — it tells you not just whether the port is configured but whether it is actually reachable from Host A right now. Each outcome points to a different cause.</td><td>Connected = port accessible. Refused = nothing listening on that port. Timeout = firewall silently dropping packets — these are completely different problems.</td></tr>
+    <tr><td><span class="badge b-yellow">L4</span></td><td>Packet capture</td><td><code>tcpdump -i eth0 port &lt;N&gt;</code></td><td><strong>Хост B</strong></td><td>Captures raw packets arriving at Host B's network interface on the specified port. Run on Host B to answer the question: are packets even arriving here? This separates network-level problems (packets never arrive) from service-level problems (packets arrive but the service rejects them).</td><td>SYN packets visible in capture = packets arriving at Host B. No packets at all = problem at L2 or L3 — packets are not making it through the network.</td></tr>
+    <tr><td><span class="badge b-yellow">L4</span></td><td>Firewall rules</td><td><code>iptables -L -n -v</code> / <code>Get-NetFirewallRule</code></td><td><strong>Хост B</strong></td><td>Lists all firewall rules currently active on Host B. Run on Host B because you are looking for rules that block incoming connections to your specific port. The packet counter shows how many packets matched each rule — a rising counter on a DROP rule while testing confirms that rule is blocking the traffic.</td><td>No DROP or REJECT rule matching your port. If one exists with rising packet count = that rule is silently blocking connections from Host A.</td></tr>
+    <tr><td><span class="badge b-orange">L5 Session</span></td><td>TCP connection states</td><td><code>ss -tan</code> / <code>Get-NetTCPConnection</code></td><td>Обидва<br><em>(обидва хости)</em></td><td>Shows all active TCP connections and their lifecycle state on both hosts. By comparing what you see on Host A versus Host B you can identify where the connection attempt stalls — whether it never leaves Host A, gets stuck mid-handshake, or reaches Host B but the application closes it immediately.</td><td>Host A SYN_SENT → ESTABLISHED. Host B connection visible and ESTABLISHED. Many CLOSE_WAIT on Host B = application not releasing sockets after use — a code-level problem.</td></tr>
+    <tr><td><span class="badge b-red">L6 Presentation</span></td><td>TLS handshake + cert</td><td><code>openssl s_client -connect &lt;B&gt;:443</code></td><td>Хост A</td><td>Opens a raw TLS connection and prints everything the encryption negotiation produced — the server's certificate, who signed it, when it expires, and which TLS version and cipher suite was agreed. Only relevant when the application uses encryption.</td><td>Handshake completes. Certificate not expired. Signed by a trusted authority. TLS version matches what both sides support.</td></tr>
+    <tr><td><span class="badge b-red">L6</span></td><td>Full HTTPS exchange</td><td><code>curl -v https://&lt;B&gt;</code></td><td>Хост A</td><td>Makes a complete HTTPS request and shows the entire exchange including TLS negotiation, request headers, and response. The -v flag makes the normally invisible encryption layer visible so you can see exactly where it fails.</td><td>TLS negotiation completes. HTTP response received with a status code.</td></tr>
+    <tr><td><span class="badge b-gray">L7 Application</span></td><td>Process running</td><td><code>ps aux | grep &lt;svc&gt;</code> / <code>Get-Process</code></td><td><strong>Хост B</strong></td><td>Checks whether the application process is alive. A service can be configured to start automatically but crash immediately. If the process is absent here, everything else at L7 is irrelevant — the application is simply not running.</td><td>Process appears in the output. If missing — service crashed or was never started. Check service manager for the reason.</td></tr>
+    <tr><td><span class="badge b-gray">L7</span></td><td>Service status + logs</td><td><code>systemctl status &lt;svc&gt;</code> / <code>journalctl -u &lt;svc&gt; -f</code></td><td><strong>Хост B</strong></td><td>Shows the current state of the service and streams its live log output. The log is the only place where the application's internal reason for rejecting a connection is recorded — no network tool can reveal what the application decided to do with a connection once it arrived.</td><td>Service state: active (running). Log output showing the actual rejection reason — wrong credentials, unsupported protocol version, missing config, etc.</td></tr>
+    <tr><td><span class="badge b-gray">L7</span></td><td>HTTP response</td><td><code>curl -v http://&lt;B&gt;:&lt;port&gt;/path</code></td><td>Хост A</td><td>Makes an HTTP request and shows the response status code — a standardised number the server uses to communicate the outcome of the request. Each range of codes means something different and immediately tells you which layer of the application stack has the problem.</td><td>200 = success. 401/403 = authentication or permissions problem. 404 = the path you requested does not exist. 5xx = the server has an internal error unrelated to your request.</td></tr>
   </table>
 </div>
 
 <!-- COMMANDS -->
 <div class="section-page" id="pg-commands">
-  <h1>Commands — Linux vs Windows</h1>
-  <p class="page-sub">Before running any command, confirm the OS. The entire command set changes between Linux and Windows.</p>
-  <div class="note warn"><strong>Always clarify OS first in an interview:</strong> "Are these Linux or Windows hosts?" is the correct first question before naming any command.</div>
+  <h1>Команди — Linux vs Windows</h1>
+  <p class="page-sub">Перед запуском будь-якої команди уточніть ОС. Весь набір команд змінюється між Linux і Windows.</p>
+  <div class="note warn"><strong>Завжди уточнюйте ОС першим питанням на співбесіді:</strong> "Це Linux чи Windows хости?" — правильне перше питання перед назвою будь-якої команди.</div>
   <table class="cmd-table">
-    <tr><th>What</th><th>Linux</th><th>Windows</th><th>Works on both</th></tr>
+    <tr><th>Що</th><th>Linux</th><th>Windows</th><th>Працює на обох</th></tr>
     <tr><td>NIC state</td><td><code>ip link show</code></td><td><code>Get-NetAdapter</code></td><td>—</td></tr>
     <tr><td>IP address + subnet</td><td><code>ip addr show</code></td><td><code>Get-NetIPAddress</code> / <code>ipconfig /all</code></td><td>—</td></tr>
     <tr><td>ARP table</td><td><code>arp -a</code> or <code>ip neigh show</code></td><td>—</td><td><code>arp -a</code></td></tr>
@@ -1245,29 +1245,29 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
 
 <!-- TCP UDP -->
 <div class="section-page" id="pg-tcp-udp">
-  <h1>TCP vs UDP and Port Ranges</h1>
-  <p class="page-sub">Understanding the transport protocol tells you which commands to use and how to interpret results.</p>
+  <h1>TCP vs UDP та Діапазони портів</h1>
+  <p class="page-sub">Розуміння транспортного протоколу визначає, які команди використовувати і як інтерпретувати результати.</p>
   <h2>TCP — Transmission Control Protocol</h2>
-  <p><strong>Connection-oriented:</strong> a three-way handshake must complete before any data flows. Host A sends SYN → Host B replies SYN-ACK → Host A sends ACK → connection ESTABLISHED.</p>
-  <p><strong>Guaranteed delivery:</strong> every packet is acknowledged. No acknowledgement = automatic retransmission.</p>
-  <p><strong>Testable directly:</strong> because a connection must be established, <code>telnet</code> and <code>nc</code> give a clear result.</p>
-  <div class="note info"><strong>Handshake failure meanings:</strong><br>SYN sent, no SYN-ACK → nothing listening on that port, or firewall drops SYN. Check <code>ss -tuln</code> and <code>iptables</code> on <strong>Host B</strong>.<br>SYN-ACK received, connection still fails → Host A's firewall dropping the returning SYN-ACK. Check firewall on <strong>Host A</strong>.<br>ESTABLISHED but drops immediately → application on Host B accepted then closed. Check app logs on <strong>Host B</strong>.</div>
-  <div class="note warn"><strong>Refused vs timeout — memorise this distinction:</strong><br><strong>Connection refused</strong> = Host B actively rejected it. Nothing is listening on that port. The OS returned an error immediately.<br><strong>Timeout / no response</strong> = a firewall is silently dropping the packet. The packet may never reach the service. These two outcomes point to completely different problems.</div>
+  <p><strong>З встановленням з'єднання:</strong> триетапне рукостискання повинно завершитися до початку передачі даних. Host A sends SYN → Host B replies SYN-ACK → Host A sends ACK → connection ESTABLISHED.</p>
+  <p><strong>Гарантована доставка:</strong> кожен пакет підтверджується. Немає підтвердження = автоматична повторна передача.</p>
+  <p><strong>Безпосередньо тестується:</strong> оскільки з'єднання повинно встановлюватися, <code>telnet</code> і <code>nc</code> дають чіткий результат.</p>
+  <div class="note info"><strong>Значення збоїв рукостискання:</strong><br>SYN надіслано, немає SYN-ACK → нічого не слухає на цьому порту або брандмауер відкидає SYN. Перевірте <code>ss -tuln</code> і <code>iptables</code> на <strong>Хості B</strong>.<br>SYN-ACK отримано, з'єднання все одно не вдається → брандмауер Хоста A відкидає SYN-ACK, що повертається. Перевірте брандмауер на <strong>Хості A</strong>.<br>ESTABLISHED, але одразу закривається → застосунок на Хості B прийняв, а потім закрив. Перевірте логи застосунку на <strong>Хості B</strong>.</div>
+  <div class="note warn"><strong>Відхилення vs тайм-аут — запам'ятайте цю відмінність:</strong><br><strong>З'єднання відхилено</strong> = Хост B активно відхилив. На цьому порту нічого не слухає. ОС негайно повернула помилку.<br><strong>Тайм-аут / немає відповіді</strong> = брандмауер мовчки відкидає пакет. Пакет може ніколи не дістатися до сервісу. Ці два результати вказують на принципово різні проблеми.</div>
   <h2>UDP — User Datagram Protocol</h2>
-  <p><strong>Connectionless:</strong> data sent immediately, no handshake. Sender does not know if it arrived.</p>
-  <p><strong>No guaranteed delivery:</strong> packets can be lost silently. No automatic retransmission.</p>
-  <p><strong>Harder to test:</strong> <code>telnet</code> does not work for UDP — it only tests TCP. Use <code>nc -u &lt;IP&gt; &lt;port&gt;</code> or check application logs.</p>
-  <p><strong>Used for:</strong> DNS (port 53), DHCP (67/68), video streaming, VoIP, online gaming — where speed matters more than perfect delivery.</p>
-  <h2>Port ranges</h2>
+  <p><strong>Без встановлення з'єднання:</strong> дані надсилаються одразу, без рукостискання. Відправник не знає, чи дійшли вони.</p>
+  <p><strong>Без гарантованої доставки:</strong> пакети можуть бути втрачені непомітно. Немає автоматичної повторної передачі.</p>
+  <p><strong>Складніше тестувати:</strong> <code>telnet</code> не працює для UDP — він перевіряє лише TCP. Використовуйте <code>nc -u &lt;IP&gt; &lt;port&gt;</code> або перевіряйте логи застосунку.</p>
+  <p><strong>Використовується для:</strong> DNS (порт 53), DHCP (67/68), потокове відео, VoIP, онлайн-ігри — де швидкість важливіша за ідеальну доставку.</p>
+  <h2>Діапазони портів</h2>
   <table class="cmd-table">
-    <tr><th>Range</th><th>Name</th><th>What it means</th></tr>
-    <tr><td>0 – 1023</td><td>Well-known ports</td><td>Reserved for standard protocols. Assigned by IANA. Require root/admin to bind to.</td></tr>
-    <tr><td>1024 – 49151</td><td>Registered ports</td><td>Assigned to specific applications. Do not require root. Most app servers and databases live here.</td></tr>
-    <tr><td>49152 – 65535</td><td>Ephemeral (dynamic)</td><td>Assigned automatically by the OS to the client side of a connection. This is why you see high port numbers on the client side in <code>ss</code> / <code>netstat</code> output.</td></tr>
+    <tr><th>Діапазон</th><th>Назва</th><th>Що означає</th></tr>
+    <tr><td>0 – 1023</td><td>Добре відомі порти</td><td>Зарезервовані для стандартних протоколів. Призначені IANA. Для прив'язки потрібні root/admin.</td></tr>
+    <tr><td>1024 – 49151</td><td>Зареєстровані порти</td><td>Призначені конкретним застосункам. Root не потрібен. Більшість серверів застосунків та баз даних знаходяться тут.</td></tr>
+    <tr><td>49152 – 65535</td><td>Ефемерні (динамічні)</td><td>Автоматично призначаються ОС клієнтській стороні з'єднання. Саме тому ви бачите великі номери портів на стороні клієнта у виводі <code>ss</code> / <code>netstat</code>.</td></tr>
   </table>
-  <h2>Common ports to know</h2>
+  <h2>Основні порти</h2>
   <table class="cmd-table">
-    <tr><th>Port</th><th>Protocol</th><th>TCP/UDP</th><th>What it does</th></tr>
+    <tr><th>Порт</th><th>Протокол</th><th>TCP/UDP</th><th>Що робить</th></tr>
     <tr><td>22</td><td>SSH</td><td><span class="badge b-blue">TCP</span></td><td>Encrypted remote terminal access. If closed you cannot log in remotely.</td></tr>
     <tr><td>53</td><td>DNS</td><td><span class="badge b-blue">TCP</span> <span class="badge b-orange">UDP</span></td><td>Hostname → IP resolution. UDP for normal queries, TCP for large responses. If blocked — hostnames do not resolve, apps fail even with working IP connectivity.</td></tr>
     <tr><td>67/68</td><td>DHCP</td><td><span class="badge b-orange">UDP</span></td><td>Automatic IP address assignment. Server on 67, client on 68.</td></tr>
@@ -1282,12 +1282,12 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
 
 <!-- OSI REFERENCE -->
 <div class="section-page" id="pg-osi-reference">
-  <h1>OSI Model — Reference</h1>
-  <p class="page-sub">The OSI (Open Systems Interconnection) model is a conceptual framework that divides network communication into 7 distinct layers. Each layer has a specific job and communicates only with the layers directly above and below it. The model is used universally to describe, design, and debug network systems.</p>
+  <h1>Модель OSI — Довідник</h1>
+  <p class="page-sub">Модель OSI (Open Systems Interconnection) — концептуальна система, що поділяє мережеву комунікацію на 7 окремих рівнів. Кожен рівень виконує конкретну задачу і взаємодіє лише з рівнями безпосередньо вище та нижче. Модель використовується повсюдно для опису, проектування та відлагодження мережевих систем.</p>
 
-  <div class="note info"><strong>OSI vs TCP/IP:</strong> the OSI model has 7 layers and is the theoretical standard. The TCP/IP model has 4 layers and is what the internet actually uses. The rightmost column shows how the OSI layers map onto TCP/IP. Layers 5, 6, and 7 in OSI all collapse into one "Application" layer in TCP/IP.</div>
+  <div class="note info"><strong>OSI vs TCP/IP:</strong> модель OSI має 7 рівнів і є теоретичним стандартом. Модель TCP/IP має 4 рівні — саме вона використовується в інтернеті. Крайня права колонка показує відповідність рівнів OSI рівням TCP/IP. Рівні 5, 6 і 7 OSI об'єднуються в один рівень "Application" у TCP/IP.</div>
 
-  <h2>The 7 layers</h2>
+  <h2>7 рівнів</h2>
 
   <!-- Layer table -->
   <div style="overflow-x:auto;margin:1rem 0">
@@ -1295,12 +1295,12 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
     <thead>
       <tr style="background:var(--surface)">
         <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700;white-space:nowrap">#</th>
-        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Layer name</th>
-        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Data unit</th>
-        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Devices / entities</th>
-        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Key protocols</th>
-        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">What it does</th>
-        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700;white-space:nowrap">TCP/IP layer</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Назва рівня</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Одиниця даних</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Пристрої / суб'єкти</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Ключові протоколи</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Що робить</th>
+        <th style="padding:8px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700;white-space:nowrap">Рівень TCP/IP</th>
       </tr>
     </thead>
     <tbody>
@@ -1414,12 +1414,12 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </table>
   </div>
 
-  <h2>OSI vs TCP/IP — side by side</h2>
+  <h2>OSI vs TCP/IP — порівняння</h2>
   <div style="overflow-x:auto;margin:1rem 0">
   <table style="width:100%;border-collapse:collapse;font-size:.8rem;min-width:500px">
     <thead>
       <tr style="background:var(--surface)">
-        <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">OSI layer</th>
+        <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Рівень OSI</th>
         <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">TCP/IP layer</th>
         <th style="padding:7px 12px;text-align:left;border-bottom:2px solid var(--border);font-size:.72rem;font-weight:700">Why the difference</th>
       </tr>
@@ -1449,10 +1449,10 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </table>
   </div>
 
-  <h2>Notes on specific protocols and devices</h2>
+  <h2>Нотатки про конкретні протоколи та пристрої</h2>
 
   <div class="acc">
-    <div class="acc-h" onclick="acc(this)">DHCP — why it is L7 even though it assigns IP addresses <span class="acc-chev">▶</span></div>
+    <div class="acc-h" onclick="acc(this)">DHCP — чому це L7, хоча він призначає IP-адреси <span class="acc-chev">▶</span></div>
     <div class="acc-b">
       <p>DHCP (Dynamic Host Configuration Protocol) assigns IP addresses, which feels like an L3 concern. But DHCP is classified as an application layer (L7) protocol because of how it works mechanically: it is a request-response protocol running over UDP (L4), it uses port numbers (67 for server, 68 for client), and it has its own message format with fields, options, and acknowledgements — all characteristics of an application layer protocol.</p>
       <p>The fact that its output (an IP address) is used at L3 does not change its own classification. DNS is the same — it resolves hostnames to IPs (an L3 concept) but is itself an L7 protocol because it runs as a request-response application over UDP/TCP.</p>
@@ -1460,28 +1460,28 @@ http://192.168.0.2:8080     # if server runs on a different port</div>
   </div>
 
   <div class="acc">
-    <div class="acc-h" onclick="acc(this)">ARP — the bridge between L2 and L3 <span class="acc-chev">▶</span></div>
+    <div class="acc-h" onclick="acc(this)">ARP — міст між L2 і L3 <span class="acc-chev">▶</span></div>
     <div class="acc-b">
       <p>ARP (Address Resolution Protocol) translates IP addresses (L3) into MAC addresses (L2) so that frames can be built and delivered. It is technically defined as operating between L2 and L3 — sometimes called L2.5. ARP does not use IP itself; it is sent directly inside an Ethernet frame with a special EtherType value. It cannot cross routers — ARP operates only within a local subnet.</p>
     </div>
   </div>
 
   <div class="acc">
-    <div class="acc-h" onclick="acc(this)">Firewall — which layer? <span class="acc-chev">▶</span></div>
+    <div class="acc-h" onclick="acc(this)">Брандмауер — який рівень? <span class="acc-chev">▶</span></div>
     <div class="acc-b">
       <p>Firewalls exist at multiple layers depending on their type. A basic packet filter firewall operates at L3 (IP addresses) and L4 (port numbers). A stateful firewall also tracks TCP connection state at L4. An application firewall (WAF — Web Application Firewall) operates at L7 and can inspect HTTP content. A single firewall device may enforce rules across all these layers simultaneously.</p>
     </div>
   </div>
 
   <div class="acc">
-    <div class="acc-h" onclick="acc(this)">Switch — Layer 2 vs Layer 3 <span class="acc-chev">▶</span></div>
+    <div class="acc-h" onclick="acc(this)">Комутатор — Layer 2 vs Layer 3 <span class="acc-chev">▶</span></div>
     <div class="acc-b">
       <p>A basic switch operates at L2 — it forwards frames using MAC addresses and its CAM table. It has no awareness of IP addresses. A Layer 3 switch can also route packets between subnets using IP addresses, doing the job of a router internally. The same physical device can perform both functions, but they are two separate operations at two separate layers.</p>
     </div>
   </div>
 
   <div class="acc">
-    <div class="acc-h" onclick="acc(this)">NIC — which layer? <span class="acc-chev">▶</span></div>
+    <div class="acc-h" onclick="acc(this)">NIC — який рівень? <span class="acc-chev">▶</span></div>
     <div class="acc-b">
       <p>A NIC (Network Interface Card) spans both L1 and L2. At L1 it handles the physical transmission and reception of electrical signals or radio waves. At L2 it has a burned-in MAC address and handles frame assembly and disassembly. The driver software that controls the NIC bridges both layers and presents a single network interface to the OS.</p>
     </div>
