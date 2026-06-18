@@ -37,6 +37,25 @@ function setFont(font, e) {
   if (saved) setFont(saved);
 })();
 
+function setSize(size, e) {
+  if (e) e.stopPropagation();
+  document.body.classList.toggle('text-lg', size === 'lg');
+  document.body.classList.toggle('text-xl', size === 'xl');
+  var mdEl = document.getElementById('opt-size-md');
+  var lgEl = document.getElementById('opt-size-lg');
+  var xlEl = document.getElementById('opt-size-xl');
+  if (mdEl) mdEl.classList.toggle('active', size === 'md' || size === '');
+  if (lgEl) lgEl.classList.toggle('active', size === 'lg');
+  if (xlEl) xlEl.classList.toggle('active', size === 'xl');
+  setCookie('ui_size', size);
+  document.getElementById('settings-menu').classList.remove('open');
+  document.getElementById('settings-btn').classList.remove('open');
+}
+(function(){
+  var savedSize = getCookie('ui_size');
+  if (savedSize && savedSize !== 'md') setSize(savedSize);
+})();
+
 function setTheme(theme, e) {
   if (e) e.stopPropagation();
   document.body.classList.toggle('light', theme === 'light');
