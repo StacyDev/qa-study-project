@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality &amp; Testing — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
+<style>
+  /* page-specific variable aliases pointing to site.css */
+  :root {
+    --bg2: var(--surface);
+    --bg3: var(--surface2);
+    --border-hover: var(--border2);
+    --text-muted: var(--text2);
+    --text-dim: var(--text3);
+    --teal: var(--cyan);
+    --teal-dim: var(--cyan-d);
+    --teal-mid: #0f6e56;
+    --purple-dim: var(--purple-d);
+    --purple-mid: #534ab7;
+    --amber-dim: var(--amber-d);
+    --coral: #f97b6b;
+    --coral-dim: #3d1a14;
+    --line: var(--border);
+    --radius: 8px;
+  }
+  body.light {
+    --teal-mid: #007a5e;
+    --purple-mid: #5b21b6;
+    --coral: #c0392b;
+    --coral-dim: rgba(192,57,43,.08);
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ══ MIND MAP ══ */
+  #view-map { padding: 24px 16px; overflow-x: auto; }
+  .mm-root { display: flex; flex-direction: column; align-items: center; min-width: 960px; }
+  .mm-center {
+    background: linear-gradient(135deg, #2d1f5e, #1a3d30);
+    border: 1px solid var(--purple-mid); border-radius: 12px;
+    padding: 10px 28px; font-size: 13px; font-weight: 600; text-align: center;
+    box-shadow: 0 0 30px rgba(167,139,250,0.12);
+  }
+  .mm-center small { display: block; font-size: 10px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+  .mm-spine { width: 1px; height: 20px; background: var(--line); }
+  .mm-branches { display: flex; gap: 0; align-items: flex-start; width: 100%; position: relative; }
+  .mm-h-connector { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--line); }
+  .mm-branch { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .mm-v-stem { width: 1px; background: var(--line); }
+  .mm-v-stem.short { height: 16px; }
+  .mm-type {
+    border-radius: var(--radius); padding: 7px 14px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: 1px solid; text-align: center; transition: opacity .15s; white-space: nowrap;
+  }
+  .mm-type:hover { opacity: .85; }
+  .mm-type.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid); }
+  .mm-type.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); }
+  .mm-type.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
+  .mm-type.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309; }
+  .mm-plain {
+    font-size: 10px; color: var(--text-muted); text-align: center;
+    max-width: 160px; margin-top: 4px; line-height: 1.4; font-style: italic;
+  }
+  .mm-driver {
+    font-size: 9px; padding: 2px 7px; border-radius: 10px; margin-top: 4px; font-weight: 500;
+  }
+  .driver-q  { background: rgba(45,212,160,.12); color: var(--teal); }
+  .driver-td { background: rgba(251,191,36,.12);  color: var(--amber); }
+  .mm-children { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 6px; width: 100%; padding: 0 6px; }
+  .mm-char {
+    border-radius: 6px; padding: 5px 22px 5px 10px; font-size: 11px; font-weight: 500;
+    cursor: pointer; border: 1px solid; text-align: left; width: 100%;
+    transition: all .15s; position: relative;
+  }
+  .mm-char.teal   { background: rgba(45,212,160,.07);  color: #86efcb; border-color: rgba(45,212,160,.2); }
+  .mm-char.purple { background: rgba(167,139,250,.07); color: #c4b5fd; border-color: rgba(167,139,250,.2); }
+  .mm-char.coral  { background: rgba(249,123,107,.07); color: #fca99d; border-color: rgba(249,123,107,.2); }
+  .mm-char.amber  { background: rgba(251,191,36,.07);  color: #fcd34d; border-color: rgba(251,191,36,.2); }
+  .mm-char:hover { filter: brightness(1.15); }
+  .mm-char .arrow { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 9px; color: var(--text-dim); transition: transform .2s; }
+  .mm-char.open .arrow { transform: translateY(-50%) rotate(90deg); }
+  .mm-subs { display: none; flex-direction: column; gap: 2px; width: 100%; padding-left: 10px; border-left: 1px solid var(--border); margin-left: 4px; }
+  .mm-subs.open { display: flex; }
+  .mm-sub { font-size: 10px; color: var(--text-muted); padding: 3px 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all .12s; }
+  .mm-sub:hover { color: var(--text); border-color: var(--border); background: var(--bg3); }
+  .mm-sub-plain { font-size: 10px; color: var(--text-dim); padding: 1px 8px 4px; font-style: italic; line-height: 1.35; }
+
+  /* ══ REFERENCE VIEW ══ */
+  #view-ref { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  .ref-section { margin-bottom: 32px; }
+  .ref-section-title {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em; color: var(--text-muted);
+    text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .acc-group { display: flex; flex-direction: column; gap: 4px; }
+  .acc-item { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color .15s; }
+  .acc-item:hover { border-color: var(--border-hover); }
+  .acc-item.open  { border-color: var(--border-hover); }
+  .acc-header { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; background: var(--bg2); user-select: none; }
+  .acc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .acc-title { font-size: 13px; font-weight: 500; flex: 1; }
+  .acc-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; flex-shrink: 0; }
+  .acc-arrow { font-size: 10px; color: var(--text-dim); transition: transform .2s; flex-shrink: 0; }
+  .acc-item.open .acc-arrow { transform: rotate(90deg); }
+  .acc-body { display: none; padding: 16px; background: var(--bg); border-top: 1px solid var(--border); }
+  .acc-item.open .acc-body { display: block; }
+
+  .plain-box {
+    background: var(--bg3); border-radius: 6px; padding: 10px 14px;
+    margin-bottom: 14px; border-left: 3px solid;
+  }
+  .plain-box.teal   { border-color: var(--teal); }
+  .plain-box.purple { border-color: var(--purple); }
+  .plain-box.coral  { border-color: var(--coral); }
+  .plain-box.amber  { border-color: var(--amber); }
+  .plain-label { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; opacity: .6; }
+  .plain-text { font-size: 13px; line-height: 1.6; color: var(--text); }
+
+  .acc-essence { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
+  .acc-essence strong { color: var(--text); font-weight: 500; }
+
+  .example-box {
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;
+  }
+  .example-label { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .example-text { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .example-text strong { color: var(--text); font-weight: 500; }
+
+  .sub-list { display: flex; flex-direction: column; gap: 5px; }
+  .sub-item { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .sub-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; background: var(--bg2); }
+  .sub-title { font-size: 12px; font-weight: 500; flex: 1; }
+  .sub-arrow { font-size: 9px; color: var(--text-dim); transition: transform .2s; }
+  .sub-item.open .sub-arrow { transform: rotate(90deg); }
+  .sub-body { display: none; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--bg); }
+  .sub-item.open .sub-body { display: block; }
+
+  .sub-plain { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 10px; font-style: italic; border-left: 2px solid var(--border-hover); padding-left: 10px; }
+  .sub-detail { font-size: 12px; color: var(--text-muted); line-height: 1.65; }
+  .sub-detail strong { color: var(--text); font-weight: 500; }
+  .sub-example { margin-top: 8px; font-size: 12px; color: var(--text-muted); background: rgba(255,255,255,.03); border-radius: 5px; padding: 8px 10px; line-height: 1.55; }
+  .sub-example strong { color: var(--text); font-weight: 500; }
+
+  .iso-tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; background: rgba(167,139,250,.12); color: var(--purple); font-weight: 400; }
+  .c-teal { color: var(--teal); } .c-purple { color: var(--purple); } .c-coral { color: var(--coral); } .c-amber { color: var(--amber); }
+  .bg-teal { background: var(--teal); } .bg-purple { background: var(--purple); } .bg-coral { background: var(--coral); } .bg-amber { background: var(--amber); }
+  .badge-q  { background: rgba(45,212,160,.15); color: var(--teal); }
+  .badge-td { background: rgba(251,191,36,.15);  color: var(--amber); }
+
+  /* light mode fixes for hardcoded rgba text colours */
+  body.light .mm-char.teal   { color: #005a38; }
+  body.light .mm-char.purple { color: #4c1d95; }
+  body.light .mm-char.coral  { color: #9b2318; }
+  body.light .mm-char.amber  { color: #78350f; }
+  body.light .mm-sub         { color: var(--text2); }
+  body.light .mm-sub-plain   { color: var(--text3); }
+  body.light .mm-plain       { color: var(--text3); }
+  body.light .mm-center      { background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(0,122,94,.08)); }
+  body.light .example-box    { background: rgba(0,0,0,.02); }
+  body.light .sub-example    { background: rgba(0,0,0,.02); }
+
+  @media (max-width: 600px) { #view-ref { padding: 16px; } .mm-root { min-width: 700px; } }
+</style>
+</head>
+<body>
+
+<div class="disclaimer"><strong>Notes:</strong> ISTQB FL 4.0 · Personal study notes — simplified for clarity. Not a formal specification.</div>
+<nav class="topnav">
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← all topics</a>
+  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Mind map</button>
+  <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Reference</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">FONT</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (default)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-label">THEME</span>
+        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Dark (default)</div>
+        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Light</div>
+      </div>
+    </div>
+  </div>
+  <button class="lang-btn active" id="lang-en" onclick="setCookie('ui_lang','en')">EN</button>
+  <a class="lang-btn" id="lang-ua" href="ua.html" onclick="setCookie('ui_lang','ua')">UA</a>
+</nav>
+
+<!-- ══════════ MIND MAP ══════════ -->
+<div id="view-map" class="view active">
+<div class="mm-root">
+  <div class="mm-center">Test types — ISTQB FL 4.0<small>§ 2.2.2 — four test types</small></div>
+  <div class="mm-spine"></div>
+  <div class="mm-branches" id="mm-branches">
+    <div class="mm-h-connector"></div>
+
+    <!-- FUNCTIONAL -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type teal" onclick="switchTabAndScroll('ref','acc-functional')">Functional testing</div>
+      <div class="mm-plain">Does the system do what the requirements say?</div>
+      <div class="mm-driver driver-q">quality-characteristic driven</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char teal" onclick="toggleMmChar(this)">Completeness <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Are all required features present?</div>
+          <div class="mm-sub">Nothing missing from requirements</div>
+          <div class="mm-sub">Traceability matrix audit</div>
+        </div>
+        <div class="mm-char teal" onclick="toggleMmChar(this)">Correctness <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Do features give the right results?</div>
+          <div class="mm-sub">Correct outputs and calculations</div>
+          <div class="mm-sub">Sufficient precision</div>
+        </div>
+        <div class="mm-char teal" onclick="toggleMmChar(this)">Appropriateness <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Are features actually useful for the user's goals?</div>
+          <div class="mm-sub">Fit for purpose, not just present</div>
+          <div class="mm-sub">Facilitates real task completion</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NON-FUNCTIONAL -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type purple" onclick="switchTabAndScroll('ref','acc-nonfunctional')">Non-functional testing</div>
+      <div class="mm-plain">How well does the system behave?</div>
+      <div class="mm-driver driver-q">quality-characteristic driven</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Performance testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Is it fast enough under real traffic?</div>
+          <div class="mm-sub">Load — expected concurrent users</div>
+          <div class="mm-sub">Stress — beyond breaking point</div>
+          <div class="mm-sub">Spike — sudden surge</div>
+          <div class="mm-sub">Soak — sustained over hours/days</div>
+          <div class="mm-sub">Volume — large data amounts</div>
+          <div class="mm-sub">Scalability — adding resources helps?</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Security testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Can it be broken into or abused?</div>
+          <div class="mm-sub">Penetration testing</div>
+          <div class="mm-sub">Vulnerability scanning</div>
+          <div class="mm-sub">Authentication testing</div>
+          <div class="mm-sub">Authorization testing</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Reliability testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Does it keep working and recover from failure?</div>
+          <div class="mm-sub">Availability — uptime</div>
+          <div class="mm-sub">Fault tolerance — survives component failure</div>
+          <div class="mm-sub">Recoverability — bounces back after crash</div>
+          <div class="mm-sub">Maturity — stable over time</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Usability testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Can real users actually use it without frustration?</div>
+          <div class="mm-sub">Learnability</div>
+          <div class="mm-sub">Accessibility (WCAG)</div>
+          <div class="mm-sub">Operability</div>
+          <div class="mm-sub">User error protection</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Compatibility testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Does it play nicely with other systems?</div>
+          <div class="mm-sub">Co-existence — no conflict on shared host</div>
+          <div class="mm-sub">Interoperability — data exchange works</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Maintainability testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Can developers change it without breaking things?</div>
+          <div class="mm-sub">Modularity · Testability</div>
+          <div class="mm-sub">Analyzability · Modifiability</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Portability testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Can it run somewhere else without rewriting?</div>
+          <div class="mm-sub">Adaptability · Installability · Replaceability</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLACK-BOX -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type coral" onclick="switchTabAndScroll('ref','acc-blackbox')">Black-box testing</div>
+      <div class="mm-plain">Test what it does without looking at the code</div>
+      <div class="mm-driver driver-td">test design driven</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Equivalence partitioning <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Group inputs — one test per group is enough</div>
+          <div class="mm-sub">Valid and invalid partitions</div>
+          <div class="mm-sub">Reduces redundant test cases</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Boundary value analysis <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Bugs hide at the edges — test the borders</div>
+          <div class="mm-sub">2-value or 3-value BVA</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Decision table testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Map all rule combinations to expected outcomes</div>
+          <div class="mm-sub">Complex business logic</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">State transition testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">System moves between states — test valid and invalid moves</div>
+          <div class="mm-sub">Event + guard condition + action</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Use case testing <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Test as a real user completing a real goal</div>
+          <div class="mm-sub">Happy path + alternatives + exceptions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHITE-BOX -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type amber" onclick="switchTabAndScroll('ref','acc-whitebox')">White-box testing</div>
+      <div class="mm-plain">Test the code paths — how much code have we actually run?</div>
+      <div class="mm-driver driver-td">test design driven</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Statement coverage <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Has every line of code been executed at least once?</div>
+          <div class="mm-sub">Weakest criterion</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Branch coverage <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Has every if/else gone both true and false?</div>
+          <div class="mm-sub">Stronger than statement coverage</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Condition coverage <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Has each individual boolean been true and false?</div>
+          <div class="mm-sub">Finer than branch coverage</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Path coverage <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Has every possible route through the code been run?</div>
+          <div class="mm-sub">Most thorough — often impractical</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">MC/DC coverage <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Each condition independently changes the outcome</div>
+          <div class="mm-sub">Safety-critical: aviation, medical</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══════════ REFERENCE VIEW ══════════ -->
+<div id="view-ref" class="view">
+
+  <!-- ── FUNCTIONAL ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Functional testing — quality-characteristic driven</div>
+    <div class="acc-group">
+      <div class="acc-item" id="acc-functional">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Functional testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — functional suitability</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system do what the requirements say it should do? Not how fast, not how secure — just: does it actually work as specified?</div>
+          </div>
+          <div class="acc-essence">Evaluates the <strong>functions</strong> a component or system should perform. Maps to ISO 25010 <strong>functional suitability</strong> with three sub-characteristics: completeness, correctness, appropriateness.</div>
+          <div class="example-box">
+            <div class="example-label">Real-world context</div>
+            <div class="example-text">You are testing an e-commerce backend. Functional testing answers: does the checkout flow work? Does the discount calculation apply correctly? Does the order confirmation email send? These are all functional questions — they have nothing to do with how fast or how secure the system is.</div>
+          </div>
+          <div class="sub-list">
+
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)">
+                <div class="sub-title">Functional completeness <span class="iso-tag">completeness</span></div>
+                <div class="sub-arrow">›</div>
+              </div>
+              <div class="sub-body">
+                <div class="sub-plain">Are all the features that were promised actually there? Nothing missing.</div>
+                <div class="sub-detail">
+                  <strong>Formal definition:</strong> The degree to which the set of functions covers all the specified tasks and user objectives.<br><br>
+                  <strong>Key distinction from correctness:</strong> Completeness asks "does it exist?" — not "does it work correctly?"<br><br>
+                  <strong>How to test:</strong> Requirements traceability matrix — every requirement mapped to an implemented feature. Gaps = completeness defects.
+                </div>
+                <div class="sub-example">
+                  <strong>Example — microservices API:</strong> Payment service contract specifies 5 operations: charge, refund, void, capture, status. Developer implements 4, skips void. Completeness defect — feature is absent, not broken.<br><br>
+                  <strong>Example — SaaS product:</strong> Requirements say the admin panel must have user management, role assignment, audit log, and billing overview. Billing overview tab is missing from the UI. Completeness defect.
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)">
+                <div class="sub-title">Functional correctness <span class="iso-tag">correctness</span></div>
+                <div class="sub-arrow">›</div>
+              </div>
+              <div class="sub-body">
+                <div class="sub-plain">The features exist and they give the right answer. Wrong calculation = correctness defect.</div>
+                <div class="sub-detail">
+                  <strong>Formal definition:</strong> The degree to which a product or system provides the correct results with the needed degree of precision.<br><br>
+                  <strong>Key distinction:</strong> The function exists (completeness ✓) but returns wrong output (correctness ✗).
+                </div>
+                <div class="sub-example">
+                  <strong>Example:</strong> Tax endpoint exists and responds, but returns 19% VAT instead of the required 20%. Completeness: pass. Correctness: fail.<br><br>
+                  <strong>Example — data transformation:</strong> ETL pipeline exists and runs, but rounds currency values to 2 decimal places instead of 4, causing calculation drift downstream.
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)">
+                <div class="sub-title">Functional appropriateness <span class="iso-tag">appropriateness</span></div>
+                <div class="sub-arrow">›</div>
+              </div>
+              <div class="sub-body">
+                <div class="sub-plain">The features exist, work correctly, but are they actually useful for what real users are trying to do?</div>
+                <div class="sub-detail">
+                  <strong>Formal definition:</strong> The degree to which the functions facilitate the accomplishment of specified tasks and objectives.<br><br>
+                  <strong>Hardest to test</strong> — requires understanding real user goals, not just technical requirements.
+                </div>
+                <div class="sub-example">
+                  <strong>Example:</strong> A product search feature exists (complete) and returns accurate results (correct), but requires users to enter an exact SKU code rather than a natural keyword. It technically works but is not appropriate for how users actually search.<br><br>
+                  <strong>Example — API design:</strong> An endpoint to fetch order history returns all fields including internal system metadata. It is complete and correct, but inappropriate for the client — it returns 50KB where 2KB would serve the actual use case.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NON-FUNCTIONAL ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Non-functional testing — quality-characteristic driven</div>
+    <div class="acc-group" id="acc-nonfunctional">
+
+      <!-- PERFORMANCE -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Performance testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — performance efficiency</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Is the system fast enough? Does it use memory and CPU reasonably? Does it stay fast when lots of people use it at once? Umbrella term for six sub-subtypes — each answers a different performance question.</div>
+          </div>
+          <div class="acc-essence">Verifies <strong>speed, resource consumption, and capacity</strong> relative to workload. Maps to ISO 25010 performance efficiency sub-characteristics: time behaviour, resource utilisation, capacity.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Load testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Does the system meet its speed targets when the expected number of users are using it?</div>
+                <div class="sub-detail"><strong>Key:</strong> Defined, expected load. Not trying to break it — verifying it handles normal and peak traffic within SLA.<br><br><strong>Metric:</strong> Response time, throughput (requests/sec), error rate under defined user count.</div>
+                <div class="sub-example"><strong>Example:</strong> Black Friday peak load is 2,000 concurrent users. Load test verifies checkout API responds under 300ms at 2,000 concurrent users with error rate below 0.1%.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Stress testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Where does the system break, and when it breaks — does it crash hard or slow down gracefully?</div>
+                <div class="sub-detail"><strong>Key:</strong> Load is increased gradually beyond normal capacity until failure. Goal is to find the breaking point and characterize the failure mode — hard crash vs graceful degradation.</div>
+                <div class="sub-example"><strong>Example:</strong> Normal load is 1,000 users. Ramp up to 1,500 → 2,000 → 3,000. At 2,400 users, error rate exceeds 5%. Breaking point identified. System returns 503s (acceptable) rather than throwing unhandled exceptions (not acceptable).</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Spike testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">What happens if 10x the normal traffic arrives in 5 seconds? Flash sale, viral tweet, DDoS-like burst.</div>
+                <div class="sub-detail"><strong>Key difference from stress:</strong> Stress is gradual. Spike is abrupt — normal to extreme in seconds, then back down.</div>
+                <div class="sub-example"><strong>Example:</strong> Ticket sales for a popular concert go live. 200 users → 8,000 users in under 10 seconds. Does the system absorb the spike and recover, or does it stay degraded after the burst passes?</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Soak / endurance testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Does the system slowly get worse over hours or days — memory leaks, connection pool exhaustion, log files filling up?</div>
+                <div class="sub-detail"><strong>Key:</strong> Problems that only appear over time. A system can pass load testing at hour 1 but degrade at hour 48 due to a memory leak.</div>
+                <div class="sub-example"><strong>Example:</strong> Run the system at 70% capacity for 72 hours. Memory usage grows from 2GB → 8GB over 3 days. Response time at hour 72 is 3x slower than at hour 1. Memory leak confirmed. Without soak testing, this would only appear in production after days of operation.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Volume testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can the system handle a lot of data — not a lot of users, but a lot of rows, files, messages?</div>
+                <div class="sub-detail"><strong>Key distinction from load testing:</strong> Load = concurrent users. Volume = data size. You can have volume issues with one user and one huge file.</div>
+                <div class="sub-example"><strong>Example:</strong> An ETL pipeline processes daily transaction files. Works fine with 10,000 rows in dev. In production, the file has 50 million rows — the process runs out of memory and crashes. Volume defect.<br><br><strong>Example:</strong> Message queue accumulates 5 million unprocessed events overnight. Consumer service slows to a crawl when queue depth exceeds 500,000.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Scalability testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When we add more servers, does performance actually improve? If doubling machines only gives 20% more capacity, something is wrong.</div>
+                <div class="sub-detail"><strong>Key:</strong> Validates that the architecture actually scales. Reveals bottlenecks — a database that can't scale, a shared resource that becomes a chokepoint.</div>
+                <div class="sub-example"><strong>Example:</strong> 2 pods: 1,000 req/s. Add 2 more pods → expect ~2,000 req/s. Actual result: 1,200 req/s. Bottleneck found — all pods share one database connection pool with max 50 connections. Scaling pods does not help because they all compete for the same 50 DB connections.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Security testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — security</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can someone break in, steal data, or make the system do things it shouldn't? Security testing tries to find those holes before an attacker does.</div>
+          </div>
+          <div class="acc-essence">Verifies <strong>confidentiality, integrity, non-repudiation, accountability, and authenticity</strong>. Who can access what, and can the system detect and resist attacks?</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Penetration testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">A tester acts like an attacker and actually tries to break in — not just scan for holes, but exploit them.</div>
+                <div class="sub-example"><strong>Example:</strong> Tester finds an unsanitized input field and attempts SQL injection. Successfully extracts user table contents. Pen test confirms a real exploitable vulnerability, not just a theoretical one.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Vulnerability scanning</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Automated tool scans for known weak spots — outdated libraries, misconfigured settings, known CVEs.</div>
+                <div class="sub-detail"><strong>Key difference:</strong> Scanning finds vulnerabilities. Pen testing exploits them. Scanning is automated and wide — pen testing is manual and deep.</div>
+                <div class="sub-example"><strong>Example:</strong> OWASP dependency check finds that a service uses Log4j 2.14.1 — vulnerable to Log4Shell (CVE-2021-44228). Vulnerability flagged for patching without manual exploitation.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Authentication testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can the system correctly verify who you are? Can someone log in as someone else, or stay logged in after they should be kicked out?</div>
+                <div class="sub-example"><strong>Example:</strong> Expired JWT token is still accepted by the API — no token expiry validation. Session is not invalidated after logout — old session cookie still works. Brute force on login endpoint is not rate-limited.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Authorization testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Even when logged in correctly, can you access things you should not be able to access?</div>
+                <div class="sub-detail"><strong>Classic interview question:</strong> Authentication = who are you? Authorization = what are you allowed to do? Two completely separate concerns.</div>
+                <div class="sub-example"><strong>Example:</strong> User A is authenticated. They call GET /api/orders/12345 — order belongs to User B. System returns it without checking ownership. IDOR (Insecure Direct Object Reference) — authorization defect, not an authentication defect.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RELIABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Reliability testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — reliability</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system keep working correctly over time, under expected conditions, and does it recover when something goes wrong? Especially important in microservices — one service failing should not take down everything.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Availability testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Is the system accessible when users need it? Measured as uptime percentage.</div>
+                <div class="sub-example"><strong>Example:</strong> 99.9% SLA = maximum 8.7 hours downtime per year. 99.99% = 52 minutes. Test verifies the system meets its stated SLA under normal operating conditions and planned maintenance windows.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Fault tolerance testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">If one part of the system dies, does the whole thing die — or does it keep going?</div>
+                <div class="sub-example"><strong>Example — microservices:</strong> Kill the recommendation-service pod. Does the product page still load (showing products without recommendations), or does it throw a 500 error? Fault tolerance means the failure is isolated, not propagated.<br><br><strong>Chaos engineering</strong> (e.g. Netflix Chaos Monkey) is a practice built on fault tolerance testing.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Recoverability testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">After a crash or failure, how quickly and completely does the system get back to normal?</div>
+                <div class="sub-detail"><strong>RTO</strong> (Recovery Time Objective) — how long to restore service.<br><strong>RPO</strong> (Recovery Point Objective) — how much data can be lost (time since last backup).</div>
+                <div class="sub-example"><strong>Example:</strong> Database server crashes at 14:00. Last backup was 13:00. Recovery completes at 14:45. RTO = 45 minutes. RPO = 60 minutes (1 hour of transactions lost). Test verifies both values meet contractual obligations.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Maturity testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Is the system stable in day-to-day operation? No random crashes, no unexpected behavior, defect rate within acceptable limits.</div>
+                <div class="sub-example"><strong>Example:</strong> System has been in production for 3 months. Defect rate is still 5 critical issues per week. Maturity criterion not met — system is not yet stable enough for a given reliability target.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Usability testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — usability</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can real users actually use the system to get things done — without confusion, frustration, or needing a manual? Features can be complete and correct but completely unusable.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Learnability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can a new user figure it out without training?</div><div class="sub-example"><strong>Example:</strong> Give 5 new users the task "place an order without help." Measure time-to-first-success and error count. If most users fail or take 15+ minutes, learnability is poor.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Accessibility (WCAG)</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can people with disabilities use it? Screen readers, keyboard-only navigation, sufficient color contrast.</div><div class="sub-example"><strong>Example:</strong> Image buttons have no alt text — screen reader says "button" with no context. Color contrast ratio is 2.5:1 — WCAG AA requires 4.5:1. Both are accessibility failures.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Operability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Is the system easy to operate and control? Consistent behavior, clear labels, predictable responses.</div><div class="sub-example"><strong>Example:</strong> "Save" button in one part of the app triggers immediately. "Save" in another part opens a confirmation dialog first. Inconsistent operability — users cannot predict what will happen.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">User error protection</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Does the system stop users from making mistakes, and help them recover when they do?</div><div class="sub-example"><strong>Example:</strong> Admin clicks "Delete all users" — no confirmation dialog. All users deleted instantly with no undo. Error protection failure. Good design: confirmation step + soft-delete with 30-day recovery window.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPATIBILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Compatibility testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — compatibility</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system play nicely with other systems and environments — sharing resources without conflict, and exchanging data correctly?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Co-existence</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Two services running on the same machine don't steal each other's resources or break each other.</div><div class="sub-example"><strong>Example:</strong> Service A and Service B both deployed on the same host. Service A's memory leak causes Service B to be killed by the OOM killer. Co-existence failure.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Interoperability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Services can actually talk to each other and understand each other's data formats.</div><div class="sub-example"><strong>Example — microservices:</strong> Order service sends dates as Unix timestamps. Notification service expects ISO 8601 strings. API contract mismatch — interoperability defect. Consumer-driven contract testing (Pact) is specifically designed to catch these.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAINTAINABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Maintainability testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — maintainability</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can developers change, fix, and extend the system without it becoming a nightmare? More developer-facing than user-facing — but poor maintainability is what turns a healthy system into legacy spaghetti over time.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Modularity</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Changing one part doesn't break unrelated parts.</div><div class="sub-example"><strong>Example:</strong> Changing the pricing logic in the pricing service causes the order service to fail — they share a database table with undocumented coupling. Low modularity.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Testability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can you actually write tests for it? Can you isolate a component to test it alone?</div><div class="sub-example"><strong>Example:</strong> A class has 12 constructor dependencies, all concrete (not injected). Impossible to unit test without spinning up the entire application. Low testability.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Analyzability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">When something goes wrong, can you figure out why? Good logs, meaningful error messages, proper tracing.</div><div class="sub-example"><strong>Example:</strong> Production error log shows: "Error: null". No stack trace, no context, no request ID. Analyzability failure — impossible to diagnose without reproducing the issue.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Modifiability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can you safely change the code without accidentally breaking something else?</div><div class="sub-example"><strong>Example:</strong> Changing a database column name requires manually finding and updating 47 hardcoded string references across 12 files. High risk of missing one. Low modifiability.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PORTABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Portability testing</div>
+          <div class="acc-badge badge-q">ISO 25010 — portability</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can the system be moved to a different environment — different OS, different cloud, different server — without rewriting it?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Adaptability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can it run in a different environment without code changes?</div><div class="sub-example"><strong>Example:</strong> Docker image built for AWS runs on GCP and Azure without modification. Passes adaptability. Contrast: application has AWS SDK calls hardcoded and fails outside AWS — fails adaptability.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Installability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can you install and uninstall it cleanly on a target environment?</div><div class="sub-example"><strong>Example:</strong> Helm chart deploys successfully to a fresh Kubernetes cluster. Uninstall leaves no orphaned resources. Installability pass. Contrast: install script fails on Ubuntu 22.04 because it only supports 20.04 — installability failure.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Replaceability</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Can this system replace an existing one for the same purpose, with the same data?</div><div class="sub-example"><strong>Example:</strong> Migrating from MySQL to PostgreSQL. Replaceability test: export all data, import to PostgreSQL, run full regression suite against the new database. All existing queries must produce identical results.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── BLACK-BOX ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Black-box testing — test design driven</div>
+    <div class="acc-group">
+      <div class="acc-item" id="acc-blackbox">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Black-box testing</div>
+          <div class="acc-badge badge-td">test design techniques</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">You test the system from the outside — you give it inputs and check outputs, without looking at the code inside. You only know what the system is supposed to do, not how it does it. Subtypes are techniques for designing those tests systematically.</div>
+          </div>
+          <div class="acc-essence"><strong>Specification-based.</strong> Derives tests from requirements, specs, user stories, and other external documentation. Applies to both functional and non-functional testing.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Equivalence partitioning (EP)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Divide all possible inputs into groups where every value in a group should behave the same way. One test per group is enough — testing 5 values from the same group tells you nothing more than testing 1.</div>
+                <div class="sub-example"><strong>Example — age field, valid range 18–65:</strong><br>Partition 1: below 18 (invalid) → test with 15<br>Partition 2: 18–65 (valid adult) → test with 35<br>Partition 3: above 65 (senior) → test with 70<br>3 partitions = 3 test cases minimum.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Boundary value analysis (BVA)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Most bugs hide at the edges of a valid range, not in the middle. Test right at the boundary — the first valid value, the last valid value, and the values just outside.</div>
+                <div class="sub-detail"><strong>2-value BVA:</strong> Test at the boundary itself + just outside it.<br><strong>3-value BVA:</strong> Test just below + at boundary + just above.</div>
+                <div class="sub-example"><strong>Example — valid age 18–65, 3-value BVA:</strong><br>Lower boundary: 17 (invalid), 18 (valid), 19 (valid)<br>Upper boundary: 64 (valid), 65 (valid), 66 (invalid)</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Decision table testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When the system behaves differently depending on multiple conditions at once — build a table of every combination. Each column in the table is a test case.</div>
+                <div class="sub-example"><strong>Example — discount rules:</strong><br>Conditions: member (Y/N) × large order (Y/N) = 4 combinations<br>Member + large = 20% | Member + small = 10% | Non-member + large = 5% | Non-member + small = 0%<br>4 columns = 4 test cases, covering all combinations.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">State transition testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system has a set of states it can be in. Model the valid moves between states, then test both the moves that should work and the moves that should be rejected.</div>
+                <div class="sub-example"><strong>Example — order lifecycle:</strong><br>States: pending → confirmed → shipped → delivered → cancelled<br>Valid: pending → confirmed ✓<br>Invalid: shipped → pending ✗ (should be rejected)<br>Test covers both valid transitions and attempts at invalid ones.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Use case testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Test the system as a real user completing a real goal — not individual functions, but an end-to-end scenario.</div>
+                <div class="sub-example"><strong>Example — "place an order":</strong><br>Happy path: search → add to cart → checkout → payment succeeds → confirmation<br>Alternative: item goes out of stock during checkout<br>Exception: payment fails → retry option presented</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WHITE-BOX ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">White-box testing — test design driven</div>
+    <div class="acc-group">
+      <div class="acc-item" id="acc-whitebox">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">White-box testing</div>
+          <div class="acc-badge badge-td">test design techniques</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">You test by looking inside the code. You know how it works and you design tests to make sure specific code paths, branches, and conditions have actually been executed. Subtypes are coverage criteria — measurable targets for how much of the code structure your tests have exercised.</div>
+          </div>
+          <div class="acc-essence"><strong>Structure-based.</strong> Derives tests from internal code, architecture, workflows, and data flows. Coverage percentage is the key metric.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Statement coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Has every line of executable code been run at least once by your tests?</div>
+                <div class="sub-detail"><strong>Formula:</strong> Exercised statements ÷ total executable statements × 100%<br><strong>Weakness:</strong> Weakest criterion. 100% statement coverage does not mean you tested both true and false branches of an if statement.</div>
+                <div class="sub-example"><strong>Example:</strong> if (x > 0) { doA(); } — if tests only pass x=5, doA() is covered (statement coverage = 100%), but the false branch (x ≤ 0, doA not called) is never tested.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Branch coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Has every if/else, every decision point gone both ways — true and false?</div>
+                <div class="sub-detail"><strong>Key fact:</strong> 100% branch coverage guarantees 100% statement coverage. The reverse is not true.<br><strong>Most commonly required criterion in practice</strong> — standard for most commercial software.</div>
+                <div class="sub-example"><strong>Example:</strong> if (x > 0) { doA(); } else { doB(); }<br>Need at least 2 tests: one with x=5 (true branch → doA), one with x=-1 (false branch → doB).</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Condition coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">In a complex condition like (A AND B), has each individual part — A and B — been both true and false independently?</div>
+                <div class="sub-example"><strong>Example:</strong> if (isAdmin AND isActive) — condition coverage requires tests where isAdmin=true/false AND isActive=true/false independently, even if the overall decision doesn't change.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Path coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Has every possible route from start to end of the code been executed? The most thorough — and usually impractical for anything real.</div>
+                <div class="sub-detail"><strong>Problem:</strong> Number of paths grows exponentially. 10 consecutive if/else statements = up to 1,024 paths. Achievable only in small, critical units.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">MC/DC coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Prove that each condition in a complex decision can independently change the final outcome — no condition is being masked or ignored by others.</div>
+                <div class="sub-detail"><strong>Full name:</strong> Modified Condition/Decision Coverage<br><strong>Used in:</strong> Safety-critical systems — aviation software (DO-178C Level A), medical devices, automotive (ISO 26262 ASIL D).<br><strong>FL 4.0 exam note:</strong> Know what it is and where it is used. Deep knowledge is not required at foundation level.</div>
+                <div class="sub-example"><strong>Example:</strong> if (A OR B OR C) — MC/DC requires showing that changing A alone (while B and C are fixed) changes the outcome, and the same independently for B and for C. Eliminates redundant conditions that never actually affect the result.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../../assets/site.js"></script>
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById('view-' + name).classList.add('active');
+  var tabMap = document.getElementById('tab-map');
+  var tabRef = document.getElementById('tab-ref');
+  if (tabMap) tabMap.classList.toggle('active', name === 'map');
+  if (tabRef) tabRef.classList.toggle('active', name === 'ref');
+}
+function switchTabAndScroll(tab, id) {
+  switchTab(tab);
+  setTimeout(function() {
+    var el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!el.classList.contains('open')) {
+        var header = el.querySelector('.acc-header');
+        if (header) toggleAcc(el);
+      }
+    }
+  }, 60);
+}
+function toggleAcc(item) { item.classList.toggle('open'); }
+function toggleSub(item) { item.classList.toggle('open'); }
+function toggleMmChar(el) {
+  el.classList.toggle('open');
+  var subs = el.nextElementSibling;
+  if (subs && subs.classList.contains('mm-subs')) subs.classList.toggle('open');
+}
+</script>
+</body>
+</html>
