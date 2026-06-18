@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%230f0f0f'/><text x='50' y='68' font-family='monospace' font-size='48' font-weight='bold' fill='%2300d4aa' text-anchor='middle'>QA</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quality &amp; Testing — QA Study Notes</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -36,7 +37,7 @@
   .view.active { display: block; }
 
   /* ══ MIND MAP ══ */
-  #view-map { padding: 24px 16px; overflow-x: auto; }
+  #view-map { padding: 24px 16px; overflow-x: hidden; }
   .mm-root { display: flex; flex-direction: column; align-items: center; min-width: 960px; }
   .mm-center {
     background: linear-gradient(135deg, #2d1f5e, #1a3d30);
@@ -857,6 +858,16 @@
 
 <script src="../../assets/site.js"></script>
 <script>
+function fitMindMap() {
+  var view = document.getElementById('view-map');
+  var root = view ? view.querySelector('.mm-root') : null;
+  if (!view || !root) return;
+  root.style.zoom = '';
+  var avail = view.clientWidth - 32;
+  var natural = root.scrollWidth;
+  if (natural > avail && avail > 0) root.style.zoom = avail / natural;
+}
+window.addEventListener('resize', fitMindMap);
 function switchTab(name) {
   document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
   document.getElementById('view-' + name).classList.add('active');
@@ -864,6 +875,7 @@ function switchTab(name) {
   var tabRef = document.getElementById('tab-ref');
   if (tabMap) tabMap.classList.toggle('active', name === 'map');
   if (tabRef) tabRef.classList.toggle('active', name === 'ref');
+  if (name === 'map') fitMindMap();
 }
 function switchTabAndScroll(tab, id) {
   switchTab(tab);
@@ -885,6 +897,7 @@ function toggleMmChar(el) {
   var subs = el.nextElementSibling;
   if (subs && subs.classList.contains('mm-subs')) subs.classList.toggle('open');
 }
+fitMindMap();
 </script>
 </body>
 </html>
