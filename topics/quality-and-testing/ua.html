@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%230f0f0f'/><text x='50' y='68' font-family='monospace' font-size='48' font-weight='bold' fill='%2300d4aa' text-anchor='middle'>QA</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Якість та тестування — QA Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/site.css">
+<style>
+  /* page-specific variable aliases pointing to site.css */
+  :root {
+    --bg2: var(--surface);
+    --bg3: var(--surface2);
+    --border-hover: var(--border2);
+    --text-muted: var(--text2);
+    --text-dim: var(--text3);
+    --teal: var(--cyan);
+    --teal-dim: var(--cyan-d);
+    --teal-mid: #0f6e56;
+    --purple-dim: var(--purple-d);
+    --purple-mid: #534ab7;
+    --amber-dim: var(--amber-d);
+    --coral: #f97b6b;
+    --coral-dim: #3d1a14;
+    --line: var(--border);
+    --radius: 8px;
+  }
+  body.light {
+    --teal-mid: #007a5e;
+    --purple-mid: #5b21b6;
+    --coral: #c0392b;
+    --coral-dim: rgba(192,57,43,.08);
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ══ MIND MAP ══ */
+  #view-map { padding: 24px 16px; overflow-x: hidden; }
+  .mm-root { display: flex; flex-direction: column; align-items: center; min-width: 960px; }
+  .mm-center {
+    background: linear-gradient(135deg, #2d1f5e, #1a3d30);
+    border: 1px solid var(--purple-mid); border-radius: 12px;
+    padding: 10px 28px; font-size: var(--fs-body); font-weight: 600; text-align: center;
+    box-shadow: 0 0 30px rgba(167,139,250,0.12);
+  }
+  .mm-center small { display: block; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+  .mm-spine { width: 1px; height: 20px; background: var(--line); }
+  .mm-branches { display: flex; gap: 0; align-items: flex-start; width: 100%; position: relative; }
+  .mm-h-connector { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--line); }
+  .mm-branch { flex: 1; display: flex; flex-direction: column; align-items: center; }
+  .mm-v-stem { width: 1px; background: var(--line); }
+  .mm-v-stem.short { height: 16px; }
+  .mm-type {
+    border-radius: var(--radius); padding: 7px 14px; font-size: var(--fs-base); font-weight: 600;
+    cursor: pointer; border: 1px solid; text-align: center; transition: opacity .15s; white-space: nowrap;
+  }
+  .mm-type:hover { opacity: .85; }
+  .mm-type.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid); }
+  .mm-type.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); }
+  .mm-type.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
+  .mm-type.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309; }
+  .mm-plain {
+    font-size: var(--fs-xs); color: var(--text-muted); text-align: center;
+    max-width: 160px; margin-top: 4px; line-height: 1.4; font-style: italic;
+  }
+  .mm-driver {
+    font-size: var(--fs-micro); padding: 2px 7px; border-radius: 10px; margin-top: 4px; font-weight: 500;
+  }
+  .driver-q  { background: rgba(45,212,160,.12); color: var(--teal); }
+  .driver-td { background: rgba(251,191,36,.12);  color: var(--amber); }
+  .mm-children { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 6px; width: 100%; padding: 0 6px; }
+  .mm-char {
+    border-radius: 6px; padding: 5px 22px 5px 10px; font-size: var(--fs-sm); font-weight: 500;
+    cursor: pointer; border: 1px solid; text-align: left; width: 100%;
+    transition: all .15s; position: relative;
+  }
+  .mm-char.teal   { background: rgba(45,212,160,.07);  color: #86efcb; border-color: rgba(45,212,160,.2); }
+  .mm-char.purple { background: rgba(167,139,250,.07); color: #c4b5fd; border-color: rgba(167,139,250,.2); }
+  .mm-char.coral  { background: rgba(249,123,107,.07); color: #fca99d; border-color: rgba(249,123,107,.2); }
+  .mm-char.amber  { background: rgba(251,191,36,.07);  color: #fcd34d; border-color: rgba(251,191,36,.2); }
+  .mm-char:hover { filter: brightness(1.15); }
+  .mm-char .arrow { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: var(--fs-micro); color: var(--text-dim); transition: transform .2s; }
+  .mm-char.open .arrow { transform: translateY(-50%) rotate(90deg); }
+  .mm-subs { display: none; flex-direction: column; gap: 2px; width: 100%; padding-left: 10px; border-left: 1px solid var(--border); margin-left: 4px; }
+  .mm-subs.open { display: flex; }
+  .mm-sub { font-size: var(--fs-xs); color: var(--text-muted); padding: 3px 8px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all .12s; }
+  .mm-sub:hover { color: var(--text); border-color: var(--border); background: var(--bg3); }
+  .mm-sub-plain { font-size: var(--fs-xs); color: var(--text-dim); padding: 1px 8px 4px; font-style: italic; line-height: 1.35; }
+
+  /* ══ REFERENCE VIEW ══ */
+  #view-ref { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  .ref-section { margin-bottom: 32px; }
+  .ref-section-title {
+    font-size: var(--fs-sm); font-weight: 600; letter-spacing: .1em; color: var(--text2);
+    text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .acc-group { display: flex; flex-direction: column; gap: 4px; }
+  .acc-item { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color .15s; }
+  .acc-item:hover { border-color: var(--border2); }
+  .acc-item.open  { border-color: var(--border2); }
+  .acc-header { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; background: var(--surface); color: var(--text); user-select: none; }
+  .acc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .acc-title { font-size: var(--fs-body); font-weight: 500; flex: 1; color: var(--text); }
+  .acc-badge { font-size: var(--fs-xs); padding: 2px 8px; border-radius: 10px; font-weight: 500; flex-shrink: 0; }
+  .acc-arrow { font-size: var(--fs-xs); color: var(--text3); transition: transform .2s; flex-shrink: 0; }
+  .acc-item.open .acc-arrow { transform: rotate(90deg); }
+  .acc-body { display: none; padding: 16px; background: var(--surface); border-top: 1px solid var(--border); color: var(--text); }
+  .acc-item.open .acc-body { display: block; }
+
+  .plain-box {
+    background: var(--surface2); border-radius: 6px; padding: 10px 14px;
+    margin-bottom: 14px; border-left: 3px solid;
+  }
+  .plain-box.teal   { border-color: var(--cyan); }
+  .plain-box.purple { border-color: var(--purple); }
+  .plain-box.coral  { border-color: var(--coral); }
+  .plain-box.amber  { border-color: var(--amber); }
+  .plain-label { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text2); margin-bottom: 4px; }
+  .plain-text { font-size: var(--fs-body); line-height: 1.6; color: var(--text); }
+
+  .acc-essence { font-size: var(--fs-body); color: var(--text); line-height: 1.65; margin-bottom: 14px; }
+
+  .example-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px; margin-bottom: 14px;
+  }
+  .example-label { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text2); margin-bottom: 6px; }
+  .example-text { font-size: var(--fs-body); color: var(--text); line-height: 1.6; }
+
+  .sub-list { display: flex; flex-direction: column; gap: 5px; }
+  .sub-item { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .sub-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; background: var(--surface2); color: var(--text); }
+  .sub-title { font-size: var(--fs-base); font-weight: 500; flex: 1; color: var(--text); }
+  .sub-arrow { font-size: var(--fs-micro); color: var(--text3); transition: transform .2s; }
+  .sub-item.open .sub-arrow { transform: rotate(90deg); }
+  .sub-body { display: none; padding: 12px 14px; border-top: 1px solid var(--border); background: var(--surface); color: var(--text); }
+  .sub-item.open .sub-body { display: block; }
+
+  .sub-plain { font-size: var(--fs-body); color: var(--text); line-height: 1.6; margin-bottom: 10px; font-style: italic; border-left: 2px solid var(--border2); padding-left: 10px; }
+  .sub-detail { font-size: var(--fs-body); color: var(--text); line-height: 1.65; }
+  .sub-example { margin-top: 8px; font-size: var(--fs-body); color: var(--text); background: var(--surface2); border-radius: 5px; padding: 8px 10px; line-height: 1.55; }
+
+  .iso-tag { display: inline-block; font-size: var(--fs-xs); padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; background: rgba(167,139,250,.12); color: var(--purple); font-weight: 400; }
+  .c-teal { color: var(--cyan); } .c-purple { color: var(--purple); } .c-coral { color: var(--coral); } .c-amber { color: var(--amber); }
+  .bg-teal { background: var(--cyan); } .bg-purple { background: var(--purple); } .bg-coral { background: var(--coral); } .bg-amber { background: var(--amber); }
+  .badge-q  { background: rgba(45,212,160,.15); color: var(--cyan); }
+  .badge-td { background: rgba(251,191,36,.15);  color: var(--amber); }
+
+  /* light mode fixes for hardcoded rgba text colours */
+  body.light .mm-char.teal   { color: #005a38; }
+  body.light .mm-char.purple { color: #4c1d95; }
+  body.light .mm-char.coral  { color: #9b2318; }
+  body.light .mm-char.amber  { color: #78350f; }
+  body.light .mm-sub         { color: var(--text2); }
+  body.light .mm-sub-plain   { color: var(--text3); }
+  body.light .mm-plain       { color: var(--text3); }
+  body.light .mm-center      { background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(0,122,94,.08)); }
+
+  /* reference section explicit light mode overrides */
+  body.light .acc-header     { background: var(--surface); color: var(--text); }
+  body.light .acc-body       { background: var(--surface); color: var(--text); }
+  body.light .acc-title      { color: var(--text); }
+  body.light .acc-essence    { color: var(--text); }
+  body.light .plain-box      { background: var(--surface2); }
+  body.light .plain-text     { color: var(--text); }
+  body.light .plain-label    { color: var(--text2); }
+  body.light .example-box    { background: var(--surface2); }
+  body.light .example-text   { color: var(--text); }
+  body.light .example-label  { color: var(--text2); }
+  body.light .sub-header     { background: var(--surface2); color: var(--text); }
+  body.light .sub-title      { color: var(--text); }
+  body.light .sub-body       { background: var(--surface); color: var(--text); }
+  body.light .sub-plain      { color: var(--text); }
+  body.light .sub-detail     { color: var(--text); }
+  body.light .sub-example    { background: var(--surface2); color: var(--text); }
+  body.light .ref-section-title { color: var(--text2); }
+
+  #view-iso { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  #view-tech { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  .concept-table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); }
+  .concept-table th { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text2); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+  .concept-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; color: var(--text); }
+  .concept-table tr:last-child td { border-bottom: none; }
+  #view-levels { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  .level-pyramid { display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: 560px; margin: 0 auto 20px; }
+  .lp-bar { border-radius: 6px; padding: 9px 16px; font-size: var(--fs-sm); font-weight: 600; border: 1px solid; text-align: center; }
+  .lp-bar.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid);  width: 100%; }
+  .lp-bar.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); width: 78%; }
+  .lp-bar.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309;          width: 56%; }
+  .lp-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d;          width: 35%; }
+  .lp-connector  { width: 1px; height: 8px; background: var(--border); }
+  @media (max-width: 600px) { #view-ref { padding: 16px; } #view-iso { padding: 16px; } #view-tech { padding: 16px; } #view-levels { padding: 16px; } .mm-root { min-width: 700px; } }
+</style>
+</head>
+<body>
+
+<div class="disclaimer"><strong>Застереження:</strong> ISTQB FL 4.0 · Особисті навчальні нотатки — спрощено для ясності. Не є формальною специфікацією.</div>
+<nav class="topnav">
+  <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
+  <a class="back-link" href="../../index.html">← всі теми</a>
+  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Ментальна карта</button>
+  <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Довідник</button>
+  <button class="tab-btn" id="tab-iso" onclick="switchTab('iso')">ISO 25010</button>
+  <button class="tab-btn" id="tab-tech" onclick="switchTab('tech')">Техніки</button>
+  <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">Рівні</button>
+  <div class="settings-wrap">
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Налаштування">⚙</button>
+    <div class="settings-menu" id="settings-menu">
+      <div class="settings-section">
+        <span class="settings-label">ШРИФТ</span>
+        <div class="settings-opt active" id="opt-normal" onclick="setFont('normal',event)"><span class="settings-opt-dot"></span>IBM Plex (стандартний)</div>
+        <div class="settings-opt" id="opt-comic" onclick="setFont('comic',event)"><span class="settings-opt-dot"></span>Comic Sans</div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-label">ТЕМА</span>
+        <div class="settings-opt active" id="opt-dark" onclick="setTheme('dark',event)"><span class="settings-opt-dot"></span>Темна (за замовч.)</div>
+        <div class="settings-opt" id="opt-light" onclick="setTheme('light',event)"><span class="settings-opt-dot"></span>Світла</div>
+      </div>
+      <div class="settings-section">
+        <span class="settings-label">РОЗМІР</span>
+        <div class="settings-opt active" id="opt-size-md" onclick="setSize('md',event)"><span class="settings-opt-dot"></span>Середній (за замовч.)</div>
+        <div class="settings-opt" id="opt-size-lg" onclick="setSize('lg',event)"><span class="settings-opt-dot"></span>Великий</div>
+        <div class="settings-opt" id="opt-size-xl" onclick="setSize('xl',event)"><span class="settings-opt-dot"></span>Дуже великий</div>
+      </div>
+    </div>
+  </div>
+  <a class="lang-btn" id="lang-en" href="uk.html" onclick="setCookie('ui_lang','en')">EN</a>
+  <button class="lang-btn active" id="lang-ua" onclick="setCookie('ui_lang','ua')">UA</button>
+</nav>
+
+<!-- ══════════ MIND MAP ══════════ -->
+<div id="view-map" class="view active">
+<div class="mm-root">
+  <div class="mm-center">Типи тестування — ISTQB FL 4.0<small>§ 2.2.2 — чотири типи тестів</small></div>
+  <div class="mm-spine"></div>
+  <div class="mm-branches" id="mm-branches">
+    <div class="mm-h-connector"></div>
+
+    <!-- FUNCTIONAL -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type teal" onclick="switchTabAndScroll('ref','acc-functional')">Функціональне тестування</div>
+      <div class="mm-plain">Чи робить система те, що вказано у вимогах?</div>
+      <div class="mm-driver driver-q">за характеристикою якості</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char teal" onclick="toggleMmChar(this)">Повнота <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи присутні всі потрібні функції?</div>
+          <div class="mm-sub">Нічого не відсутнє з вимог</div>
+          <div class="mm-sub">Аудит матриці трасування</div>
+        </div>
+        <div class="mm-char teal" onclick="toggleMmChar(this)">Коректність <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи дають функції правильні результати?</div>
+          <div class="mm-sub">Правильні виходи та розрахунки</div>
+          <div class="mm-sub">Достатня точність</div>
+        </div>
+        <div class="mm-char teal" onclick="toggleMmChar(this)">Доречність <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи корисні функції для цілей користувача?</div>
+          <div class="mm-sub">Підходить для мети, а не лише існує</div>
+          <div class="mm-sub">Сприяє реальному виконанню завдань</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NON-FUNCTIONAL -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type purple" onclick="switchTabAndScroll('ref','acc-nonfunctional')">Нефункціональне тестування</div>
+      <div class="mm-plain">Наскільки добре система поводиться?</div>
+      <div class="mm-driver driver-q">за характеристикою якості</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування продуктивності <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи достатньо швидка під реальним навантаженням?</div>
+          <div class="mm-sub">Навантаження — очікувана к-сть користувачів</div>
+          <div class="mm-sub">Стрес — поза точкою зламу</div>
+          <div class="mm-sub">Сплеск — раптовий стрибок</div>
+          <div class="mm-sub">Витривалість — тривале навантаження</div>
+          <div class="mm-sub">Обсяг — великі масиви даних</div>
+          <div class="mm-sub">Масштабованість — чи допомагають ресурси?</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування безпеки <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи можна зламати або зловжити системою?</div>
+          <div class="mm-sub">Тестування на проникнення</div>
+          <div class="mm-sub">Сканування вразливостей</div>
+          <div class="mm-sub">Тестування автентифікації</div>
+          <div class="mm-sub">Тестування авторизації</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування надійності <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи продовжує працювати і відновлюватись після збоїв?</div>
+          <div class="mm-sub">Доступність — час роботи</div>
+          <div class="mm-sub">Відмовостійкість — виживає при збої компонента</div>
+          <div class="mm-sub">Відновлюваність — повертається після краху</div>
+          <div class="mm-sub">Зрілість — стабільна з часом</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування зручності <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи можуть реальні користувачі використовувати без розчарування?</div>
+          <div class="mm-sub">Навченість</div>
+          <div class="mm-sub">Доступність (WCAG)</div>
+          <div class="mm-sub">Керованість</div>
+          <div class="mm-sub">Захист від помилок</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування сумісності <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи взаємодіє нормально з іншими системами?</div>
+          <div class="mm-sub">Співіснування — без конфліктів на спільному хості</div>
+          <div class="mm-sub">Інтероперабельність — обмін даними працює</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування підтримуваності <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи можуть розробники вносити зміни без зламів?</div>
+          <div class="mm-sub">Модульність · Тестованість</div>
+          <div class="mm-sub">Аналізованість · Модифікованість</div>
+        </div>
+        <div class="mm-char purple" onclick="toggleMmChar(this)">Тестування переносимості <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи можна запустити деінде без переписування?</div>
+          <div class="mm-sub">Адаптованість · Встановлюваність · Замінюваність</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLACK-BOX -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type coral" onclick="switchTabAndScroll('ref','acc-blackbox')">Тестування чорної скриньки</div>
+      <div class="mm-plain">Тестування без доступу до коду</div>
+      <div class="mm-driver driver-td">за технікою проектування тестів</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Еквівалентне розбиття <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Групуйте входи — одного тесту на групу достатньо</div>
+          <div class="mm-sub">Валідні та невалідні партиції</div>
+          <div class="mm-sub">Зменшує надлишкові тест-кейси</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Аналіз граничних значень <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Помилки ховаються на межах — тестуйте кордони</div>
+          <div class="mm-sub">2-значне або 3-значне АГЗ</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Таблиця рішень <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Відобразіть усі комбінації правил до очікуваних результатів</div>
+          <div class="mm-sub">Складна бізнес-логіка</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Переходи між станами <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Тестуйте валідні та невалідні переходи між станами</div>
+          <div class="mm-sub">Подія + умова охорони + дія</div>
+        </div>
+        <div class="mm-char coral" onclick="toggleMmChar(this)">Сценарії використання <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Тестуйте як реальний користувач, що досягає реальної мети</div>
+          <div class="mm-sub">Щасливий шлях + альтернативи + виключення</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHITE-BOX -->
+    <div class="mm-branch">
+      <div class="mm-v-stem short"></div>
+      <div class="mm-type amber" onclick="switchTabAndScroll('ref','acc-whitebox')">Тестування білої скриньки</div>
+      <div class="mm-plain">Перевірка шляхів коду — скільки коду реально запущено?</div>
+      <div class="mm-driver driver-td">за технікою проектування тестів</div>
+      <div class="mm-v-stem short"></div>
+      <div class="mm-children">
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Покриття операторів <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи виконаний кожен рядок коду хоча б раз?</div>
+          <div class="mm-sub">Найслабший критерій</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Покриття гілок <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи пройшов кожен if/else обидва шляхи — true та false?</div>
+          <div class="mm-sub">Сильніше за покриття операторів</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Покриття умов <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи був кожен окремий булеан і true, і false?</div>
+          <div class="mm-sub">Детальніше за покриття гілок</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Покриття шляхів <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Чи пройдений кожен можливий маршрут у коді?</div>
+          <div class="mm-sub">Найретельніше — часто непрактичне</div>
+        </div>
+        <div class="mm-char amber" onclick="toggleMmChar(this)">Покриття MC/DC <span class="arrow">›</span></div>
+        <div class="mm-subs">
+          <div class="mm-sub-plain">Кожна умова незалежно змінює кінцевий результат</div>
+          <div class="mm-sub">Критично важливе: авіація, медицина</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══════════ REFERENCE VIEW ══════════ -->
+<div id="view-ref" class="view">
+
+  <!-- ── FUNCTIONAL ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Функціональне тестування — за характеристикою якості</div>
+    <div class="acc-group">
+      <div class="acc-item" id="acc-functional">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Функціональне тестування</div>
+          <div class="acc-badge badge-q">ISO 25010 — функціональна придатність</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи робить система те, що вимоги кажуть їй робити? Не як швидко, не як безпечно — просто: чи дійсно вона працює відповідно до специфікації?</div>
+          </div>
+          <div class="acc-essence">Оцінює <strong>функції</strong>, які компонент або система повинні виконувати. Відповідає ISO 25010 <strong>функціональна придатність</strong> з трьома субхарактеристиками: повнота, коректність, доречність.</div>
+          <div class="example-box">
+            <div class="example-label">Реальний контекст</div>
+            <div class="example-text">Ви тестуєте бекенд інтернет-магазину. Функціональне тестування відповідає: чи працює процес оформлення замовлення? Чи правильно застосовується знижка? Чи надсилається підтверджувальний лист? Це все функціональні питання — вони не стосуються швидкості чи безпеки системи.</div>
+          </div>
+          <div class="sub-list">
+
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)">
+                <div class="sub-title">Функціональна повнота <span class="iso-tag">повнота</span></div>
+                <div class="sub-arrow">›</div>
+              </div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи всі обіцяні функції дійсно присутні? Нічого не відсутнє.</div>
+                <div class="sub-detail">
+                  <strong>Формальне визначення:</strong> Ступінь, до якого набір функцій охоплює всі зазначені завдання та цілі користувача.<br><br>
+                  <strong>Ключова відмінність від коректності:</strong> Повнота запитує «чи воно існує?» — не «чи воно працює правильно?»<br><br>
+                  <strong>Як тестувати:</strong> Матриця простеження вимог — кожна вимога прив'язана до реалізованої функції. Прогалини = дефекти повноти.
+                </div>
+                <div class="sub-example">
+                  <strong>Приклад — API мікросервісів:</strong> Контракт платіжного сервісу передбачає 5 операцій: charge, refund, void, capture, status. Розробник реалізував 4, пропустив void. Дефект повноти — функція відсутня, а не зламана.<br><br>
+                  <strong>Приклад — SaaS-продукт:</strong> Вимоги вказують, що панель адміністратора повинна мати управління користувачами, призначення ролей, журнал аудиту та огляд рахунків. Вкладка огляду рахунків відсутня в UI. Дефект повноти.
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)">
+                <div class="sub-title">Функціональна коректність <span class="iso-tag">коректність</span></div>
+                <div class="sub-arrow">›</div>
+              </div>
+              <div class="sub-body">
+                <div class="sub-plain">Функції існують і дають правильну відповідь. Неправильний розрахунок = дефект коректності.</div>
+                <div class="sub-detail">
+                  <strong>Формальне визначення:</strong> Ступінь, до якого продукт або система надає правильні результати з необхідним ступенем точності.<br><br>
+                  <strong>Ключова відмінність:</strong> Функція існує (повнота ✓), але повертає неправильний результат (коректність ✗).
+                </div>
+                <div class="sub-example">
+                  <strong>Приклад:</strong> Ендпоінт податку існує та відповідає, але повертає 19% ПДВ замість необхідних 20%. Повнота: успіх. Коректність: провал.<br><br>
+                  <strong>Приклад — трансформація даних:</strong> ETL-конвеєр існує та працює, але округлює валютні значення до 2 знаків після коми замість 4, спричиняючи похибку розрахунків далі в ланцюжку.
+                </div>
+              </div>
+            </div>
+
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)">
+                <div class="sub-title">Функціональна доречність <span class="iso-tag">доречність</span></div>
+                <div class="sub-arrow">›</div>
+              </div>
+              <div class="sub-body">
+                <div class="sub-plain">Функції існують, працюють коректно, але чи дійсно вони корисні для того, що реальні користувачі намагаються зробити?</div>
+                <div class="sub-detail">
+                  <strong>Формальне визначення:</strong> Ступінь, до якого функції сприяють виконанню зазначених завдань та досягненню цілей.<br><br>
+                  <strong>Найважче тестувати</strong> — потребує розуміння реальних цілей користувача, а не лише технічних вимог.
+                </div>
+                <div class="sub-example">
+                  <strong>Приклад:</strong> Функція пошуку товарів існує (повна) та повертає точні результати (коректна), але вимагає від користувачів вводити точний код SKU замість природного ключового слова. Технічно працює, але не підходить для реального способу пошуку.<br><br>
+                  <strong>Приклад — дизайн API:</strong> Ендпоінт для отримання історії замовлень повертає всі поля, включно з внутрішніми метаданими системи. Повний і коректний, але невідповідний для клієнта — повертає 50 КБ там, де 2 КБ покрили б реальний сценарій.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NON-FUNCTIONAL ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Нефункціональне тестування — за характеристикою якості</div>
+    <div class="acc-group" id="acc-nonfunctional">
+
+      <!-- PERFORMANCE -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування продуктивності</div>
+          <div class="acc-badge badge-q">ISO 25010 — ефективність продуктивності</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи достатньо швидка система? Чи розумно споживає пам'ять і CPU? Чи залишається швидкою, коли багато людей використовують її одночасно? Загальний термін для шести підтипів — кожен відповідає на різне питання щодо продуктивності.</div>
+          </div>
+          <div class="acc-essence">Перевіряє <strong>швидкість, споживання ресурсів та пропускну здатність</strong> відносно навантаження. Відповідає субхарактеристикам ISO 25010 ефективності продуктивності: часова поведінка, використання ресурсів, ємність.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування навантаження</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи відповідає система своїм цільовим показникам швидкості при очікуваній кількості користувачів?</div>
+                <div class="sub-detail"><strong>Ключове:</strong> Визначене, очікуване навантаження. Не намагаємося зламати — перевіряємо, що система обробляє нормальний та піковий трафік у межах SLA.<br><br><strong>Метрики:</strong> Час відповіді, пропускна здатність (запитів/сек), відсоток помилок при визначеній кількості користувачів.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Пікове навантаження у Чорну п'ятницю — 2 000 одночасних користувачів. Тест навантаження перевіряє, що API оформлення замовлення відповідає менш ніж за 300 мс при 2 000 одночасних користувачах із відсотком помилок нижче 0,1%.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Стрес-тестування</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Де система ламається, і коли ламається — чи падає жорстко, чи деградує поступово?</div>
+                <div class="sub-detail"><strong>Ключове:</strong> Навантаження поступово збільшується за межі нормальної ємності до відмови. Мета — знайти точку зламу та охарактеризувати режим відмови: жорстке падіння або поступова деградація.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Нормальне навантаження — 1 000 користувачів. Поступово збільшуємо до 1 500 → 2 000 → 3 000. При 2 400 користувачах відсоток помилок перевищує 5%. Точку зламу знайдено. Система повертає 503 (прийнятно), а не необроблені виключення (неприйнятно).</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування сплесків</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Що буде, якщо за 5 секунд прийде у 10 разів більше трафіку? Розпродаж, вірусний твіт, сплеск схожий на DDoS.</div>
+                <div class="sub-detail"><strong>Ключова відмінність від стресу:</strong> Стрес — поступовий. Сплеск — різкий: від норми до екстремуму за секунди, а потім назад.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Початок продажу квитків на популярний концерт. 200 користувачів → 8 000 за менш ніж 10 секунд. Чи поглинає система сплеск і відновлюється, або залишається деградованою після закінчення піку?</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування витривалості</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи повільно погіршується система за години або дні — витоки пам'яті, вичерпання пулу з'єднань, переповнення лог-файлів?</div>
+                <div class="sub-detail"><strong>Ключове:</strong> Проблеми, які виникають лише з часом. Система може пройти тестування навантаження на 1-й годині, але деградувати на 48-й через витік пам'яті.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Запускаємо систему на 70% ємності впродовж 72 годин. Використання пам'яті зростає з 2 ГБ до 8 ГБ за 3 дні. Час відповіді на 72-й годині у 3 рази повільніший, ніж на 1-й. Витік пам'яті підтверджено. Без тестування витривалості це проявилось би у продакшені лише через дні роботи.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування обсягів</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи може система обробляти великі обсяги даних — не багато користувачів, а багато рядків, файлів, повідомлень?</div>
+                <div class="sub-detail"><strong>Ключова відмінність від тестування навантаження:</strong> Навантаження = одночасні користувачі. Обсяг = розмір даних. Проблеми з обсягом можуть виникнути з одним користувачем та одним великим файлом.</div>
+                <div class="sub-example"><strong>Приклад:</strong> ETL-конвеєр обробляє щоденні файли транзакцій. У розробці добре працює з 10 000 рядками. У продакшені файл містить 50 мільйонів рядків — процес вичерпує пам'ять і падає. Дефект обсягу.<br><br><strong>Приклад:</strong> Черга повідомлень накопичує 5 мільйонів необроблених подій за ніч. Сервіс-споживач різко сповільнюється, коли глибина черги перевищує 500 000.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування масштабованості</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Коли ми додаємо більше серверів, чи дійсно продуктивність покращується? Якщо подвоєння машин дає лише 20% більше ємності — щось не так.</div>
+                <div class="sub-detail"><strong>Ключове:</strong> Підтверджує, що архітектура дійсно масштабується. Виявляє вузькі місця — базу даних, яка не масштабується, спільний ресурс, що стає пляшковим горлом.</div>
+                <div class="sub-example"><strong>Приклад:</strong> 2 поди: 1 000 запитів/сек. Додаємо ще 2 поди → очікуємо ~2 000 запитів/сек. Реальний результат: 1 200 запитів/сек. Знайдено вузьке місце — всі поди спільно використовують один пул підключень до БД з максимумом 50 з'єднань. Масштабування подів не допомагає, оскільки всі вони конкурують за ті самі 50 підключень.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування безпеки</div>
+          <div class="acc-badge badge-q">ISO 25010 — безпека</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи може хтось зламати систему, вкрасти дані або змусити її робити заборонені речі? Тестування безпеки намагається знайти ці дірки раніше за зловмисника.</div>
+          </div>
+          <div class="acc-essence">Перевіряє <strong>конфіденційність, цілісність, невідмовність, підзвітність та автентичність</strong>. Хто має доступ до чого, і чи може система виявляти та відбивати атаки?</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування на проникнення</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Тестувальник діє як зловмисник і насправді намагається зламати систему — не просто сканувати дірки, а їх експлуатувати.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Тестувальник знаходить поле введення без санації та намагається SQL-ін'єкцію. Успішно отримує вміст таблиці користувачів. Пентест підтверджує реальну вразливість, яку можна проексплуатувати, а не лише теоретичну.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Сканування вразливостей</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Автоматизований інструмент сканує на відомі слабкі місця — застарілі бібліотеки, неправильні конфігурації, відомі CVE.</div>
+                <div class="sub-detail"><strong>Ключова відмінність:</strong> Сканування знаходить вразливості. Пентест їх експлуатує. Сканування — автоматичне та широке; пентест — ручний та глибокий.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Перевірка залежностей OWASP виявляє, що сервіс використовує Log4j 2.14.1 — вразливий до Log4Shell (CVE-2021-44228). Вразливість позначена для виправлення без ручної експлуатації.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування автентифікації</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи може система коректно перевіряти, хто ви є? Чи може хтось увійти під чужим іменем, або залишитись у системі після того, як його мали вигнати?</div>
+                <div class="sub-example"><strong>Приклад:</strong> Прострочений JWT-токен все ще приймається API — відсутня перевірка закінчення строку дії. Сесія не інвалідується після виходу — стара кука сесії досі працює. Підбір паролю на ендпоінті входу не обмежений швидкістю.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування авторизації</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Навіть після коректного входу — чи можете ви отримати доступ до того, до чого не повинні мати доступу?</div>
+                <div class="sub-detail"><strong>Класичне питання на співбесіді:</strong> Автентифікація = хто ви? Авторизація = що вам дозволено робити? Два абсолютно різні аспекти.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Користувач A автентифікований. Він викликає GET /api/orders/12345 — замовлення належить користувачу B. Система повертає його без перевірки власника. IDOR (Небезпечне пряме посилання на об'єкт) — дефект авторизації, а не автентифікації.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RELIABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування надійності</div>
+          <div class="acc-badge badge-q">ISO 25010 — надійність</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи продовжує система коректно працювати протягом часу, в очікуваних умовах, і чи відновлюється після збоїв? Особливо важливо в мікросервісах — збій одного сервісу не повинен валити все інше.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування доступності</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи доступна система тоді, коли вона потрібна користувачам? Вимірюється у відсотках часу роботи.</div>
+                <div class="sub-example"><strong>Приклад:</strong> SLA 99,9% = максимум 8,7 годин простою на рік. 99,99% = 52 хвилини. Тест перевіряє, що система відповідає задекларованому SLA за нормальних умов роботи та запланованих вікон обслуговування.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування відмовостійкості</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Якщо одна частина системи виходить з ладу — чи падає вся система, чи продовжує працювати?</div>
+                <div class="sub-example"><strong>Приклад — мікросервіси:</strong> Вбиваємо под recommendation-service. Чи продовжує завантажуватись сторінка товару (показуючи товари без рекомендацій), чи повертає помилку 500? Відмовостійкість означає, що збій ізольований, а не поширюється.<br><br><strong>Chaos engineering</strong> (наприклад, Netflix Chaos Monkey) — практика, побудована на тестуванні відмовостійкості.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування відновлюваності</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Після краху або збою — як швидко та повно система повертається до нормального стану?</div>
+                <div class="sub-detail"><strong>RTO</strong> (Recovery Time Objective) — скільки часу на відновлення сервісу.<br><strong>RPO</strong> (Recovery Point Objective) — скільки даних може бути втрачено (час з моменту останнього резервного копіювання).</div>
+                <div class="sub-example"><strong>Приклад:</strong> Сервер бази даних падає о 14:00. Останнє резервне копіювання було о 13:00. Відновлення завершується о 14:45. RTO = 45 хвилин. RPO = 60 хвилин (1 година транзакцій втрачена). Тест перевіряє, що обидва значення відповідають договірним зобов'язанням.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування зрілості</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи є система стабільною в повсякденній роботі? Ніяких випадкових падінь, несподіваної поведінки, частота дефектів у прийнятних межах.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Система у продакшені 3 місяці. Частота дефектів все ще 5 критичних проблем на тиждень. Критерій зрілості не виконано — система ще недостатньо стабільна для заданого цільового рівня надійності.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування зручності використання</div>
+          <div class="acc-badge badge-q">ISO 25010 — зручність використання</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи можуть реальні користувачі використовувати систему для вирішення своїх завдань — без збентеження, розчарування та необхідності читати інструкцію? Функції можуть бути повними та коректними, але абсолютно незручними у використанні.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Навченість</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи може новий користувач розібратись без навчання?</div><div class="sub-example"><strong>Приклад:</strong> Дати 5 новим користувачам завдання «оформити замовлення без допомоги». Виміряти час до першого успіху та кількість помилок. Якщо більшість користувачів не справляються або витрачають 15+ хвилин — навченість низька.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Доступність (WCAG)</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи можуть люди з обмеженими можливостями користуватись системою? Читачі екрану, навігація лише клавіатурою, достатній контраст кольорів.</div><div class="sub-example"><strong>Приклад:</strong> Кнопки-зображення не мають атрибуту alt — читач екрану каже «кнопка» без контексту. Співвідношення контрасту кольорів — 2,5:1; WCAG AA вимагає 4,5:1. Обидва — порушення доступності.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Керованість</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи легко керувати та контролювати систему? Послідовна поведінка, зрозумілі підписи, передбачувані відповіді.</div><div class="sub-example"><strong>Приклад:</strong> Кнопка «Зберегти» в одній частині додатку спрацьовує негайно. «Зберегти» в іншій частині спочатку відкриває діалог підтвердження. Непослідовна керованість — користувачі не можуть передбачити, що станеться.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Захист від помилок</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи запобігає система помилкам користувача та допомагає відновитись, коли вони трапляються?</div><div class="sub-example"><strong>Приклад:</strong> Адміністратор натискає «Видалити всіх користувачів» — діалогу підтвердження немає. Всі користувачі видалені миттєво без можливості скасування. Провал захисту від помилок. Правильний дизайн: крок підтвердження + м'яке видалення з 30-денним вікном відновлення.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPATIBILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування сумісності</div>
+          <div class="acc-badge badge-q">ISO 25010 — сумісність</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи взаємодіє система коректно з іншими системами та середовищами — спільно використовує ресурси без конфліктів та коректно обмінюється даними?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Співіснування</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Два сервіси на одній машині не «крадуть» ресурси один одного та не ламають один одного.</div><div class="sub-example"><strong>Приклад:</strong> Сервіс A та Сервіс B розгорнуті на одному хості. Витік пам'яті Сервісу A призводить до того, що Сервіс B вбивається OOM killer. Збій співіснування.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Інтероперабельність</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Сервіси можуть дійсно спілкуватись між собою та розуміти формати даних один одного.</div><div class="sub-example"><strong>Приклад — мікросервіси:</strong> Сервіс замовлень надсилає дати у форматі Unix timestamp. Сервіс сповіщень очікує рядки ISO 8601. Невідповідність контракту API — дефект інтероперабельності. Consumer-driven contract testing (Pact) розроблений саме для виявлення таких проблем.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAINTAINABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування підтримуваності</div>
+          <div class="acc-badge badge-q">ISO 25010 — підтримуваність</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи можуть розробники змінювати, виправляти та розширювати систему без того, щоб це перетворювалось на кошмар? Більш орієнтоване на розробників, ніж на користувачів — але саме низька підтримуваність перетворює здорову систему на legacy-спагеті з часом.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Модульність</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Зміна однієї частини не ламає непов'язані частини.</div><div class="sub-example"><strong>Приклад:</strong> Зміна логіки ціноутворення в pricing service призводить до збою order service — вони спільно використовують таблицю БД з недокументованою залежністю. Низька модульність.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестованість</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи можна взагалі написати тести для цього? Чи можна ізолювати компонент, щоб тестувати його окремо?</div><div class="sub-example"><strong>Приклад:</strong> Клас має 12 залежностей у конструкторі, всі конкретні (не ін'єктовані). Неможливо провести unit-тест без запуску всього додатку. Низька тестованість.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Аналізованість</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Коли щось йде не так — чи можна зрозуміти чому? Хороші логи, змістовні повідомлення про помилки, правильне трасування.</div><div class="sub-example"><strong>Приклад:</strong> Лог помилок продакшену показує: «Error: null». Ні стек-трейсу, ні контексту, ні ідентифікатора запиту. Збій аналізованості — неможливо діагностувати без відтворення проблеми.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Модифікованість</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи можна безпечно змінювати код, не ламаючи випадково щось інше?</div><div class="sub-example"><strong>Приклад:</strong> Перейменування стовпця в БД вимагає ручного пошуку та оновлення 47 захардкоджених рядкових посилань у 12 файлах. Великий ризик пропустити одне. Низька модифікованість.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PORTABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Тестування переносимості</div>
+          <div class="acc-badge badge-q">ISO 25010 — переносимість</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи можна перенести систему до іншого середовища — іншої ОС, іншої хмари, іншого сервера — без переписування коду?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Адаптованість</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи може працювати в іншому середовищі без змін коду?</div><div class="sub-example"><strong>Приклад:</strong> Docker-образ, зібраний для AWS, працює на GCP і Azure без змін. Адаптованість пройдено. Навпаки: у додатку захардкоджені виклики AWS SDK, і він не запускається поза AWS — адаптованість провалено.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Встановлюваність</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи можна встановити та видалити систему чисто у цільовому середовищі?</div><div class="sub-example"><strong>Приклад:</strong> Helm chart успішно розгортається у свіжому Kubernetes-кластері. Видалення не залишає осиротілих ресурсів. Встановлюваність пройдено. Навпаки: скрипт встановлення не працює на Ubuntu 22.04, оскільки підтримує лише 20.04 — провал встановлюваності.</div></div></div>
+            <div class="sub-item"><div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Замінюваність</div><div class="sub-arrow">›</div></div><div class="sub-body"><div class="sub-plain">Чи може ця система замінити існуючу для тієї самої мети, з тими самими даними?</div><div class="sub-example"><strong>Приклад:</strong> Міграція з MySQL на PostgreSQL. Тест замінюваності: експортуємо всі дані, імпортуємо до PostgreSQL, запускаємо повний регресійний набір проти нової бази. Всі існуючі запити повинні повертати ідентичні результати.</div></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── BLACK-BOX ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Тестування чорної скриньки — за технікою проектування тестів</div>
+    <div class="acc-group">
+      <div class="acc-item" id="acc-blackbox">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Тестування чорної скриньки</div>
+          <div class="acc-badge badge-td">техніки проектування тестів</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Ви тестуєте систему ззовні — подаєте вхідні дані та перевіряєте виходи, не дивлячись на код всередині. Ви знаєте лише те, що система повинна робити, але не те, як вона це робить. Підтипи — це техніки систематичного проектування таких тестів.</div>
+          </div>
+          <div class="acc-essence"><strong>На основі специфікації.</strong> Тести виводяться з вимог, специфікацій, user story та іншої зовнішньої документації. Застосовується як для функціонального, так і для нефункціонального тестування.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Еквівалентне розбиття (EP)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Розділіть всі можливі вхідні дані на групи, де кожне значення в групі поводиться однаково. Одного тесту на групу достатньо — тестування 5 значень з одної групи нічого не додає до тестування 1.</div>
+                <div class="sub-example"><strong>Приклад — поле віку, допустимий діапазон 18–65:</strong><br>Партиція 1: до 18 (невалідна) → тест зі значенням 15<br>Партиція 2: 18–65 (валідний дорослий) → тест зі значенням 35<br>Партиція 3: після 65 (літній) → тест зі значенням 70<br>3 партиції = мінімум 3 тест-кейси.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Аналіз граничних значень (АГЗ)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Більшість помилок ховається на межах допустимого діапазону, а не в середині. Тестуйте безпосередньо на межі — перше валідне значення, останнє валідне значення та значення одразу за межею.</div>
+                <div class="sub-detail"><strong>2-значне АГЗ:</strong> Тест безпосередньо на межі + одразу за нею.<br><strong>3-значне АГЗ:</strong> Тест трохи нижче межі + на межі + трохи вище.</div>
+                <div class="sub-example"><strong>Приклад — допустимий вік 18–65, 3-значне АГЗ:</strong><br>Нижня межа: 17 (невалідний), 18 (валідний), 19 (валідний)<br>Верхня межа: 64 (валідний), 65 (валідний), 66 (невалідний)</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Таблиця рішень</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Коли система поводиться по-різному залежно від кількох умов одночасно — складіть таблицю всіх комбінацій. Кожен стовпець таблиці — це тест-кейс.</div>
+                <div class="sub-example"><strong>Приклад — правила знижок:</strong><br>Умови: член клубу (Т/Н) × велике замовлення (Т/Н) = 4 комбінації<br>Член + велике = 20% | Член + мале = 10% | Не-член + велике = 5% | Не-член + мале = 0%<br>4 стовпці = 4 тест-кейси, що охоплюють усі комбінації.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування переходів між станами</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система має набір станів, між якими може переходити. Змоделюйте валідні переходи, потім тестуйте як переходи, що мають спрацювати, так і ті, що повинні бути відхилені.</div>
+                <div class="sub-example"><strong>Приклад — життєвий цикл замовлення:</strong><br>Стани: нове → підтверджене → відправлене → доставлене → скасоване<br>Валідний: нове → підтверджене ✓<br>Невалідний: відправлене → нове ✗ (має бути відхилено)<br>Тест охоплює і валідні переходи, і спроби невалідних.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування сценаріїв використання</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Тестуйте систему як реальний користувач, що досягає реальної мети — не окремі функції, а наскрізний сценарій.</div>
+                <div class="sub-example"><strong>Приклад — «оформити замовлення»:</strong><br>Щасливий шлях: пошук → додати до кошика → оформити → оплата успішна → підтвердження<br>Альтернатива: товар закінчується під час оформлення<br>Виключення: оплата не вдалась → пропонується повторна спроба</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WHITE-BOX ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Тестування білої скриньки — за технікою проектування тестів</div>
+    <div class="acc-group">
+      <div class="acc-item" id="acc-whitebox">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Тестування білої скриньки</div>
+          <div class="acc-badge badge-td">техніки проектування тестів</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Ви тестуєте, заглядаючи всередину коду. Ви знаєте, як він працює, і проектуєте тести так, щоб переконатись, що конкретні шляхи коду, гілки та умови дійсно виконуються. Підтипи — це критерії покриття: вимірювані цілі того, скільки структури коду охоплюють ваші тести.</div>
+          </div>
+          <div class="acc-essence"><strong>На основі структури.</strong> Тести виводяться з внутрішнього коду, архітектури, робочих процесів та потоків даних. Відсоток покриття — ключова метрика.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття операторів</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи виконаний кожен рядок виконуваного коду хоча б раз вашими тестами?</div>
+                <div class="sub-detail"><strong>Формула:</strong> Виконані оператори ÷ загальна кількість виконуваних операторів × 100%<br><strong>Слабкість:</strong> Найслабший критерій. 100% покриття операторів не означає, що ви перевірили обидві гілки if-оператора — true і false.</div>
+                <div class="sub-example"><strong>Приклад:</strong> if (x &gt; 0) &#123; doA(); &#125; — якщо тести подають лише x=5, doA() покритий (покриття операторів = 100%), але false-гілка (x ≤ 0, doA не викликається) ніколи не тестується.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття гілок</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи пройшов кожен if/else, кожна точка рішення обидва напрямки — true і false?</div>
+                <div class="sub-detail"><strong>Ключовий факт:</strong> 100% покриття гілок гарантує 100% покриття операторів. Зворотне невірно.<br><strong>Найпоширеніший критерій на практиці</strong> — стандарт для більшості комерційного програмного забезпечення.</div>
+                <div class="sub-example"><strong>Приклад:</strong> if (x &gt; 0) &#123; doA(); &#125; else &#123; doB(); &#125;<br>Потрібно мінімум 2 тести: один з x=5 (true-гілка → doA), один з x=-1 (false-гілка → doB).</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття умов</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">У складній умові на кшталт (A І B), чи була кожна окрема частина — A і B — і true, і false незалежно?</div>
+                <div class="sub-example"><strong>Приклад:</strong> if (isAdmin AND isActive) — покриття умов вимагає тестів, де isAdmin=true/false І isActive=true/false незалежно, навіть якщо загальне рішення не змінюється.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття шляхів</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи виконаний кожен можливий маршрут від початку до кінця коду? Найретельніше — і зазвичай непрактичне для будь-чого реального.</div>
+                <div class="sub-detail"><strong>Проблема:</strong> Кількість шляхів зростає експоненційно. 10 послідовних if/else = до 1 024 шляхів. Досяжне лише в невеликих критично важливих модулях.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття MC/DC</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Доведіть, що кожна умова у складному рішенні може незалежно змінювати кінцевий результат — жодна умова не маскується та не ігнорується іншими.</div>
+                <div class="sub-detail"><strong>Повна назва:</strong> Modified Condition/Decision Coverage (Модифіковане покриття умов/рішень)<br><strong>Застосовується у:</strong> Критично важливих системах — авіаційне програмне забезпечення (DO-178C, рівень A), медичні пристрої, автомобільна промисловість (ISO 26262 ASIL D).<br><strong>Примітка для іспиту FL 4.0:</strong> Знайте що це таке і де застосовується. Глибокі знання не потрібні на рівні Foundation.</div>
+                <div class="sub-example"><strong>Приклад:</strong> if (A OR B OR C) — MC/DC вимагає показати, що зміна лише A (при фіксованих B і C) змінює результат, і те саме незалежно для B та C. Виключає надлишкові умови, які насправді ніколи не впливають на результат.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ ISO 25010 VIEW ══════════ -->
+<div id="view-iso" class="view">
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box purple" style="margin-bottom:0;">
+      <div class="plain-label">ISO/IEC 25010:2023 — Модель якості програмного продукту</div>
+      <div class="plain-text">Визначає <strong>дев'ять характеристик якості</strong> та їхні субхарактеристики — властивості, якими повинен мати програмний продукт, незалежно від того, як вони тестуються. Редакція 2023 року додала <strong>Безпечність</strong> як нову характеристику верхнього рівня, перейменувала <em>Зручність використання</em> на <strong>Здатність</strong> та <em>Переносимість</em> на <strong>Гнучкість</strong>, а також додала нові субхарактеристики до кількох існуючих. Старі назви вказані у дужках там, де це застосовно.<br><br><strong>Мнемоніка (EN):</strong> <em>Fried Potatoes Catch Unicorns, Running Snails Meet Purple Snake</em> → <strong>F</strong>unctional Suitability · <strong>P</strong>erformance Efficiency · <strong>C</strong>ompatibility · <strong>U</strong>sability (Capability) · <strong>R</strong>eliability · <strong>S</strong>ecurity · <strong>M</strong>aintainability · <strong>P</strong>ortability (Flexibility) · <strong>S</strong>afety</div>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="acc-group">
+
+      <!-- 1. ФУНКЦІОНАЛЬНА ПРИДАТНІСТЬ -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Функціональна придатність</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи робить система те, що вказано в специфікації? Не як швидко, не як безпечно — просто: чи присутня задекларована функціональність, чи вона коректна, і чи дійсно корисна для того, що намагаються зробити користувачі?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Функціональна повнота</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Набір функцій охоплює всі визначені завдання та цілі користувача. Нічого не відсутнє з того, що було обіцяно.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Контракт платіжного API передбачає 5 операцій. Розробник реалізував 4, пропустив <code>void</code>. Дефект повноти — функція відсутня, а не зламана.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Функціональна коректність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Функції надають правильні результати з необхідним ступенем точності. Функція може існувати, не будучи коректною.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Ендпоінт податку існує та відповідає, але повертає 19% ПДВ замість необхідних 20%. Повнота: успіх. Коректність: провал.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Функціональна доречність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Функції дійсно сприяють досягненню цілей користувача. Функція може бути присутньою та коректною, але все одно не підходити для реального сценарію використання.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Пошук товарів існує та повертає точні результати, але вимагає точного коду SKU замість природного ключового слова. Присутня ✓ Коректна ✓ Доречна ✗</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Матриця простеження вимог → повнота. Тест-кейси з очікуваними результатами → коректність. Аналіз цілей користувача та моделювання завдань → доречність. Ця характеристика є «причиною» функціонального тестування — вона визначає, що означає «працює правильно» на рівні моделі.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. ЕФЕКТИВНІСТЬ ПРОДУКТИВНОСТІ -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Ефективність продуктивності</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи працює система в межах прийнятних обмежень за часом та ресурсами за визначених умов? Як швидко відповідає, скільки CPU/пам'яті споживає, яке навантаження здатна витримати.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Часова поведінка</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Час відповіді, час обробки та пропускна здатність за визначених умов.</div>
+                <div class="sub-example"><strong>Приклад:</strong> «95-й перцентиль відповіді менш ніж 200 мс при 500 запитів/сек» — це вимога до часової поведінки. Перевіряється навантажувальним тестуванням за цим конкретним профілем трафіку.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Використання ресурсів</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">CPU, пам'ять, диск та пропускна здатність мережі, що споживаються відносно навантаження.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Сервіс відповідає за 50 мс, але завантажує CPU на 100% при нормальному навантаженні, позбавляючи ресурсів паралельно розгорнуті сервіси. Швидка відповідь ✓  Використання ресурсів ✗</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Ємність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Максимальні обмеження, яких може досягти система — одночасні користувачі, розміри файлів, глибина черги, пул з'єднань — до початку деградації.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Черга повідомлень обробляє до 500 000 подій до деградації пропускної здатності. Вимога до ємності: витримати 1 млн подій без деградації. Один користувач з одним величезним файлом може вичерпати ємність при мінімальній кількості одночасних користувачів.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Навантажувальне/стрес/сплеск тестування → часова поведінка + ємність. Тестування витривалості → використання ресурсів з часом. Примітка: масштабованість тепер є окремою субхарактеристикою у складі Гнучкості (характеристика 8), а не Ефективності продуктивності.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. СУМІСНІСТЬ -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Сумісність</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи взаємодіє система з іншими системами без перешкод та обмінюється з ними даними коректно?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Співіснування</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Може працювати у спільному середовищі — на одному хості, мережі або кластері — не завдаючи шкоди іншим продуктам і не зазнаючи шкоди від них.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Витік пам'яті Сервісу A призводить до того, що OOM killer завершує Сервіс B на тому самому хості. Збій співіснування — дефект одного продукту завдає шкоди іншому без будь-якого спільного коду між ними.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Інтероперабельність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Може обмінюватися інформацією з іншими системами та коректно використовувати цю інформацію. Охоплює API-контракти, формати даних та відповідність протоколам.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Сервіс замовлень надсилає дати у форматі Unix timestamp. Сервіс сповіщень очікує рядки ISO 8601. Невідповідність контракту API — дефект інтероперабельності. Consumer-driven contract testing (Pact) розроблений саме для виявлення таких збоїв.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Співіснування: розгортання кількох сервісів, моніторинг інтерференції ресурсів та побічних ефектів. Інтероперабельність: контрактне тестування (Pact), інтеграційні тести, валідація схеми API. В архітектурах мікросервісів це одна з найчастіше порушуваних характеристик.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. ЗДАТНІСТЬ (Зручність використання) -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Здатність <span class="iso-tag">Зручність використання</span></div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи можуть користувачі дійсно досягати своїх цілей за допомогою системи? Охоплює все від першого контакту («чи підходить це мені?») до постійного використання людьми з різними можливостями, мовами та рівнями досвіду.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Розпізнаваність придатності</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">При першому контакті користувачі можуть розпізнати, чи підходить система для їхніх потреб.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Користувач потрапляє на сторінку SaaS-продукту. Протягом 10 секунд він не може зрозуміти, що продукт взагалі робить. Збій розпізнаваності придатності — незалежно від того, наскільки потужний сам продукт.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Навченість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Як швидко новий користувач може стати досвідченим? Вимірюється часом до першого успіху та кількістю помилок під час початкового використання.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Дати 5 новим користувачам завдання «оформити замовлення без допомоги». Якщо більшість не справляється або витрачає 15+ хвилин — навченість низька, незалежно від того, наскільки ефективні досвідчені користувачі.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Керованість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Системою легко керувати та контролювати: послідовна поведінка, передбачувані взаємодії, низьке когнітивне навантаження під час використання.</div>
+                <div class="sub-example"><strong>Приклад:</strong> «Зберегти» в одному модулі спрацьовує негайно; «Зберегти» в іншому відкриває діалог підтвердження. Непослідовна керованість — користувачі не можуть побудувати надійну ментальну модель поведінки системи.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Захист від помилок користувача</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Запобігає помилкам користувачів та допомагає відновитись, коли вони трапляються. Підтвердження перед деструктивними діями, чіткі повідомлення про помилки, можливість скасування.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Адміністратор натискає «Видалити всіх користувачів» — жодного діалогу підтвердження. Всі користувачі видалені миттєво без скасування. Збій захисту від помилок. Правильний дизайн: крок підтвердження + м'яке видалення з 30-денним вікном відновлення.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Залученість користувача <span class="iso-tag">Естетика інтерфейсу</span></div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система представляє себе таким чином, що мотивує користувачів продовжувати взаємодію — швидкодія, зворотний зв'язок, якість взаємодії. Виходить за межі візуальної естетики.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Візуально вишуканий додаток, що зависає на 2 секунди при кожному дотику і не показує індикатор завантаження, має низьку залученість незважаючи на привабливий дизайн. На противагу: простий UI з миттєвим зворотним зв'язком та плавними переходами отримує вищу оцінку.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Інклюзивність <span class="iso-tag">Доступність</span></div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система придатна для використання якнайширшим колом користувачів — включаючи осіб з обмеженими можливостями, різними мовами, когнітивними стилями, пристроями та контекстами. Ширше ніж лише відповідність WCAG.</div>
+                <div class="sub-example"><strong>Приклад:</strong> WCAG охоплює доступність для осіб з обмеженими можливостями. Інклюзивність також охоплює: підтримку мов з письмом справа наліво, контексти з низькою пропускною здатністю, різні рівні грамотності, старі пристрої. Продукт може відповідати WCAG AA і все одно не відповідати інклюзивності за цими іншими вимірами.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Допомога користувачу</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система надає ефективну внутрішньопродуктову допомогу: підказки, вбудовану документацію, контекстні підказки, навчальні матеріали. Користувачі можуть знайти відповіді на свої питання, не виходячи з продукту.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Складна форма має іконку «?» біля кожного поля. Натискання показує коротке пояснення того, що поле очікує і навіщо воно потрібне. Допомога користувачу — для виконання завдання не потрібна зовнішня документація.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Самоописовість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Підписи, іконки, індикатори стану та зворотний зв'язок роблять поточний стан системи та доступні дії зрозумілими без зовнішніх довідкових матеріалів. UI документує сам себе.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Кнопка показує спінер під час обробки, потім зелену галочку при успіху, потім червоний ✕ з однорядковою причиною при помилці. Користувач завжди знає, в якому стані система. На противагу: кнопка стає сірою після натискання — і більше нічого не відбувається.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Сесії тестування зручності використання, аудити доступності (WCAG 2.2), дослідження першого використання з реальними користувачами, евристична оцінка (10 евристик Нільсена безпосередньо відповідають кільком субхарактеристикам), тестування допоміжних технологій (читачі екрану, перемикачеве управління, голосове управління).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. НАДІЙНІСТЬ -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Надійність</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи продовжує система коректно функціонувати протягом часу, в очікуваних умовах, та відновлюватись після збоїв? Особливо критично в розподілених системах, де часткова відмова є нормою, а не винятком.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Бездефектність <span class="iso-tag">Зрілість</span></div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система відповідає своїм вимогам до надійності в нормальній роботі. Низька частота дефектів у продакшені, стабільна довгострокова поведінка, відсутність випадкових збоїв.</div>
+                <div class="sub-detail">Перейменування з «Зрілості» відображає той факт, що нова система може бути бездефектною, тоді як стара — сповненою дефектів. Концепція стосується частоти дефектів та стабільності, а не віку продукту.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Система у продакшені 3 місяці. Частота дефектів все ще 5 критичних проблем на тиждень. Критерій бездефектності не виконано — незалежно від часу розгортання системи.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Доступність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система доступна та функціонує тоді, коли це потрібно. Виражається у відсотках часу роботи.</div>
+                <div class="sub-example"><strong>Приклад:</strong> SLA 99,9% = максимум 8,7 годин простою на рік. 99,99% = 52 хвилини. 99,999% = 5,2 хвилини. Кожна додаткова «дев'ятка» зменшує допустимий простій приблизно в 10 разів.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Відмовостійкість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система продовжує коректно функціонувати навіть при відмові компонентів або отриманні невалідних вхідних даних. Збої ізольовані, а не поширюються.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Вбиваємо под recommendation-service. Чи продовжує завантажуватись сторінка товару (без рекомендацій), чи повертає 500? Відмовостійкість = збій ізольований. Автоматичні вимикачі, fallback-и та graceful degradation — патерни реалізації цієї субхарактеристики.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Відновлюваність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Після збою система відновлює дані та повертається до нормальної роботи в межах визначеного часу (RTO) та втрати даних (RPO).</div>
+                <div class="sub-example"><strong>Приклад:</strong> База даних падає о 14:00. Остання резервна копія о 13:00. Відновлення завершується о 14:45. RTO = 45 хв, RPO = 60 хв. Обидва значення повинні відповідати договірним зобов'язанням.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Тривале тестування стабільності → бездефектність. Моніторинг SLA → доступність. Chaos engineering / ін'єкція збоїв → відмовостійкість. Навчання з аварійного відновлення → відновлюваність.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. БЕЗПЕКА -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Безпека</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи може система захистити інформацію та ресурси від несанкціонованого доступу, розкриття або маніпуляцій — і витримати активну ворожу поведінку?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Конфіденційність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Дані доступні лише авторизованим особам. Шифрування в стані спокою та при передачі, контроль доступу, класифікація даних.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Користувач A викликає GET /api/orders?userId=B і отримує повну історію замовлень користувача B без жодної перевірки авторизації. Порушення конфіденційності — дані розкриті неавторизованій стороні.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Цілісність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Дані захищені від несанкціонованого змінення. Контрольні суми, журнали аудиту, контроль доступу на запис, валідація вхідних даних.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Зловмисник перехоплює та змінює суму замовлення під час передачі (атака «людина посередині»). Відсутність HTTPS + відсутність підпису запиту = порушення цілісності. Дані надійшли, але це були не ті дані, що були відправлені.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Невідмовність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Дії можна довести як такі, що відбулись, щоб жодна зі сторін не могла їх заперечити. Захищені від підробки журнали аудиту, цифрові підписи, часові мітки.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Оскаржується фінансова транзакція. Захищений від підробки журнал аудиту з цифровими підписами доводить, що користувач ініціював переказ у конкретну мітку часу. Без цього будь-яка зі сторін може заперечити факт транзакції.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Підзвітність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Дії будь-якого користувача або системного компонента можна відстежити до конкретного відповідального суб'єкта. Структуроване логування з контекстом ідентичності, кореляційні ідентифікатори.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Дані продакшену видалено. Журнал аудиту показує, який обліковий запис адміністратора виконав який виклик API в якій мітці часу з яким ідентифікатором запиту. Без підзвітності розслідування порушення не може встановити відповідального суб'єкта.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Автентичність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Особу користувача, системи або ресурсу можна підтвердити як таку, що відповідає заявленій. Механізми автентифікації: токени, сертифікати, MFA.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Прострочений JWT-токен все ще приймається — відсутня валідація терміну дії. Сесія не інвалідується після виходу. Підбір паролю на ендпоінті входу не обмежений швидкістю. Всі три — збої автентичності: система не може надійно підтвердити, з ким взаємодіє.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Стійкість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система підтримує коректну роботу в ворожих умовах: DDoS-атаки, невалідні вхідні дані, брутфорс, спроби ін'єкцій.</div>
+                <div class="sub-example"><strong>Приклад:</strong> API отримує 50 000 запитів/сек від ботнету. Без обмеження швидкості та правил WAF він падає і для легітимних користувачів теж. Стійкість означає залишатись доступним та коректним під атакою — не лише виявляти її.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Тестування на проникнення → експлуатація вразливостей. Сканування вразливостей → їх виявлення. Тестування автентифікації → автентичність + конфіденційність. Тестування авторизації → цілісність + підзвітність. Навантажувальне тестування в умовах атаки → стійкість.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. ПІДТРИМУВАНІСТЬ -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Підтримуваність</div>
+          <div class="acc-badge badge-td">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Наскільки легко розробникам змінювати, виправляти, розуміти та розширювати систему? Низька підтримуваність — головна причина технічного боргу: саме вона перетворює системи на дорогі та ризиковані для змін з часом.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Модульність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Дискретні компоненти такі, що зміни в одному мінімально впливають на інші. Висока зв'язність, низька залежність.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Зміна логіки ціноутворення в pricing service спричиняє збій order service — вони спільно використовують таблицю БД з недокументованою залежністю. Одна зміна, ненавмисний побічний ефект у непов'язаному компоненті. Низька модульність.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Придатність до повторного використання</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Компоненти, модулі або бібліотеки можна використовувати для побудови інших систем або інших частин тієї ж системи.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Логіка автентифікації винесена у спільну бібліотеку, яку використовують 5 мікросервісів — помилка виправлена один раз, всі сервіси отримують користь. На противагу: автентифікація дублюється в кожному сервісі — 5 місць для виправлення, 5 способів розійтись. Низька придатність до повторного використання множить вартість підтримки.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Аналізованість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Можна оцінити вплив запропонованих змін; можна діагностувати причини збоїв. Хороше логування, змістовні повідомлення про помилки, розподілене трасування, читабельний код.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Журнал продакшену показує: «Error: null». Ні стек-трейсу, ні контексту, ні ідентифікатора запиту. Збій аналізованості — діагностика вимагає відтворення з нуля. На противагу: структурований лог з кореляційним ідентифікатором, контекстом користувача та повним стек-трейсом.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Модифікованість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Зміни можна вносити, не вводячи дефекти та не погіршуючи існуючу якість. Вимірюється частотою регресій — наскільки часто рутинна зміна ламає щось інше.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Перейменування стовпця БД вимагає ручного оновлення 47 захардкоджених рядкових посилань у 12 файлах. Великий ризик пропустити одне. Низька модифікованість — вартість та ризик рутинних змін непропорційно великі.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестованість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Можна встановити критерії тестування і виконати тести для визначення відповідності цим критеріям. Ін'єкція залежностей, спостережуваний стан, ізольовані компоненти, детермінована поведінка.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Клас має 12 залежностей у конструкторі, всі конкретні (не ін'єктовані). Неможливо провести unit-тест без запуску всього додатку. Дизайн активно протидіє верифікації. Низька тестованість.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Тестованість безпосередньо забезпечує ефективність тестування — система з низькою тестованістю складніша та дорожча для тестування на всіх рівнях. Аналізованість визначає швидкість діагностики проблем продакшену командою QA. Це характеристики, з якими QA живе щодня, а не лише перевіряє один раз.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. ГНУЧКІСТЬ (Переносимість) -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Гнучкість <span class="iso-tag">Переносимість</span></div>
+          <div class="acc-badge badge-td">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи можна розгортати систему в різних середовищах, масштабувати під різні рівні навантаження, переміщати або замінювати без переписування? Перейменування з «Переносимості» на «Гнучкість» відображає, що ця характеристика охоплює більше, ніж просто «чи може вона працювати деінде».</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Адаптованість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Може функціонувати в різних або змінюваних апаратних, програмних або контекстуальних середовищах без змін коду.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Docker-образ, зібраний для AWS, працює на GCP і Azure без змін. Адаптованість: успіх. На противагу: у додатку захардкоджені виклики AWS SDK і він не запускається поза AWS — збій адаптованості.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Масштабованість</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Може обробляти зростаюче або змінюване навантаження шляхом додавання ресурсів — горизонтально (більше екземплярів) або вертикально (потужніші екземпляри). Чи додавання ресурсів насправді дає пропорційне зростання ємності.</div>
+                <div class="sub-example"><strong>Приклад:</strong> 2 поди: 1 000 запитів/сек. Додаємо ще 2 → очікуємо ~2 000 запитів/сек. Реально: 1 200 запитів/сек. Вузьке місце: всі поди спільно використовують один пул з'єднань до БД (макс. 50 з'єднань). Додавання подів не допомагає — масштабованість обмежена спільним ресурсом.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Встановлюваність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Може бути успішно встановлена та видалена в цільовому середовищі, не залишаючи осиротілих ресурсів або зламаного стану.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Helm chart чисто розгортається в новому Kubernetes-кластері. Видалення не залишає осиротілих ресурсів. Встановлюваність: успіх. На противагу: скрипт встановлення працює лише на Ubuntu 20.04, не вдається на 22.04 — збій встановлюваності.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Замінюваність</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Може замінити інший програмний продукт для тієї самої мети в тому самому середовищі, з тими самими даними та виробляючи ті самі результати.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Міграція з MySQL на PostgreSQL. Тест замінюваності: експортуємо всі дані, імпортуємо до PostgreSQL, запускаємо повний регресійний набір. Всі запити повинні давати ідентичні результати. Будь-яке розходження — збій замінюваності.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Тести розгортання в різних середовищах → адаптованість. Тестування масштабованості (тепер названа субхарактеристика тут, а не в Ефективності продуктивності) → масштабованість. Автоматизація встановлення/видалення → встановлюваність. Тести міграції + повний регресійний набір проти нової системи → замінюваність.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. БЕЗПЕЧНІСТЬ -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Безпечність</div>
+          <div class="acc-badge badge-td">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Чи уникає система завдавання шкоди людям, майну або навколишньому середовищу? Система може бути повністю функціональною, продуктивною та захищеною і все одно створювати небезпечні ситуації при відмові в критично важливому контексті. Ця характеристика не існувала в ISO 25010:2011 — її додавання відображає зростаючу роль програмного забезпечення в медичних пристроях, автономних транспортних засобах та промислових системах управління.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Операційне обмеження</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система функціонує в межах визначених безпечних обмежень і відмовляється працювати поза ними.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Медичний пристрій відмовляється вводити дозу вище безпечного максимуму — навіть якщо керуюче програмне забезпечення так наказує. Контролер дрона ігнорує команду, яка перевищить структурні навантаження. Операційне обмеження = жорстке забезпечення меж, а не просто попередження.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Ідентифікація ризиків</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система ідентифікує умови, що можуть створити ризик, та повідомляє відповідний суб'єкт — користувача, оператора або зовнішню систему — вчасно для вжиття заходів.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Промислова система управління виявляє, що температура реактора наближається до критичного порогу — за 15 хвилин до його досягнення. Оператору надходить сповіщення з часом для втручання. Ідентифікація ризиків — проактивна, а не постфактум.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Безпечна відмова</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">При виникненні збою система переходить у безпечний стан, а не в невизначений або небезпечний.</div>
+                <div class="sub-example"><strong>Priклад:</strong> ECU транспортного засобу втрачає зв'язок — гальма спрацьовують, а не відпускаються. Промисловий виконавчий механізм втрачає сигнал — клапан закривається, а не відкривається. Сервіс контролю доступу падає — система за замовчуванням відмовляє, а не дозволяє. Режим відмови є спроектованим, а не випадковим.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Попередження про небезпеку</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Система попереджає користувачів та підключені системи про умови, що можуть завдати шкоди — до того, як шкода виникне.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Система моніторингу пацієнтів виявляє нерегулярний серцевий ритм. Тривога спрацьовує на сестринському посту до того, як стан пацієнта погіршується до критичного. Попередження про небезпеку = дієве повідомлення з часом для реагування.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Безпечна інтеграція</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">При інтеграції з іншими системами новий компонент не вводить режими відмови, що компрометують безпечність ширшого середовища.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Новий мікросервіс телеметрії додається до конвеєра автономного транспортного засобу. Тестування безпечної інтеграції перевіряє: сервіс не може заблокувати контурний цикл управління, його відмова не поширюється на гальмування або кермування, а його часові характеристики не порушують обмежень реального часу безпеки.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Тестування вимог безпечності, ін'єкція збоїв, аналіз видів і наслідків відмов (FMEA), тестування відповідності галузевим стандартам безпеки: IEC 62304 (медичне ПЗ), DO-178C (авіація), ISO 26262 (автомобільна промисловість), IEC 61508 (промисловість). Тестування безпечності вимагає галузевої експертизи та регуляторного аудиту. Поза межами ISTQB Foundation — але важливо знати, що воно існує і навіщо.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ТЕХНІКИ ══════════ -->
+<div id="view-tech" class="view">
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box purple" style="margin-bottom:12px;">
+      <div class="plain-label">Чому ці три поняття часто плутають</div>
+      <div class="plain-text">Типи тестування, характеристики <strong>якості</strong> та техніки <strong>проєктування тестів</strong> — три окремі ідеї, що взаємодіють, але кожна відповідає на різне питання. Їхнє змішування є однією з найпоширеніших помилок на співбесідах.</div>
+    </div>
+    <div class="example-box" style="margin-bottom:0;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Поняття</th><th>На яке питання відповідає</th><th>Приклади</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="c-teal">Тип тестування</strong></td>
+            <td><em>Що</em> саме перевіряєте в системі?</td>
+            <td>Функціональне, продуктивності, безпеки, зручності використання…</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Характеристика якості</strong></td>
+            <td><em>За яким стандартом</em> вимірюєте якість?</td>
+            <td>ISO 25010: Функціональна придатність, Ефективність продуктивності, Надійність…</td>
+          </tr>
+          <tr>
+            <td><strong class="c-coral">Техніка проєктування</strong></td>
+            <td><em>Як</em> систематично розробляєте тест-кейси?</td>
+            <td>Еквівалентний розподіл, BVA, Таблиця рішень, Дослідницьке тестування…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box teal" style="margin-bottom:0;">
+      <div class="plain-label">Як вони пов'язані</div>
+      <div class="plain-text"><strong>Тип тестування</strong> (напр., функціональне) мотивований <strong>характеристикою якості</strong> (напр., ISO 25010 — Функціональна придатність). <strong>Техніка проєктування</strong> — це інструмент для вирішення, які тест-кейси писати — для будь-якого типу. Одна й та сама техніка (напр., еквівалентний розподіл) застосовна до функціональних, продуктивності та тестів безпеки. Техніки ортогональні типам тестування: вони описують <em>як</em>, а не <em>що</em>.</div>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">ISTQB FL 4.0 — основна класифікація</div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Техніки чорної скриньки <span class="iso-tag">на основі специфікації</span></div>
+          <div class="acc-badge badge-td">техніки проєктування</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тест-кейси розробляються на основі того, <strong>що система має робити</strong> — специфікації, вимоги, user stories — без перегляду коду. Система як чорна скринька: вхідні дані надходять, вихідні перевіряються.</div>
+          </div>
+          <div class="acc-essence">Застосовні до будь-якого рівня і типу тестування. Техніки чорної скриньки працюють там, де очікувана поведінка може бути визначена з специфікації — функціональне, API, UI, межі продуктивності.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Еквівалентний розподіл (EP)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Розбийте можливі вхідні дані на групи, де кожне значення групи має поводитися однаково. Один представницький тест на групу — достатньо.</div>
+                <div class="sub-detail"><strong>Коли застосовувати:</strong> Будь-які вхідні дані з діапазоном або набором значень — числа, рядки, дати, коди статусів.<br><br><strong>Цінність:</strong> Зменшує кількість тест-кейсів без втрати покриття різних поведінок.</div>
+                <div class="sub-example"><strong>Приклад — поле "вік" (допустимо 18–65):</strong><br>Розділ 1: &lt;18 (невалідний) → тест зі значенням 15<br>Розділ 2: 18–65 (валідний) → тест зі значенням 35<br>Розділ 3: &gt;65 (невалідний) → тест зі значенням 70<br>3 розділи = мінімум 3 тест-кейси.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Аналіз граничних значень (BVA)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Більшість дефектів ховаються на межах допустимих діапазонів. Тестуйте прямо на межі та трохи поза нею — не лише в середині розділу.</div>
+                <div class="sub-detail"><strong>2-значний BVA:</strong> межа + одне значення поза нею.<br><strong>3-значний BVA:</strong> трохи нижче + межа + трохи вище.<br><br><strong>Використання з EP:</strong> EP вибирає, які розділи тестувати; BVA уточнює значення на їхніх межах.</div>
+                <div class="sub-example"><strong>Приклад — вік 18–65, 3-значний BVA:</strong><br>Нижня межа: 17 (невалідний) · 18 (валідний) · 19 (валідний)<br>Верхня межа: 64 (валідний) · 65 (валідний) · 66 (невалідний)</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування таблиці рішень</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Коли поведінка залежить від кількох умов одночасно — побудуйте таблицю з усіма значущими комбінаціями. Кожний стовпець — один тест-кейс.</div>
+                <div class="sub-detail"><strong>Коли застосовувати:</strong> Бізнес-правила з кількома умовами — логіка знижок, правила доступу, перевірки прийнятності.<br><br><strong>Альтернативна класифікація:</strong> Техніки на основі правил (див. розділ нижче).</div>
+                <div class="sub-example"><strong>Приклад — правила знижки:</strong><br>Умови: учасник (Т/Н) × замовлення &gt; $100 (Т/Н) = 4 комбінації<br>Учасник + велике = 20% | Учасник + мале = 10% | Не-учасник + велике = 5% | Не-учасник + мале = 0%<br>4 стовпці = 4 тест-кейси, всі комбінації правил охоплено.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування переходів між станами</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Змоделюйте допустимі стани системи та події переходу між ними. Тестуйте як валідні переходи, так і спроби невалідних.</div>
+                <div class="sub-detail"><strong>Коли застосовувати:</strong> Будь-що з життєвим циклом — замовлення, сесії, workflow, акаунти, підписки.<br><br><strong>Альтернативна класифікація:</strong> Техніки на основі поведінки.</div>
+                <div class="sub-example"><strong>Приклад — lifecycle замовлення:</strong><br>Стани: Очікування → Підтверджено → Відправлено → Доставлено | Скасовано<br>Валідний: Очікування → Підтверджено ✓<br>Невалідний: Відправлено → Очікування ✗ (має відхилятися)<br>Набір тестів охоплює і валідні переходи, і спроби невалідних.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування use cases</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Тестуйте повний наскрізний сценарій як реальний користувач, що досягає реальної мети — не окремі функції, а весь потік взаємодії.</div>
+                <div class="sub-detail"><strong>Охоплює:</strong> Щасливий шлях + альтернативні потоки + обробку виключень.<br><br><strong>Альтернативна класифікація:</strong> Техніки на основі поведінки.</div>
+                <div class="sub-example"><strong>Приклад — "оформити замовлення":</strong><br>Щасливий шлях: пошук → кошик → оформлення → оплата успішна → підтвердження<br>Альтернатива: товар закінчився під час оформлення<br>Виключення: оплата не пройшла → запропоновано повтор, замовлення не створено</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Застосовується для</div>
+            <div class="example-text">Функціональне тестування (переважно) · Тестування API-контрактів · UI-тестування · Системне та приймальне тестування. EP і BVA також застосовні до перевірки меж продуктивності, валідації вхідних даних безпеки та перевірок діапазонів сумісності.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Техніки білої скриньки <span class="iso-tag">на основі структури</span></div>
+          <div class="acc-badge badge-td">техніки проєктування</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тест-кейси розробляються на основі <strong>внутрішньої структури коду</strong> — логічних шляхів, гілок, умов. Ключовий результат — відсоток покриття. Мета: переконатися, що жоден шлях виконання коду не залишився не протестованим.</div>
+          </div>
+          <div class="acc-essence"><strong>На основі структури.</strong> Потребує доступу до вихідного коду або архітектурних діаграм. Переважно використовується на рівні компоненту/юніту, але застосовна і до тестування потоків інтеграції та маршрутизації API.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття операторів (Statement Coverage)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи був виконаний кожен виконуваний рядок хоча б один раз?</div>
+                <div class="sub-detail"><strong>Слабкість:</strong> Найслабший критерій. 100% покриття операторів не означає, що обидві гілки if/else були протестовані.</div>
+                <div class="sub-example"><strong>Приклад:</strong> <code>if (x &gt; 0) { doA(); }</code> — тільки x=5 дає 100% покриття операторів. Хибна гілка (x ≤ 0) жодного разу не виконується.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття гілок (Branch Coverage)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи пройшла кожна точка прийняття рішень обома шляхами — істинним і хибним?</div>
+                <div class="sub-detail"><strong>Ключовий факт:</strong> 100% покриття гілок гарантує 100% покриття операторів. Зворотне невірне.<br><br><strong>Найпоширеніший обов'язковий критерій</strong> у комерційному програмному забезпеченні.</div>
+                <div class="sub-example"><strong>Приклад:</strong> <code>if (x &gt; 0) { doA(); } else { doB(); }</code><br>Потрібно 2 тести: x=5 (true → doA) і x=-1 (false → doB).</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття умов (Condition Coverage)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">У складеній умові (A І B) чи була кожна окрема булева підумова незалежно істинною і хибною?</div>
+                <div class="sub-example"><strong>Приклад:</strong> <code>if (isAdmin AND isActive)</code> — покриття умов вимагає isAdmin=Т/Х і isActive=Т/Х незалежно, навіть якщо загальний результат рішення не змінюється.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття множинних умов (MCC)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Кожна можлива комбінація істинних значень атомарних умов у складеному рішенні має бути протестована. Більш ретельне, ніж покриття умов — вичерпне в межах рішення.</div>
+                <div class="sub-detail"><strong>Для <code>if (A AND B)</code>:</strong> MCC вимагає всі 4 комбінації: ІІ, ІХ, ХІ, ХХ. Для 3 умов: 8 комбінацій. Зростає експоненційно — непрактично більш ніж для 3–4 умов. Саме тому був винайдений MC/DC як ефективніша альтернатива.</div>
+                <div class="sub-example"><strong>Приклад:</strong> <code>if (isAdmin AND isActive AND isVerified)</code> — MCC вимагає 8 тест-кейсів (2³). MC/DC потребує лише 4 — кожна умова незалежно змінює результат, без вичерпання всіх комбінацій.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття шляхів (Path Coverage)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Чи був виконаний кожен можливий маршрут через код від початку до кінця?</div>
+                <div class="sub-detail"><strong>Найбільш повний, зазвичай непрактичний.</strong> 10 послідовних if/else блоків = до 1024 шляхів. Досяжно лише в невеликих критично важливих одиницях.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Покриття MC/DC</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Кожна умова у складеному рішенні може незалежно змінити кінцевий результат — жодна умова не є прихованою або зайвою.</div>
+                <div class="sub-detail"><strong>Використовується у:</strong> Критично важливих системах — авіація (DO-178C рівень A), медичні пристрої, автомобільна промисловість (ISO 26262 ASIL D).</div>
+                <div class="sub-example"><strong>Приклад:</strong> <code>if (A АБО B АБО C)</code> — MC/DC доводить, що зміна тільки A (B і C фіксовані) змінює результат, і незалежно для B, і для C. Жодна умова не є зайвою.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Застосовується для</div>
+            <div class="example-text">Юніт-тестування · Компонентне тестування · Тестування інтеграційних потоків · Порогові значення покриття в CI. Зазвичай реалізується розробниками — QA встановлює критерії покриття та аналізує прогалини відносно ризиків.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Техніки на основі досвіду</div>
+          <div class="acc-badge badge-td">техніки проєктування</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тести розробляються на основі знань, інтуїції та попереднього досвіду тестувальника — не з формальної специфікації або структури коду. Особливо цінні для виявлення дефектів, які систематичні техніки пропускають, та при неповних або відсутніх специфікаціях.</div>
+          </div>
+          <div class="acc-essence">Доповнюють техніки чорної та білої скриньки. Найефективніші в комбінації — структуровані техніки знаходять те, що було специфіковано; техніки на основі досвіду — те, що ніхто не передбачив.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Дослідницьке тестування</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Одночасно розробляйте і виконуйте тести, пізнаючи систему в процесі. Не хаотичне натискання — структуроване дослідження за чартером і в рамках відведеного часу.</div>
+                <div class="sub-detail"><strong>Ключові компоненти:</strong> Чартер (що досліджувати і які ризики цільові) · Таймбокс (зазвичай 45–90 хв) · Нотатки дебрифінгу.<br><br><strong>Коли застосовувати:</strong> Нові функції, погано задокументовані ділянки, після того як специфіковані тести нічого не знаходять, регресія legacy-коду.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Чартер: "Досліджувати оплату в умовах нестабільного з'єднання." Сесія: обмеження швидкості мережі, переривання оплати в середині процесу, відправка з простроченими токенами, натискання кнопки "назад" після розміщення замовлення. Знайдено 3 дефекти, які жоден специфікований тест не виявив би.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Вгадування помилок (Error Guessing)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">На основі досвіду передбачайте, де можуть ховатися баги — порожні поля, null-значення, нуль, спеціальні символи, максимальні довжини, паралельні дії, гонки станів.</div>
+                <div class="sub-detail"><strong>Техніка:</strong> Сформуйте список помилок/дефектів на основі досвіду та відомих типових дефектів, потім напишіть цільові тести для кожного пункту.<br><br><strong>Найефективніше:</strong> Коли тестувальник має доменну або продуктову експертизу.</div>
+                <div class="sub-example"><strong>Приклад списку для API:</strong><br>· Порожній рядок там, де очікується ID<br>· Від'ємна кількість у замовленні<br>· SQL-ін'єкція в полі пошуку<br>· Одночасне подвійне відправлення тієї самої форми<br>· JWT з майбутньою датою видачі<br>· Unicode-символи в полях імені</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування за чеклистом</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Тести розробляються за багаторазовим чеклистом — на основі минулих дефектів, стандартів або доменних конвенцій. Структурованіший, ніж вгадування помилок, але менш формальний, ніж специфікований підхід.</div>
+                <div class="sub-detail"><strong>Перевага:</strong> Фіксує накопичені знання команди. Використовується повторно між релізами.<br><br><strong>Підтримка:</strong> Чеклисти потрібно оновлювати — непозначені пункти зі вже виправлених дефектів дають хибне відчуття покриття.</div>
+                <div class="sub-example"><strong>Приклад — чеклист тестування API:</strong><br>☐ Правильні HTTP-статус-коди для всіх сценаріїв<br>☐ Відповіді про помилки містять описове повідомлення<br>☐ Авторизація перевіряється на кожному ендпоінті<br>☐ PII маскується в логах<br>☐ Усі вхідні дані перевіряються та санітуються<br>☐ Обмеження запитів (rate limiting) присутнє і протестоване</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Застосовується для</div>
+            <div class="example-text">Будь-який рівень і тип тестування — найефективніше на системному та приймальному тестуванні. Дослідницьке тестування особливо цінне для тестування поверхні безпеки, UX граничних випадків і нещодавно інтегрованих ділянок. Не замінює систематичні техніки для відстеження покриття — але знаходить дефекти, які систематичний підхід пропускає.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Альтернативна класифікація — за механізмом техніки</div>
+    <div class="plain-box purple" style="margin-bottom:12px;">
+      <div class="plain-label">Примітка</div>
+      <div class="plain-text">Другий спосіб класифікувати ті самі техніки — групування за тим, <em>що керує розробкою тест-кейсів</em>, а не за доступом до вихідного коду. Класифікація ISTQB (чорна / біла / на основі досвіду) є основною для сертифікації. Цей альтернативний погляд допомагає зрозуміти, <em>чому</em> техніка працює саме так.</div>
+    </div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">На основі даних</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тести виведені з <strong>вхідних даних</strong>, які система приймає — розділи, межі, комбінації значень.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Еквівалентний розподіл</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Групуйте вхідні дані, де всі значення мають поводитися однаково. Один тест на групу.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Аналіз граничних значень</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Фокус на межах розділів — саме там концентруються помилки "на одиницю".</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Попарне тестування (Pairwise)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">За наявності багатьох вхідних параметрів тестуйте всі пари значень, а не всі повні комбінації. Охоплює більшість дефектів з набагато меншою кількістю тест-кейсів.</div>
+                <div class="sub-detail"><strong>Обгрунтування:</strong> Більшість дефектів спричинені взаємодією не більше 2 параметрів. Попарне тестування забезпечує охоплення кожної 2-сторонньої комбінації без декартового добутку.</div>
+                <div class="sub-example"><strong>Приклад:</strong> 3 параметри × 3 значення кожен = 27 комбінацій. Попарне тестування зводить це до ~9 тест-кейсів із покриттям всіх 2-сторонніх взаємодій.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Метод дерева класифікацій</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Структуруйте вхідні параметри у вигляді дерева класів і значень, потім виводьте тест-кейси, вибираючи один лист з кожної гілки. Надає візуальну карту простору вхідних даних.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Дерево функції пошуку: <em>тип запиту</em> (ключове слово / фраза / порожній) × <em>фільтри</em> (відсутні / категорія / діапазон цін) × <em>сортування</em> (релевантність / ціна / дата). Робить очевидним, які комбінації варто тестувати, а які — надлишкові.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">На основі поведінки</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тести виведені з <strong>поведінки, що спостерігається</strong>, — переходи між станами, дії користувача, наскрізні потоки.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування переходів між станами</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Моделюйте допустимі стани, тригерні події та очікувані переходи. Тестуйте валідні переходи і відхилення невалідних.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування use cases</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Тестуйте як реальний користувач, що досягає реальної мети — щасливий шлях, альтернативи та потоки виключень.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">На основі правил</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тести виведені з <strong>бізнес-правил або логічних залежностей</strong> між вхідними та вихідними даними — система має реалізовувати визначене правило, а тест перевіряє правильність його застосування.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Тестування таблиці рішень</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Перерахуйте всі значущі комбінації бізнес-умов і перевірте правильний результат для кожної.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Метаморфічне тестування</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Коли точний очікуваний результат невідомий — перевіряйте, що передбачувана зміна вхідних даних дає передбачувану зміну вихідних. Тестується відношення між результатами, а не конкретне значення.</div>
+                <div class="sub-detail"><strong>Сфера застосування:</strong> ML-моделі, пошукові системи, компілятори, числові бібліотеки — де "правильна" відповідь дорога або неможлива для попереднього обчислення.<br><br><strong>Метаморфічне відношення:</strong> Відома властивість, яку функція має виконувати незалежно від конкретних вхідних даних.</div>
+                <div class="sub-example"><strong>Приклад — пошукова система:</strong> Пошук "авто" повертає 150 результатів. Пошук "авто АБО автомобіль" має повернути ≥ 150 результатів. Якщо менше — це дефект, без необхідності знати правильний набір результатів заздалегідь.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Комбінація технік</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">На практиці техніки рідко використовуються ізольовано. Ефективне проєктування тестів поєднує кілька технік для охоплення різних вимірів ризику тієї самої функції.</div>
+          </div>
+          <div class="acc-essence">Типовий набір тестів для функції: EP + BVA для валідації вхідних даних → Таблиця рішень для бізнес-правил → Переходи між станами для lifecycle → Use Case для наскрізних потоків → Дослідницьке для того, що специфікація забула → Чеклист для наскрізних аспектів.</div>
+          <div class="example-box" style="margin-bottom:0;">
+            <div class="example-label">Приклад — оплата в інтернет-магазині</div>
+            <div class="example-text"><strong>EP + BVA:</strong> Поля ціни, обмеження кількості, довжина коду знижки<br><strong>Таблиця рішень:</strong> Право на знижку (учасник × сума замовлення × акція активна)<br><strong>Переходи між станами:</strong> Lifecycle замовлення (очікування → підтверджено → відправлено → доставлено)<br><strong>Use Case:</strong> Щасливий шлях + відновлення після помилки оплати<br><strong>Вгадування помилок:</strong> Подвійне відправлення · прострочена сесія під час оплати · товар закінчився між додаванням у кошик і підтвердженням<br><strong>Чеклист:</strong> Авторизація на всіх ендпоінтах · маскування PII в логах · правильні HTTP-статус-коди</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Застосовність технік за типами тестування</div>
+    <div class="example-box" style="margin-bottom:0;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Тип тестування</th><th>Типові техніки</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="c-teal">Функціональне</strong></td>
+            <td>EP · BVA · Таблиця рішень · Переходи між станами · Use Case · Вгадування помилок</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Продуктивності</strong></td>
+            <td>EP / BVA для порогів навантаження · Попарне для комбінацій конфігурацій · Дослідницьке в умовах деградації</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Безпеки</strong></td>
+            <td>Вгадування помилок (вектори атак) · Чеклист (OWASP Top 10) · Дослідницьке (мислення пентестера)</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Зручності використання</strong></td>
+            <td>Use Case · Дослідницьке · Чеклист (WCAG, евристики Нільсена)</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Сумісності</strong></td>
+            <td>Попарне (браузер × ОС × пристрій) · Чеклист (матриця підтримуваних середовищ)</td>
+          </tr>
+          <tr>
+            <td><strong class="c-amber">Юніт / компонентне</strong></td>
+            <td>Покриття операторів · гілок · умов · шляхів · MC/DC</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ РІВНІ ══════════ -->
+<div id="view-levels" class="view">
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box teal" style="margin-bottom:16px;">
+      <div class="plain-label">Рівні тестування — ієрархія</div>
+      <div class="plain-text">Кожен рівень охоплює більший обсяг системи, ніж попередній. Тести на нижчих рівнях — швидші, їх більше, і дефекти там дешевше виправляти. Тести на вищих рівнях — повільніші та їх менше, але вони ближчі до реального використання. Рівні не замінюють один одного — вони доповнюють. Дефект, знайдений на рівні юніт-тестів, коштує значно менше, ніж той самий дефект, виявлений на рівні приймального тестування.</div>
+    </div>
+    <div class="level-pyramid">
+      <div class="lp-bar coral">Приймальне тестування</div>
+      <div class="lp-connector"></div>
+      <div class="lp-bar amber">Системне тестування</div>
+      <div class="lp-connector"></div>
+      <div class="lp-bar purple">Інтеграційне тестування компонентів</div>
+      <div class="lp-connector"></div>
+      <div class="lp-bar teal">Юніт / Компонентне / Модульне тестування</div>
+    </div>
+    <div class="example-box" style="margin-bottom:0;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Рівень</th><th>Обсяг</th><th>Власник</th><th>Кількість</th><th>Швидкість</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="c-teal">Юніт</strong></td>
+            <td>Функція, клас, модуль</td>
+            <td>Розробник</td>
+            <td>Тисячі</td>
+            <td>Мілісекунди</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Інтеграція</strong></td>
+            <td>Інтерфейс між компонентами</td>
+            <td>Розробник / QA</td>
+            <td>Сотні</td>
+            <td>Секунди</td>
+          </tr>
+          <tr>
+            <td><strong class="c-amber">Системне</strong></td>
+            <td>Повна інтегрована система</td>
+            <td>QA</td>
+            <td>Десятки–сотні</td>
+            <td>Секунди–хвилини</td>
+          </tr>
+          <tr>
+            <td><strong class="c-coral">Приймальне</strong></td>
+            <td>Бізнес-цілі, user journeys</td>
+            <td>Користувачі / стейкхолдери</td>
+            <td>Найменше</td>
+            <td>Хвилини–години</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Рівні — детально</div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Юніт / компонентне / модульне тестування</div>
+          <div class="acc-badge badge-q">найменший обсяг</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Тестується одна одиниця коду в повній ізоляції. Все, від чого вона залежить, замінюється тестовим дублем (mock, stub, fake). Єдине питання: "Чи правильно працює цей конкретний фрагмент логіки сам по собі?"</div>
+          </div>
+          <div class="acc-essence"><strong>Юніт</strong> — найменший елемент, що тестується окремо: функція, метод, клас або модуль. Залежності ізольовані: немає реальної БД, немає мережевих викликів. Тест перевіряє логіку самої одиниці, а не поведінку її залежностей.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Що знаходить</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Помилки логіки всередині окремих юнітів — неправильні обчислення, відсутні умови, необроблені крайні випадки, помилки нульових покажчиків.</div>
+                <div class="sub-example"><strong>Знаходить:</strong> <code>calculateTax(0, 0.2)</code> кидає NullPointerException ✗<br><strong>НЕ знаходить:</strong> Чи може сервіс Tax з'єднатися з базою даних Pricing у staging — це питання рівня інтеграції.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Хто запускає і коли</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Розробник. Запускається при кожному коміті як частина CI-пайплайну. TDD (тест першим) означає, що тести пишуться до реалізації.</div>
+                <div class="sub-example"><strong>Інструменти:</strong> Jest (JS/TS) · JUnit / TestNG (Java) · pytest (Python) · NUnit / xUnit (.NET) · go test (Go) · RSpec (Ruby)</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">У контексті мікросервісів</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">У мікросервісах "юніт" — це зазвичай внутрішня логіка одного сервісу: доменна модель, реалізація бізнес-правила, функція трансформації даних. Кожен сервіс має власний незалежний набір юніт-тестів.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Сервіс Order — юніт-тест валідації замовлення: перевіряє, що замовлення з від'ємною кількістю відхиляється, замовлення без товарів відхиляється, валідне замовлення проходить. Усі виклики БД та downstream-сервісів замінені стабами — тест перевіряє лише логіку валідації.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Інтеграційне тестування компонентів</div>
+          <div class="acc-badge badge-q">інтерфейси між компонентами</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Окремі компоненти проходять юніт-тести ізольовано — але чи правильно вони взаємодіють, коли їх з'єднати? Інтеграційне тестування відповідає на це. Фокус — на <strong>інтерфейсах</strong>: що один компонент надсилає і що інший очікує отримати.</div>
+          </div>
+          <div class="acc-essence">Не тестує всю систему — лише конкретні пари або групи компонентів. Все поза межами тестованої інтеграції все ще замоковане. Питання: "Коли A викликає B — чи погоджуються вони на контракт?"</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Що знаходить, чого пропускають юніт-тести</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Невідповідності інтерфейсів — назви полів, типи даних, формати дат, HTTP-статус-коди — які юніт-тести принципово не можуть знайти, бо кожен юніт тестується з власними замокованими відповідями.</div>
+                <div class="sub-example"><strong>Класичний приклад:</strong> Юніт-тести сервісу Order проходять — вони мокують Inventory і повертають <code>{"available": true}</code>. Юніт-тести Inventory проходять. Але реальний Inventory повертає <code>{"inStock": true}</code>. Інтеграційний тест виявляє невідповідність назви поля, яку обидва набори юніт-тестів повністю пропустили.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Інкрементальна vs big-bang інтеграція</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Інкрементальна: інтегруйте по одному компоненту (знизу вгору від юнітів або зверху вниз від API). Big-bang: інтегруйте все одразу — складніше ізолювати, який саме інтерфейс спричинив збій.</div>
+                <div class="sub-detail"><strong>Знизу вгору:</strong> Спочатку тестуються шари утиліт/даних, реальні компоненти поступово замінюють моки.<br><strong>Зверху вниз:</strong> Тестування від API-фасаду вниз, нижні шари стабляться спочатку — добре, коли основний ризик — у контракті верхнього рівня.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Consumer-driven contract testing (Pact)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Техніка специфічно для рівня інтеграції: споживач (сервіс, що викликає) визначає контракт, якого очікує. Постачальник (сервіс, що викликається) перевіряє, що відповідає цьому контракту. Обидві сторони тестуються незалежно.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Сервіс Order пише Pact: "Очікую, що GET /inventory/{id} поверне { id, inStock, quantity }." Сервіс Inventory запускає Pact-верифікацію у власному CI. Якщо Inventory видаляє поле <code>quantity</code> — Pact-тест виявляє це до того, як обидва сервіси будуть розгорнуті разом у staging.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Кут зору QA</div>
+            <div class="example-text">Інтеграційні тести — це місце, де виявляється хибна впевненість юніт-тестів. Система може мати 95% покриття юніт-тестів і катастрофічно впасти на рівні інтеграції, якщо моки не відображають реальності. Contract testing (Pact) — золотий стандарт для виявлення цього класу помилок у мікросервісних архітектурах.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Системне тестування</div>
+          <div class="acc-badge badge-q">повна інтегрована система</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Повна система — всі компоненти інтегровані — тестується як єдине ціле відповідно до системних вимог. Без моків. Реальні сервіси, реальні бази даних, реальна інфраструктура. Питання: "Чи поводиться система в цілому так, як специфіковано?"</div>
+          </div>
+          <div class="acc-essence">У власності QA. Основний рівень для формального виконання тестів. Тести виводяться із системних вимог — функціональних І нефункціональних. Середовище має максимально наближатися до production.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Що тестує</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">І функціональні, і нефункціональні вимоги на рівні системи: наскрізні user flows, продуктивність під навантаженням, безпека, зручність використання, надійність — все, що охоплює системна специфікація.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Повне оформлення замовлення — пошук → кошик → знижка → оплата → підтвердження email → оновлення інвентарю → запис замовлення в БД. Все реальне, все інтегровано, без стабів.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Що знаходить, чого не помічають нижчі рівні</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Емерджентні дефекти — поведінка, що проявляється тільки коли ВСІ компоненти взаємодіють в реалістичних умовах: гонки станів, порушення узгодженості даних між сервісами, невідповідності конфігурацій.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Сервіси Order і Payment проходять юніт- і інтеграційні тести. На системному рівні під одночасним навантаженням: два користувачі одночасно купують останній товар — обидва замовлення успішні, інвентар стає від'ємним. Гонка стану проявляється тільки коли обидва сервіси працюють проти спільної БД під реальним паралелізмом.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">[Системне інтеграційне тестування]</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Тестування інтегрованої системи із зовнішніми системами — сторонні API, платіжні сервіси, legacy ERP, зовнішні дата-фіди. Іноді окремий формальний рівень, іноді об'єднується із системним тестуванням залежно від контексту проєкту.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Наша система + Stripe (оплата), SendGrid (email), legacy-система управління складом. Системні інтеграційні тести перевіряють повний потік даних через всі три зовнішні інтеграції в реалістичних умовах.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Приймальне тестування</div>
+          <div class="acc-badge badge-q">перевіряє бізнес-цілі</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Системне тестування запитує "чи відповідає система специфікації?" — приймальне тестування запитує "чи відповідає специфікація реальним потребам користувачів і бізнесу?" Система може пройти системне тестування і провалити приймальне, якщо вимоги спочатку були неправильними або неповними.</div>
+          </div>
+          <div class="acc-essence">Виконується за участю або безпосередньо призначеними користувачами, бізнес-стейкхолдерами або product owner — не тільки QA. Перевіряє відповідність <strong>бізнес-вимогам і цілям користувачів</strong>, а не технічній специфікації. Формальний рубіж перед релізом.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">UAT — User Acceptance Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Реальні користувачі або бізнес-представники перевіряють, що система задовольняє їхні потреби в умовах, що нагадують реальне використання.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Команда фінансів використовує новий модуль звітності на реальних (анонімізованих) даних упродовж тижня до виходу в production. Їх підпис підтверджує, що функція задовольняє реальні операційні потреби, а не лише задокументовані вимоги.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Контрактне приймання</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Перевіряє, що система відповідає критеріям прийняття, зафіксованим у договорі між командою розробки та замовником. Формальна перевірка — прохід/провал за погодженим списком.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Регуляторне приймання</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Перевіряє відповідність законам, регуляціям або галузевим стандартам перед тим, як система може легально функціонувати.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Програмне забезпечення для медичного пристрою проходить регуляторне приймання відповідно до IEC 62304. Фінансова система демонструє відповідність GDPR перед обробкою персональних даних.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Alpha / Beta тестування</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Перед-релізна перевірка з реальними користувачами в умовах, ближчих до реального розгортання.</div>
+                <div class="sub-detail"><strong>Alpha:</strong> Внутрішні користувачі або запрошені тестувальники в контрольованому середовищі, тісний нагляд QA.<br><strong>Beta:</strong> Зовнішні користувачі у власному середовищі, мінімальний нагляд QA — виявляє проблеми, що з'являються лише за реального масштабу і різноманіття використання.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Ключова відмінність від системного тестування</div>
+            <div class="example-text">Системне тестування: "Чи відповідає система специфікації?" Приймальне тестування: "Чи відповідає специфікація реальним потребам користувачів?" Система може бути бездефектною на системному рівні і все одно бути відхиленою на приймальному, якщо була побудована не та функція. Ось чому критерії приймання мають бути погоджені <em>до</em> початку розробки, а не після.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Тестування, спричинене змінами — не рівень і не тип</div>
+    <div class="plain-box purple" style="margin-bottom:12px;">
+      <div class="plain-label">Важлива відмінність</div>
+      <div class="plain-text">Підтвердне тестування та регресійне тестування — не типи тестування і не рівні. Це <strong>тестові активності, спричинені змінами</strong>. Вони можуть виконуватися на будь-якому рівні за допомогою будь-якої техніки. Тригер — ось що їх визначає, а не що чи як вони тестують.</div>
+    </div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Підтвердне тестування (повторне тестування)</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Виявлено дефект. Розгорнуто виправлення. Підтвердне тестування повторно запускає конкретні тести, що знайшли дефект, щоб перевірити, чи виправлення справді спрацювало.</div>
+          </div>
+          <div class="acc-essence"><strong>Вузький фокус:</strong> Перезапустіть рівно ті тест-кейси, що не пройшли. Не широке охоплення — це робота регресійного тестування. Підтвердне тестування відповідає на одне питання: "Чи виправлено цей конкретний дефект?"</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Коли і як</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Після розгортання виправлення в тестове середовище — повторно виконайте тести, що не пройшли, з тими самими кроками, даними, середовищем. Прохід → підтверджено. Провал → дефект повторно відкрито.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Баг #1234: оформлення замовлення не проходить при рівно 10 товарах у кошику (помилка на одиницю у валідації кількості). Виправлення розгорнуто. Підтвердний тест: додайте рівно 10 товарів, перейдіть до оформлення. Завершується успішно → #1234 підтверджено виправленим. Далі: запустіть регресійне тестування для перевірки побічних ефектів.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Регресійне тестування</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Простими словами</div>
+            <div class="plain-text">Після будь-якої зміни — нова функція, виправлення бага, рефакторинг, оновлення конфігурації — перевірте, що нічого з того, що раніше працювало, тепер не зламано. Зміни мають ненавмисні побічні ефекти; регресійне тестування їх виявляє.</div>
+          </div>
+          <div class="acc-essence"><strong>Широкий обсяг:</strong> Охоплює будь-яку область системи, яка могла бути зачеплена змінами. Обсяг розширюється із ризиком зміни — зміна критичної спільної бібліотеки може запустити повний набір; незначна зміна тексту UI потребує лише цільового охоплення.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Вибір обсягу на основі ризиків</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Запускати все при кожній зміні — дорого. Пріоритезуйте: що змінилося, що це зачіпає, що раніше давало збої, що критично для бізнесу.</div>
+                <div class="sub-detail"><strong>Фактори пріоритизації:</strong> Змінені шляхи коду · Downstream-залежності · Концентрація історичних дефектів · Бізнес-вплив збою · Частота реального використання</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Чому автоматизація є необхідністю</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Регресійні набори ростуть разом із продуктом. Ручна регресія у масштабі нестійка — автоматизація потрібна, щоб отримувати зворотний зв'язок після кожної зміни досить швидко.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Продукту 3 роки. Повна ручна регресія = 2 тижні. Каденція релізів = кожні 2 тижні. Без автоматизації QA витрачає 100% потужності на регресію і не має жодної ємності для тестування нових функцій.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Підтвердне vs регресійне</div>
+            <div class="example-text"><strong>Підтвердне:</strong> "Чи виправлено цей конкретний дефект?" — вузьке, цільове для відомого збою.<br><strong>Регресійне:</strong> "Чи не зламало виправлення щось інше?" — широке, для невідомих побічних ефектів.<br>Обидва запускаються після зміни. Вони ставлять різні питання і використовують різний обсяг. Зазвичай запускаються послідовно: спочатку підтвердне, потім регресійне.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Поширені помилки</div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title">Smoke = Sanity — і жодне з них не є формальним типом тестування ISTQB</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Реальність</div>
+            <div class="plain-text">"Smoke-тест" і "sanity-тест" — неформальні галузеві терміни для одного й того ж: швидка поверхнева перевірка, що збірка достатньо стабільна для тестування. ISTQB не перелічує їх як формальні типи тестування. На співбесіді правильна відповідь: це неформальні практики — легка форма підтвердного/регресійного тестування, що зазвичай виконується на системному рівні для перевірки "живості" збірки перед запуском повного набору тестів.</div>
+          </div>
+          <div class="acc-essence"><strong>Походження "smoke test":</strong> Апаратне проєктування — подаєте живлення на плату; якщо з'являється дим, одразу зупиняєтесь. У програмному забезпеченні: якщо збірка не запускається або падає при старті, немає сенсу запускати повний набір тестів.</div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title">Тестування супроводу ≠ Підтримуваність</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Реальність</div>
+            <div class="plain-text"><strong>Тестування супроводу (Maintenance testing)</strong> — тестова АКТИВНІСТЬ. Тестування, спричинене змінами у вже існуючій системі: виправлення дефектів, нові функції в діючому продукті, міграція на нове середовище, виведення з експлуатації.<br><br><strong>Підтримуваність (Maintainability)</strong> — характеристика якості ISO 25010. Наскільки легко розробникам змінювати, аналізувати, тестувати і розширювати код системи. Властивість архітектури продукту, а не тестова активність.</div>
+          </div>
+          <div class="example-box" style="margin-bottom:0;">
+            <div class="example-label">Приклад для розрізнення</div>
+            <div class="example-text"><strong>Тестування супроводу:</strong> "Ми виправили вразливість безпеки в сервісі автентифікації. Провели тестування супроводу — підтвердне + регресійне — для перевірки патча і відсутності побічних ефектів."<br><br><strong>Підтримуваність:</strong> "Сервіс автентифікації має погану підтримуваність: низька тестованість (конкретні залежності без ін'єкцій), погана аналізованість (без структурованого логування), ризикована модифікованість (73 рядкових літерали)."<br><br>Одне — те, що ви РОБИТЕ після зміни. Інше — те, чим КОД Є.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title">e2e — не рівень тестування, а дескриптор обсягу</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Реальність</div>
+            <div class="plain-text">"End-to-end тест" описує <strong>обсяг</strong> тестового сценарію — він охоплює повний потік від одного кінця системи до іншого (UI → API → БД → зовнішні сервіси → назад). Це не окремий рівень тестування в ієрархії ISTQB. E2e-тести виконуються на рівні <strong>системного</strong> або <strong>приймального</strong> тестування.</div>
+          </div>
+          <div class="acc-essence">Коли команда каже "наш e2e-набір", вони мають на увазі "наш набір системних тестів, що охоплюють повні user flows". Термін описує, що тести покривають, а не де вони знаходяться в ієрархії рівнів.</div>
+          <div class="example-box" style="margin-bottom:0;">
+            <div class="example-label">Чому це важливо</div>
+            <div class="example-text">Команди, що трактують e2e як окремий рівень, схильні недоінвестовувати в інтеграційне тестування компонентів ("ми зловимо це в e2e") — і тоді інтеграційні баги дорого діагностувати, бо вони проявляються лише в повних системних запусках. Правильний підхід: юніт → інтеграція → система (e2e) — не юніт → e2e напряму, пропускаючи рівень інтеграції.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="../../assets/site.js"></script>
+<script>
+function fitMindMap() {
+  var view = document.getElementById('view-map');
+  var root = view ? view.querySelector('.mm-root') : null;
+  if (!view || !root) return;
+  root.style.zoom = '';
+  var avail = view.clientWidth - 32;
+  var natural = root.scrollWidth;
+  if (natural > avail && avail > 0) root.style.zoom = avail / natural;
+}
+window.addEventListener('resize', fitMindMap);
+function switchTab(name) {
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById('view-' + name).classList.add('active');
+  var tabMap = document.getElementById('tab-map');
+  var tabRef = document.getElementById('tab-ref');
+  if (tabMap) tabMap.classList.toggle('active', name === 'map');
+  if (tabRef) tabRef.classList.toggle('active', name === 'ref');
+  var tabIso = document.getElementById('tab-iso');
+  if (tabIso) tabIso.classList.toggle('active', name === 'iso');
+  var tabTech = document.getElementById('tab-tech');
+  if (tabTech) tabTech.classList.toggle('active', name === 'tech');
+  var tabLevels = document.getElementById('tab-levels');
+  if (tabLevels) tabLevels.classList.toggle('active', name === 'levels');
+  if (name === 'map') fitMindMap();
+}
+function switchTabAndScroll(tab, id) {
+  switchTab(tab);
+  setTimeout(function() {
+    var el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!el.classList.contains('open')) {
+        var header = el.querySelector('.acc-header');
+        if (header) toggleAcc(el);
+      }
+    }
+  }, 60);
+}
+function toggleAcc(item) { item.classList.toggle('open'); }
+function toggleSub(item) { item.classList.toggle('open'); }
+function toggleMmChar(el) {
+  el.classList.toggle('open');
+  var subs = el.nextElementSibling;
+  if (subs && subs.classList.contains('mm-subs')) subs.classList.toggle('open');
+}
+fitMindMap();
+</script>
+</body>
+</html>

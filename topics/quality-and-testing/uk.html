@@ -177,7 +177,21 @@
   body.light .sub-example    { background: var(--surface2); color: var(--text); }
   body.light .ref-section-title { color: var(--text2); }
 
-  @media (max-width: 600px) { #view-ref { padding: 16px; } .mm-root { min-width: 700px; } }
+  #view-iso { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  #view-tech { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  .concept-table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); }
+  .concept-table th { font-size: var(--fs-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text2); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+  .concept-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; color: var(--text); }
+  .concept-table tr:last-child td { border-bottom: none; }
+  #view-levels { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
+  .level-pyramid { display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: 560px; margin: 0 auto 20px; }
+  .lp-bar { border-radius: 6px; padding: 9px 16px; font-size: var(--fs-sm); font-weight: 600; border: 1px solid; text-align: center; }
+  .lp-bar.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid);  width: 100%; }
+  .lp-bar.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); width: 78%; }
+  .lp-bar.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309;          width: 56%; }
+  .lp-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d;          width: 35%; }
+  .lp-connector  { width: 1px; height: 8px; background: var(--border); }
+  @media (max-width: 600px) { #view-ref { padding: 16px; } #view-iso { padding: 16px; } #view-tech { padding: 16px; } #view-levels { padding: 16px; } .mm-root { min-width: 700px; } }
 </style>
 </head>
 <body>
@@ -188,6 +202,9 @@
   <a class="back-link" href="../../index.html">← all topics</a>
   <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Mind map</button>
   <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Reference</button>
+  <button class="tab-btn" id="tab-iso" onclick="switchTab('iso')">ISO 25010</button>
+  <button class="tab-btn" id="tab-tech" onclick="switchTab('tech')">Techniques</button>
+  <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">Levels</button>
   <div class="settings-wrap">
     <button class="settings-btn" id="settings-btn" onclick="toggleSettings(event)" title="Settings">⚙</button>
     <div class="settings-menu" id="settings-menu">
@@ -856,6 +873,1250 @@
 
 </div>
 
+<!-- ══════════ ISO 25010 VIEW ══════════ -->
+<div id="view-iso" class="view">
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box purple" style="margin-bottom:0;">
+      <div class="plain-label">ISO/IEC 25010:2023 — Software Product Quality Model</div>
+      <div class="plain-text">Defines <strong>nine quality characteristics</strong> and their sub-characteristics — properties a software product must have, independent of how they are tested. The 2023 revision added <strong>Safety</strong> as a new top-level characteristic, renamed <em>Usability</em> to <strong>Capability</strong> and <em>Portability</em> to <strong>Flexibility</strong>, and introduced new sub-characteristics within several existing ones. Old names shown in parentheses where applicable.<br><br><strong>Mnemonic:</strong> <em>Fried Potatoes Catch Unicorns, Running Snails Meet Purple Snake</em> → <strong>F</strong>unctional Suitability · <strong>P</strong>erformance Efficiency · <strong>C</strong>ompatibility · <strong>U</strong>sability (Capability) · <strong>R</strong>eliability · <strong>S</strong>ecurity · <strong>M</strong>aintainability · <strong>P</strong>ortability (Flexibility) · <strong>S</strong>afety</div>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="acc-group">
+
+      <!-- 1. FUNCTIONAL SUITABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Functional Suitability</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system do what its specification says? Not how fast, not how securely — just: is the stated functionality present, correct, and actually useful for what users are trying to accomplish?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Functional Completeness</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The set of functions covers all specified tasks and user objectives. Nothing is missing from what was promised.</div>
+                <div class="sub-example"><strong>Example:</strong> Payment API contract specifies 5 operations. Developer implements 4, skips <code>void</code>. Completeness defect — the function is absent, not broken.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Functional Correctness</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Functions provide the right results with the required degree of precision. A function can exist without being correct.</div>
+                <div class="sub-example"><strong>Example:</strong> Tax endpoint exists and responds, but returns 19% VAT instead of the required 20%. Completeness: pass. Correctness: fail.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Functional Appropriateness</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Functions actually facilitate the user's goals. A feature can be present and correct but still not appropriate for the real use case.</div>
+                <div class="sub-example"><strong>Example:</strong> Product search exists and returns accurate results, but requires an exact SKU code rather than a natural keyword. Present ✓ Correct ✓ Appropriate ✗</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Requirements traceability matrix → completeness. Test cases with expected outputs → correctness. User goal analysis and task modelling → appropriateness. This characteristic is the "why" behind functional testing — it defines what "working correctly" means at the model level.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. PERFORMANCE EFFICIENCY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Performance Efficiency</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system perform within acceptable time and resource limits under defined conditions? How fast it responds, how much CPU/memory it consumes, and how much load it can handle.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Time Behaviour</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Response times, processing times, and throughput rates under defined conditions.</div>
+                <div class="sub-example"><strong>Example:</strong> "95th percentile response under 200ms at 500 rps" is a time behaviour requirement. Verified by load testing under that exact traffic profile.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Resource Utilization</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">CPU, memory, disk, and network bandwidth consumed relative to workload.</div>
+                <div class="sub-example"><strong>Example:</strong> A service responds in 50ms but pegs CPU at 100% under normal load, starving co-deployed services. Fast response ✓  Resource utilization ✗</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Capacity</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Maximum limits the system can reach — concurrent users, file sizes, queue depth, connection pool — before degrading.</div>
+                <div class="sub-example"><strong>Example:</strong> Message queue handles up to 500,000 events before consumer throughput degrades. Capacity requirement: sustain 1M events without degradation. One user uploading one huge file can hit capacity while concurrent-user load is near zero.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Load/stress/spike testing → time behaviour + capacity. Soak testing → resource utilization over time. Note: Scalability is now its own sub-characteristic under Flexibility (characteristic 8), not under Performance Efficiency.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. COMPATIBILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Compatibility</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system work alongside other systems without interference, and exchange data with them correctly?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Co-existence</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can operate in a shared environment — same host, network, or cluster — without negatively affecting other products and without being affected by them.</div>
+                <div class="sub-example"><strong>Example:</strong> Service A's memory leak causes the OOM killer to terminate Service B on the same host. Co-existence failure — one product's defect damages another product with no shared code between them.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Interoperability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can exchange information with other systems and use that information correctly. Covers API contracts, data formats, and protocol conformance.</div>
+                <div class="sub-example"><strong>Example:</strong> Order service sends dates as Unix timestamps. Notification service expects ISO 8601 strings. API contract mismatch — interoperability defect. Consumer-driven contract testing (Pact) is designed to catch exactly this class of failure.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Co-existence: deploy multiple services, monitor for resource interference and unexpected side effects. Interoperability: contract testing (Pact), integration tests, API schema validation. In microservices architectures this is one of the most frequently violated characteristics.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. CAPABILITY (Usability) -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Capability <span class="iso-tag">Usability</span></div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can users actually achieve their goals with the system? Covers everything from first contact ("does this do what I need?") through to ongoing use for people with different abilities, languages, and levels of expertise.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Appropriateness Recognizability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Within first contact, users can recognise whether the system suits their needs.</div>
+                <div class="sub-example"><strong>Example:</strong> A user lands on a SaaS product page. Within 10 seconds they cannot tell what the product actually does. Appropriateness recognizability failure — regardless of how capable the product actually is.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Learnability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">How quickly can a new user become proficient? Measured by time-to-first-success and error rate during initial use.</div>
+                <div class="sub-example"><strong>Example:</strong> Give 5 new users the task "place an order without help." If most fail or take 15+ minutes, learnability is poor — regardless of whether experienced users find the system fast and efficient.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Operability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system is easy to operate and control: consistent behaviour, predictable interactions, low cognitive load during ongoing use.</div>
+                <div class="sub-example"><strong>Example:</strong> "Save" in one module triggers immediately; "Save" in another opens a confirmation dialog. Inconsistent operability — users cannot build a reliable mental model of how the system behaves.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">User Error Protection</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Prevents users from making mistakes and helps them recover when they do. Confirmations before destructive actions, clear error messages, undo capability.</div>
+                <div class="sub-example"><strong>Example:</strong> Admin clicks "Delete all users" — no confirmation dialog. All users deleted instantly with no undo. Error protection failure. Correct design: confirmation step + soft-delete with 30-day recovery window.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">User Engagement <span class="iso-tag">User Interface Aesthetics</span></div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system presents itself in a way that motivates users to continue engaging — responsiveness, perceived performance, appropriate feedback, interaction quality. Goes beyond visual aesthetics.</div>
+                <div class="sub-example"><strong>Example:</strong> A visually polished app that freezes for 2 seconds on every tap and gives no loading feedback has poor user engagement despite attractive design. Contrast: plain UI with instant feedback and smooth transitions scores higher on this sub-characteristic.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Inclusivity <span class="iso-tag">Accessibility</span></div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system is usable by the widest possible range of users — including those with disabilities, different languages, cognitive styles, devices, and contexts. Broader than WCAG compliance alone.</div>
+                <div class="sub-example"><strong>Example:</strong> WCAG covers disability accessibility. Inclusivity also covers: right-to-left language support, low-bandwidth contexts, varying literacy levels, older devices. A product can pass WCAG AA and still fail inclusivity on these other dimensions.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">User Assistance</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system provides effective in-product help: tooltips, inline documentation, contextual hints, tutorials. Users can answer their own questions without leaving the product.</div>
+                <div class="sub-example"><strong>Example:</strong> A complex form has a "?" icon next to each field. Clicking it shows a short explanation of what the field expects and why it is needed. User assistance — no external documentation required to complete the task.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Self-Descriptiveness</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Labels, icons, status indicators, and feedback make the system's current state and available actions clear without external reference material. The UI documents itself.</div>
+                <div class="sub-example"><strong>Example:</strong> Button shows a spinner while processing, then a green tick on success, then a red ✕ with a one-line reason on failure. The user always knows what state the system is in. Contrast: button goes grey after clicking and nothing else happens — user has no idea if their action was received.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Usability testing sessions, accessibility audits (WCAG 2.2), first-use studies with real users, heuristic evaluation (Nielsen's 10 heuristics map directly to several sub-characteristics here), assistive technology testing (screen readers, switch access, voice control).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. RELIABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Reliability</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system keep working correctly over time, under expected conditions, and recover when something goes wrong? Especially critical in distributed systems where partial failure is the norm, not the exception.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Faultlessness <span class="iso-tag">Maturity</span></div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system meets its reliability requirements under normal operation. Low defect rate in production, stable long-term behaviour, no random crashes.</div>
+                <div class="sub-detail">The rename from "Maturity" reflects that a new system can be faultless while an old one can be full of faults — the concept is about defect rate and stability, not age of the product.</div>
+                <div class="sub-example"><strong>Example:</strong> System has been in production for 3 months. Defect rate is still 5 critical issues per week. Faultlessness criterion not met — regardless of how long the system has been deployed.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Availability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system is accessible and operational when required. Expressed as uptime percentage.</div>
+                <div class="sub-example"><strong>Example:</strong> 99.9% SLA = maximum 8.7 hours downtime per year. 99.99% = 52 minutes. 99.999% = 5.2 minutes. Each additional "nine" reduces acceptable downtime by roughly 10×.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Fault Tolerance</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system continues operating correctly even when components fail or invalid inputs are encountered. Failures are isolated, not propagated.</div>
+                <div class="sub-example"><strong>Example:</strong> Kill the recommendation-service pod. Does the product page still load (without recommendations), or does it throw a 500? Fault tolerance = the failure is isolated. Circuit breakers, fallbacks, and graceful degradation are implementation patterns for this sub-characteristic.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Recoverability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">After a failure, the system restores data and re-establishes normal operation within defined time (RTO) and data loss (RPO) limits.</div>
+                <div class="sub-example"><strong>Example:</strong> Database crashes at 14:00. Last backup at 13:00. Recovery completes at 14:45. RTO = 45 min, RPO = 60 min. Both values must meet contractual obligations.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Long-run stability testing → faultlessness. SLA monitoring → availability. Chaos engineering / fault injection → fault tolerance. Disaster recovery drills → recoverability.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. SECURITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Security</div>
+          <div class="acc-badge badge-q">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can the system protect information and resources from unauthorized access, disclosure, or manipulation — and hold up under active hostile behaviour?</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Confidentiality</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Data is accessible only to those authorized. Encryption at rest and in transit, access control, data classification enforcement.</div>
+                <div class="sub-example"><strong>Example:</strong> User A calls GET /api/orders?userId=B and receives User B's full order history without any authorization check. Confidentiality breach — data exposed to an unauthorized party.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Integrity</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Data is protected from unauthorized modification. Checksums, audit trails, write access controls, input validation.</div>
+                <div class="sub-example"><strong>Example:</strong> Attacker intercepts and modifies an order amount in transit (man-in-the-middle). No HTTPS + no request signing = integrity violation. The data arrived, but it was not the data that was sent.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Non-Repudiation</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Actions can be proven to have occurred so neither party can deny them. Tamper-evident audit logs, digital signatures, timestamping.</div>
+                <div class="sub-example"><strong>Example:</strong> A financial transaction is disputed. Tamper-evident audit log with digital signatures proves the user initiated the transfer at a specific timestamp. Without this, either party can deny the transaction occurred.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Accountability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Actions by any user or system component can be traced back to the specific entity responsible. Structured logging with identity context, correlation IDs.</div>
+                <div class="sub-example"><strong>Example:</strong> Production data is deleted. Audit log shows which admin account triggered which API call at which timestamp with which request ID. Without accountability, a breach investigation cannot determine the responsible actor.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Authenticity</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The identity of a user, system, or resource can be verified as what it claims to be. Authentication mechanisms: tokens, certificates, MFA.</div>
+                <div class="sub-example"><strong>Example:</strong> Expired JWT token still accepted — no expiry validation. Session not invalidated after logout. Brute force on login not rate-limited. All three are authenticity failures — the system cannot reliably verify who it is talking to.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Resistance</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system sustains correct operation under hostile conditions: DDoS attacks, malformed inputs, brute force, injection attempts.</div>
+                <div class="sub-example"><strong>Example:</strong> API receives 50,000 requests/second from a botnet. Without rate limiting and WAF rules, it falls over for legitimate users too. Resistance means staying up and correct under attack — not just detecting it.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Penetration testing → exploiting vulnerabilities. Vulnerability scanning → finding them. Auth testing → authenticity + confidentiality. Authorization testing → integrity + accountability. Load testing under attack conditions → resistance.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. MAINTAINABILITY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Maintainability</div>
+          <div class="acc-badge badge-td">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">How easy is it for developers to modify, fix, understand, and extend the system? Poor maintainability is the primary driver of technical debt — the reason systems become expensive and risky to change over time.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Modularity</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Discrete components such that changes to one have minimal impact on others. High cohesion, low coupling.</div>
+                <div class="sub-example"><strong>Example:</strong> Changing pricing logic in the pricing service causes the order service to fail — they share a database table with undocumented coupling. One change, unintended side effect in an unrelated component. Low modularity.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Reusability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Components, modules, or libraries can be used to build other systems or other parts of the same system.</div>
+                <div class="sub-example"><strong>Example:</strong> Authentication logic extracted into a shared library consumed by 5 microservices — bug fixed once, all services benefit. Contrast: authentication duplicated in each service — 5 places to patch, 5 ways to drift out of sync. Low reusability multiplies maintenance cost.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Analysability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The impact of proposed changes can be assessed; causes of failures can be diagnosed. Good logging, meaningful error messages, distributed tracing, readable code.</div>
+                <div class="sub-example"><strong>Example:</strong> Production log shows: "Error: null". No stack trace, no context, no request ID. Analysability failure — diagnosing this requires reproducing from scratch. Contrast: structured log with correlation ID, user context, and full stack trace.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Modifiability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Changes can be implemented without introducing defects or degrading existing quality. Measured by regression rate — how often a routine change breaks something else.</div>
+                <div class="sub-example"><strong>Example:</strong> Renaming a database column requires manually updating 47 hardcoded string references across 12 files. High risk of missing one. Low modifiability — the cost and risk of routine changes is disproportionately high.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Testability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Test criteria can be established and tests can be executed to determine whether those criteria are met. Dependency injection, observable state, isolated components, deterministic behaviour.</div>
+                <div class="sub-example"><strong>Example:</strong> A class has 12 constructor dependencies, all concrete (not injected). Impossible to unit test without spinning up the entire application. The design actively resists verification. Low testability.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Testability directly enables testing effectiveness — a system with low testability is harder and more expensive to test at every level. Analysability determines how fast QA can diagnose production issues. These are characteristics QA lives with daily, not just verifies once.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. FLEXIBILITY (Portability) -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Flexibility <span class="iso-tag">Portability</span></div>
+          <div class="acc-badge badge-td">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Can the system be deployed in different environments, scaled to different workload levels, and moved or replaced without rewriting? The rename from Portability to Flexibility reflects that this characteristic covers more than just "can it run somewhere else."</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Adaptability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can operate in different or evolving hardware, software, or usage environments without code changes.</div>
+                <div class="sub-example"><strong>Example:</strong> Docker image built for AWS runs on GCP and Azure without modification. Adaptability pass. Contrast: application has AWS SDK calls hardcoded and fails outside AWS — adaptability failure.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Scalability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can handle growing or varying workloads by adding resources — horizontally (more instances) or vertically (bigger instances). Whether adding resources actually translates to proportional capacity gain.</div>
+                <div class="sub-example"><strong>Example:</strong> 2 pods: 1,000 req/s. Add 2 more → expect ~2,000 req/s. Actual: 1,200 req/s. Bottleneck: all pods share one DB connection pool (max 50 connections). Adding pods does not help — scalability is constrained by the shared resource.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Installability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can be successfully installed and uninstalled in a target environment without leaving orphaned resources or broken state.</div>
+                <div class="sub-example"><strong>Example:</strong> Helm chart deploys cleanly to a fresh Kubernetes cluster. Uninstall leaves no orphaned resources. Installability pass. Contrast: install script only works on Ubuntu 20.04, fails on 22.04 — installability failure.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Replaceability</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Can replace another software product for the same purpose in the same environment, with the same data and producing the same outcomes.</div>
+                <div class="sub-example"><strong>Example:</strong> Migrating from MySQL to PostgreSQL. Replaceability test: export all data, import to PostgreSQL, run full regression suite. All queries must produce identical results. Any divergence is a replaceability failure.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Cross-environment deployment tests → adaptability. Scalability testing (now a named sub-characteristic here, not under Performance Efficiency) → scalability. Install/uninstall automation → installability. Migration tests + full regression suite against the new system → replaceability.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. SAFETY -->
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Safety</div>
+          <div class="acc-badge badge-td">ISO 25010</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Does the system avoid causing harm to people, property, or the environment? A system can be fully functional, performant, and secure and still create dangerous situations when it fails in a safety-critical context. This characteristic did not exist in ISO 25010:2011 — its addition reflects the growing role of software in medical devices, autonomous vehicles, and industrial control systems.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Operational Constraint</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system operates within defined safe limits and refuses to operate outside them.</div>
+                <div class="sub-example"><strong>Example:</strong> Medical device refuses to administer a dosage above the safe maximum — even if the controlling software instructs it to. Drone controller ignores a command that would exceed structural load limits. Operational constraint = hard boundary enforcement, not just a warning.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Risk Identification</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system identifies conditions that could create risk and surfaces them to the appropriate entity — user, operator, or external system — in time to act.</div>
+                <div class="sub-example"><strong>Example:</strong> Industrial control system detects that reactor temperature is trending toward the critical threshold — 15 minutes before it would be reached. Alert raised to operator with time to intervene. Risk identification is proactive, not a post-incident log entry.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Fail Safe</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When a failure occurs, the system transitions to a safe state rather than an undefined or dangerous one.</div>
+                <div class="sub-example"><strong>Example:</strong> Vehicle ECU loses communication — brakes engage rather than releasing. Industrial actuator loses power signal — valve closes rather than opening. Access control service crashes — system defaults to deny rather than permit. The failure mode is designed, not accidental.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Hazard Warning</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">The system warns users and connected systems about conditions that could cause harm — before harm occurs.</div>
+                <div class="sub-example"><strong>Example:</strong> Patient monitoring system detects irregular heart rhythm. Alarm triggers at the nursing station before the patient deteriorates to a critical state. Hazard warning = actionable notice with time to respond.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Safe Integration</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When integrated with other systems, the new component does not introduce failure modes that compromise the safety of the broader environment.</div>
+                <div class="sub-example"><strong>Example:</strong> New telemetry microservice added to an autonomous vehicle pipeline. Safe integration testing verifies: the service cannot block the control loop, its failure does not propagate to braking or steering, and its timing does not violate real-time safety constraints.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Safety requirements testing, fault injection, failure mode and effects analysis (FMEA), compliance testing against domain safety standards: IEC 62304 (medical software), DO-178C (aviation), ISO 26262 (automotive), IEC 61508 (industrial). Safety testing requires domain expertise and regulatory audit. Beyond ISTQB Foundation scope — but important to know it exists and why.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TECHNIQUES VIEW ══════════ -->
+<div id="view-tech" class="view">
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box purple" style="margin-bottom:12px;">
+      <div class="plain-label">Why these three concepts are often confused</div>
+      <div class="plain-text">Test <strong>types</strong>, quality <strong>characteristics</strong>, and test design <strong>techniques</strong> are three separate ideas that interact — but each answers a different question. Mixing them up is one of the most common interview mistakes.</div>
+    </div>
+    <div class="example-box" style="margin-bottom:0;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Concept</th><th>Question answered</th><th>Examples</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="c-teal">Test type</strong></td>
+            <td><em>What</em> aspect of the system are you testing?</td>
+            <td>Functional, Performance, Security, Usability, Reliability…</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Quality characteristic</strong></td>
+            <td><em>By what standard</em> do you measure quality?</td>
+            <td>ISO 25010: Functional Suitability, Performance Efficiency, Reliability, Security…</td>
+          </tr>
+          <tr>
+            <td><strong class="c-coral">Design technique</strong></td>
+            <td><em>How</em> do you systematically design test cases?</td>
+            <td>Equivalence Partitioning, BVA, Decision Table, Exploratory…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box teal" style="margin-bottom:0;">
+      <div class="plain-label">How they connect</div>
+      <div class="plain-text">A <strong>test type</strong> (e.g., functional testing) is motivated by a <strong>quality characteristic</strong> (e.g., ISO 25010 — Functional Suitability). A <strong>design technique</strong> is the tool you use to decide which test cases to write — for any test type. The same technique (e.g., Equivalence Partitioning) can be applied to functional, performance, or security tests. Techniques are orthogonal to test types: they describe <em>how</em>, not <em>what</em>.</div>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">ISTQB FL 4.0 — primary categorization</div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Black-box techniques <span class="iso-tag">specification-based</span></div>
+          <div class="acc-badge badge-td">design techniques</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">You design test cases from <strong>what the system should do</strong> — specifications, requirements, user stories — without looking at the code. You treat the system as a black box: input goes in, output comes out, you validate the output.</div>
+          </div>
+          <div class="acc-essence">Applicable to any test level and type. Black-box techniques work wherever expected behavior can be defined from a specification — functional, API, UI, performance boundaries.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Equivalence Partitioning (EP)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Divide possible inputs into groups where every value in a group should behave identically. One representative test per group is enough.</div>
+                <div class="sub-detail"><strong>When to use:</strong> Any input with a range or set of values — numbers, strings, dates, status codes.<br><br><strong>Value:</strong> Reduces test case count without losing coverage of distinct behaviors.</div>
+                <div class="sub-example"><strong>Example — age field (valid 18–65):</strong><br>Partition 1: &lt;18 (invalid) → test with 15<br>Partition 2: 18–65 (valid) → test with 35<br>Partition 3: &gt;65 (invalid) → test with 70<br>3 partitions = 3 test cases minimum.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Boundary Value Analysis (BVA)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Most defects hide at the edges of valid ranges. Test exactly at the boundary and just outside — not just the middle of a partition.</div>
+                <div class="sub-detail"><strong>2-value BVA:</strong> boundary + one value just outside.<br><strong>3-value BVA:</strong> one just below + boundary + one just above.<br><br><strong>Used with EP:</strong> EP selects which partitions to test; BVA refines the values chosen at their boundaries.</div>
+                <div class="sub-example"><strong>Example — valid age 18–65, 3-value BVA:</strong><br>Lower boundary: 17 (invalid) · 18 (valid) · 19 (valid)<br>Upper boundary: 64 (valid) · 65 (valid) · 66 (invalid)</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Decision Table Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When behavior depends on multiple conditions simultaneously, build a table covering every meaningful combination. Each column is one test case.</div>
+                <div class="sub-detail"><strong>When to use:</strong> Business rules with multiple interacting conditions — discount logic, eligibility checks, access control rules.<br><br><strong>Alternative grouping:</strong> Rule-based (see section below).</div>
+                <div class="sub-example"><strong>Example — discount rules:</strong><br>Conditions: member (Y/N) × order &gt; $100 (Y/N) = 4 combinations<br>Member + large = 20% | Member + small = 10% | Non-member + large = 5% | Non-member + small = 0%<br>4 columns = 4 test cases, all rule combinations covered.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">State Transition Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Model the system's valid states and the events that move between them. Test both valid transitions and attempts at invalid ones.</div>
+                <div class="sub-detail"><strong>When to use:</strong> Anything with a lifecycle — orders, sessions, workflows, accounts, subscriptions.<br><br><strong>Alternative grouping:</strong> Behavior-based.</div>
+                <div class="sub-example"><strong>Example — order lifecycle:</strong><br>States: Pending → Confirmed → Shipped → Delivered | Cancelled<br>Valid: Pending → Confirmed ✓<br>Invalid: Shipped → Pending ✗ (must be rejected)<br>Test suite covers valid moves AND attempted invalid transitions.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Use Case Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Test a complete end-to-end scenario as a real user pursuing a real goal — not individual functions, but the full interaction flow.</div>
+                <div class="sub-detail"><strong>Covers:</strong> Happy path + alternative flows + exception handling.<br><br><strong>Alternative grouping:</strong> Behavior-based.</div>
+                <div class="sub-example"><strong>Example — "place an order":</strong><br>Happy path: search → cart → checkout → payment succeeds → confirmation<br>Alternative: item goes out of stock during checkout<br>Exception: payment fails → retry offered, order not created</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Applies to</div>
+            <div class="example-text">Functional testing (primarily) · API contract testing · UI testing · System and acceptance testing. EP and BVA also apply to performance boundary testing, security input validation, and compatibility range checks.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">White-box techniques <span class="iso-tag">structure-based</span></div>
+          <div class="acc-badge badge-td">design techniques</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">You design test cases based on the <strong>internal structure of the code</strong> — logic paths, branches, conditions. Coverage percentage is the key output. The goal: ensure no code path has been silently left untested.</div>
+          </div>
+          <div class="acc-essence"><strong>Structure-based.</strong> Requires access to source code or architecture diagrams. Primarily used at component/unit level, but also applies to integration-level flow testing and API routing logic.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Statement Coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Has every executable line been run at least once?</div>
+                <div class="sub-detail"><strong>Weakness:</strong> Weakest criterion. 100% statement coverage does not mean both branches of an if/else were tested.</div>
+                <div class="sub-example"><strong>Example:</strong> <code>if (x &gt; 0) { doA(); }</code> — passing only x=5 gives 100% statement coverage. The false branch (x ≤ 0) is never exercised.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Branch Coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Has every decision point gone both true and false?</div>
+                <div class="sub-detail"><strong>Key fact:</strong> 100% branch coverage guarantees 100% statement coverage. The reverse is not true.<br><br><strong>Most commonly required criterion</strong> in commercial software practice.</div>
+                <div class="sub-example"><strong>Example:</strong> <code>if (x &gt; 0) { doA(); } else { doB(); }</code><br>Requires 2 tests: x=5 (true → doA) and x=-1 (false → doB).</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Condition Coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">In a compound condition (A AND B), has each individual boolean been independently true and false?</div>
+                <div class="sub-example"><strong>Example:</strong> <code>if (isAdmin AND isActive)</code> — condition coverage requires isAdmin=T/F and isActive=T/F independently, even when the overall decision outcome stays the same.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Multiple Condition Coverage (MCC)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Every possible combination of atomic condition truth values in a compound decision must be tested. More thorough than condition coverage — exhaustive within the decision.</div>
+                <div class="sub-detail"><strong>For <code>if (A AND B)</code>:</strong> MCC requires all 4 combinations: TT, TF, FT, FF. For 3 conditions: 8 combinations. Grows exponentially — impractical beyond 3–4 conditions, which is why MC/DC was invented as a more efficient alternative.</div>
+                <div class="sub-example"><strong>Example:</strong> <code>if (isAdmin AND isActive AND isVerified)</code> — MCC requires 8 test cases (2³). MC/DC requires only 4 — each condition independently changes the outcome, without exhausting all combinations.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Path Coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Has every possible route through the code from start to finish been executed?</div>
+                <div class="sub-detail"><strong>Most thorough, usually impractical.</strong> 10 sequential if/else blocks = up to 1,024 paths. Achievable only in small, safety-critical units.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">MC/DC Coverage</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Each condition in a compound decision can independently change the final outcome — no condition is masked or irrelevant.</div>
+                <div class="sub-detail"><strong>Used in:</strong> Safety-critical systems — aviation (DO-178C Level A), medical devices, automotive (ISO 26262 ASIL D).</div>
+                <div class="sub-example"><strong>Example:</strong> <code>if (A OR B OR C)</code> — MC/DC proves that changing A alone (B and C fixed) changes the result, and independently for B and for C. No condition is redundant.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Applies to</div>
+            <div class="example-text">Unit testing · Component testing · Integration flow testing · CI coverage gates. Usually implemented by developers as part of writing code — QA sets coverage criteria and reviews gaps against risk.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Experience-based techniques</div>
+          <div class="acc-badge badge-td">design techniques</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Tests designed from the tester's knowledge, intuition, and prior experience — not from a formal specification or code structure. Particularly valuable for finding defects that systematic techniques miss, and for testing when specifications are incomplete or absent.</div>
+          </div>
+          <div class="acc-essence">Complements black-box and white-box techniques. Most effective in combination — structured techniques find what was specified; experience-based techniques find what no one thought to specify.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Exploratory Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Simultaneously design and execute tests, learning about the system as you go. Not random clicking — structured exploration guided by a charter and time-boxed sessions.</div>
+                <div class="sub-detail"><strong>Key components:</strong> Charter (what to explore and what risks to target) · Time-box (typically 45–90 min) · Debrief notes.<br><br><strong>When to use:</strong> New features, poorly documented areas, after spec-based tests find nothing obvious, legacy code under regression.</div>
+                <div class="sub-example"><strong>Example:</strong> Charter: "Explore checkout under poor network conditions." Session: throttle connection, interrupt payment mid-flow, submit with expired tokens, trigger back-button after order placement. Finds 3 defects no spec-based test would have identified — the spec didn't cover these scenarios.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Error Guessing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Based on experience, anticipate where bugs are likely to hide — empty fields, null values, zero, special characters, maximum lengths, concurrent actions, race conditions.</div>
+                <div class="sub-detail"><strong>Technique:</strong> Build a fault/error list from prior experience and known common defect types, then write targeted tests for each entry.<br><br><strong>Works best:</strong> When the tester has domain or product expertise.</div>
+                <div class="sub-example"><strong>Example error list for an API:</strong><br>· Empty string where ID expected<br>· Negative quantity in order<br>· SQL injection in search field<br>· Simultaneous double-submit of the same form<br>· JWT with future issue date<br>· Unicode characters in name fields</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Checklist-based Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Tests designed against a reusable checklist of things to always verify — derived from past defects, standards, or domain conventions. More structured than error guessing, less formal than specification-based.</div>
+                <div class="sub-detail"><strong>Advantage:</strong> Captures accumulated team knowledge. Reusable across releases.<br><br><strong>Maintenance:</strong> Checklists must be updated — unchecked items from resolved defects give false confidence.</div>
+                <div class="sub-example"><strong>Example — API testing checklist:</strong><br>☐ Correct HTTP status codes for all outcomes<br>☐ Error responses contain a descriptive message<br>☐ Authorization checked on every endpoint<br>☐ PII masked in logs<br>☐ All inputs validated and sanitized<br>☐ Rate limiting present and tested</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Applies to</div>
+            <div class="example-text">Any test level and type — most effective at system and acceptance testing where full system behavior is visible. Exploratory testing is particularly valuable for security surface testing, UX edge cases, and newly integrated areas. Cannot replace systematic techniques for coverage tracking — but finds defects systematic approaches miss.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Alternative categorization — by technique mechanism</div>
+    <div class="plain-box purple" style="margin-bottom:12px;">
+      <div class="plain-label">Note</div>
+      <div class="plain-text">A second way to classify the same techniques — grouped by <em>what drives test case design</em>, rather than by access to source code. The ISTQB categorization (black / white / experience-based) is primary for certification. This alternative view helps understand <em>why</em> a technique works the way it does.</div>
+    </div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Data-based</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Tests derived from the <strong>data inputs</strong> the system accepts — partitions, boundaries, combinations of values.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Equivalence Partitioning</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Group inputs where all values should behave identically. One test per group.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Boundary Value Analysis</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Focus on partition edges — that is where off-by-one errors concentrate.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Pairwise Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When there are many input parameters, test all pairs of values rather than all full combinations. Covers most bugs with far fewer test cases.</div>
+                <div class="sub-detail"><strong>Rationale:</strong> Most defects are caused by the interaction of at most 2 parameters. Pairwise ensures every 2-way combination is covered at least once without testing the full Cartesian product.</div>
+                <div class="sub-example"><strong>Example:</strong> 3 parameters × 3 values each = 27 full-factorial combinations. Pairwise reduces this to ~9 test cases while still catching all 2-way interactions.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Classification Tree Method</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Structure input parameters as a tree of classes and values, then derive test cases by selecting one leaf from each branch. Provides a visual map of the input space.</div>
+                <div class="sub-example"><strong>Example:</strong> Search feature tree: <em>query type</em> (keyword / phrase / empty) × <em>filters</em> (none / category / price range) × <em>sort</em> (relevance / price / date). Makes it explicit which combinations are worth testing and which are redundant.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Behavior-based</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Tests derived from the <strong>observable behavior</strong> of the system — state transitions, user actions, end-to-end flows.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">State Transition Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Model valid states, triggering events, and expected transitions. Test valid moves and rejected invalid ones.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Use Case Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Test as a real user completing a real goal — happy path, alternatives, and exception flows.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">Rule-based</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Tests derived from <strong>business rules or logical relationships</strong> — the system must implement a defined rule and the test verifies it is applied correctly in every combination.</div>
+          </div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Decision Table Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body"><div class="sub-plain">Enumerate all relevant combinations of business conditions and verify the correct outcome for each.</div></div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Metamorphic Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">When the exact expected output is unknown, verify that changing an input in a predictable way produces a predictably changed output. Tests a relationship between outputs rather than a specific value.</div>
+                <div class="sub-detail"><strong>Use case:</strong> Testing ML models, search engines, compilers, numerical libraries — anywhere the "correct" answer is expensive or impossible to pre-compute.<br><br><strong>Metamorphic relation:</strong> A known property the function must satisfy regardless of the specific input.</div>
+                <div class="sub-example"><strong>Example — search engine:</strong> Search "car" returns 150 results. Search "car OR automobile" must return ≥ 150 results. If it returns fewer, there is a defect — without needing to know the correct result set in advance.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Combination of techniques</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">In practice, techniques are rarely used in isolation. Effective test design combines multiple techniques to cover different risk dimensions of the same feature.</div>
+          </div>
+          <div class="acc-essence">A typical feature test suite: EP + BVA for input validation → Decision Table for business rules → State Transition for lifecycle → Use Case for end-to-end flows → Exploratory for what the spec forgot → Checklist for cross-cutting concerns.</div>
+          <div class="example-box" style="margin-bottom:0;">
+            <div class="example-label">Example — e-commerce checkout</div>
+            <div class="example-text"><strong>EP + BVA:</strong> Price inputs, quantity limits, discount code length<br><strong>Decision Table:</strong> Discount eligibility (member × order value × promotion active)<br><strong>State Transition:</strong> Order lifecycle (pending → confirmed → shipped → delivered)<br><strong>Use Case:</strong> Happy path + payment failure recovery<br><strong>Error Guessing:</strong> Double-submit · expired session mid-checkout · item going out of stock between cart and confirm<br><strong>Checklist:</strong> Auth on all endpoints · PII masking in logs · correct HTTP status codes</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Technique applicability by test type</div>
+    <div class="example-box" style="margin-bottom:0;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Test type</th><th>Commonly used techniques</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="c-teal">Functional</strong></td>
+            <td>EP · BVA · Decision Table · State Transition · Use Case · Error Guessing</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Performance</strong></td>
+            <td>EP / BVA for load thresholds · Pairwise for config combinations · Exploratory under degraded conditions</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Security</strong></td>
+            <td>Error Guessing (attack vectors) · Checklist-based (OWASP Top 10) · Exploratory (pen testing mindset)</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Usability</strong></td>
+            <td>Use Case testing · Exploratory · Checklist-based (WCAG, Nielsen heuristics)</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Compatibility</strong></td>
+            <td>Pairwise (browser × OS × device) · Checklist-based (supported environment matrix)</td>
+          </tr>
+          <tr>
+            <td><strong class="c-amber">Unit / component</strong></td>
+            <td>Statement · Branch · Condition · Path · MC/DC coverage criteria</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ LEVELS VIEW ══════════ -->
+<div id="view-levels" class="view">
+
+  <div class="ref-section" style="margin-bottom:20px;">
+    <div class="plain-box teal" style="margin-bottom:16px;">
+      <div class="plain-label">Test levels — the hierarchy</div>
+      <div class="plain-text">Each level tests a larger scope than the one below it. Tests at lower levels are faster, more numerous, and cheaper to fix when they fail. Tests at higher levels are slower and fewer, but closer to real-world use. The levels do not replace each other — they are complementary layers. A defect caught at unit level costs a fraction of the same defect found at acceptance.</div>
+    </div>
+    <div class="level-pyramid">
+      <div class="lp-bar coral">Acceptance</div>
+      <div class="lp-connector"></div>
+      <div class="lp-bar amber">System</div>
+      <div class="lp-connector"></div>
+      <div class="lp-bar purple">Component Integration</div>
+      <div class="lp-connector"></div>
+      <div class="lp-bar teal">Unit / Component / Module</div>
+    </div>
+    <div class="example-box" style="margin-bottom:0;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Level</th><th>Scope</th><th>Owned by</th><th>Count</th><th>Speed</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong class="c-teal">Unit</strong></td>
+            <td>Single function, class, module</td>
+            <td>Developer</td>
+            <td>Thousands</td>
+            <td>Milliseconds</td>
+          </tr>
+          <tr>
+            <td><strong class="c-purple">Integration</strong></td>
+            <td>Interface between components</td>
+            <td>Developer / QA</td>
+            <td>Hundreds</td>
+            <td>Seconds</td>
+          </tr>
+          <tr>
+            <td><strong class="c-amber">System</strong></td>
+            <td>Full integrated system</td>
+            <td>QA</td>
+            <td>Tens–hundreds</td>
+            <td>Seconds–minutes</td>
+          </tr>
+          <tr>
+            <td><strong class="c-coral">Acceptance</strong></td>
+            <td>Business goals, user journeys</td>
+            <td>Users / stakeholders</td>
+            <td>Fewest</td>
+            <td>Minutes–hours</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">The levels — detail</div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Unit / Component / Module testing</div>
+          <div class="acc-badge badge-q">smallest scope</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Test a single unit of code in complete isolation. Everything it depends on is replaced with a test double (mock, stub, fake). The only question: "Does this one piece of logic work correctly on its own?"</div>
+          </div>
+          <div class="acc-essence">A <strong>unit</strong> is the smallest individually testable element — a function, method, class, or module. Dependencies are isolated: no real database, no real network. If a dependency is called, it is mocked. The test verifies the logic of the unit itself, not the behavior of its dependencies.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">What it finds</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Logic errors inside individual units — wrong calculations, missing conditions, unhandled edge cases, null pointer defects.</div>
+                <div class="sub-example"><strong>Finds:</strong> <code>calculateTax(0, 0.2)</code> throws NullPointerException ✗<br><strong>Does NOT find:</strong> Whether the Tax service can connect to the Pricing database in staging — that is an integration-level concern.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Who runs it and when</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Developer-owned. Runs on every commit as part of the CI pipeline. TDD (test-first) means tests are written before the implementation code.</div>
+                <div class="sub-example"><strong>Tools:</strong> Jest (JS/TS) · JUnit / TestNG (Java) · pytest (Python) · NUnit / xUnit (.NET) · go test (Go) · RSpec (Ruby)</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Microservices context</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">In microservices, a "unit" is typically one service's internal logic — a domain model, a business rule, a data transformation. Each service has its own independent unit test suite.</div>
+                <div class="sub-example"><strong>Example:</strong> Order service — unit test for order validation: verifies that an order with negative quantity is rejected, zero items is rejected, a valid order passes. All calls to database and downstream services are stubbed — the test verifies the validation logic only.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Component integration testing</div>
+          <div class="acc-badge badge-q">interfaces between components</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">Individual components pass unit tests in isolation — but do they work correctly together when connected? Integration testing answers that. The focus is on the <strong>interfaces</strong>: what one component sends and what the other expects to receive.</div>
+          </div>
+          <div class="acc-essence">Does not test the whole system — only specific component pairs or groups. Everything outside the scope of the integration under test is still mocked. The question: "When A calls B, do they agree on the contract?"</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">What it finds that unit testing misses</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Interface mismatches — field names, data types, date formats, HTTP status codes — that unit tests can never catch because each unit is tested with its own mocked responses.</div>
+                <div class="sub-example"><strong>Classic example:</strong> Order service unit tests pass — they mock Inventory to return <code>{"available": true}</code>. Inventory unit tests pass. But real Inventory returns <code>{"inStock": true}</code>. Integration test catches the field name mismatch that both unit suites missed entirely.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Incremental vs big-bang integration</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Incremental: integrate one component at a time (bottom-up from units, or top-down from the API surface). Big-bang: integrate all at once, then test — harder to isolate which interface caused a failure.</div>
+                <div class="sub-detail"><strong>Bottom-up:</strong> Test utility/data layers first, build up gradually — real components replace mocks as they are verified.<br><strong>Top-down:</strong> Test from the API facade downward, stub lower layers first — good when the top-level API contract is the primary risk.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Consumer-driven contract testing (Pact)</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">A technique specific to integration level: the consumer (calling service) defines the contract it expects. The provider (called service) verifies it meets that contract. Both sides test independently — no shared environment needed.</div>
+                <div class="sub-example"><strong>Example:</strong> Order service writes a Pact saying "I expect GET /inventory/{id} to return { id, inStock, quantity }." Inventory service runs Pact verification in its own CI. If Inventory removes the <code>quantity</code> field, the Pact test catches it before the two services are ever deployed together in staging.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">QA angle</div>
+            <div class="example-text">Integration tests are where unit tests' false confidence is exposed. A system can have 95% unit test coverage and still fail catastrophically at integration level if the mocks do not reflect reality. Contract testing (Pact) is the gold standard for catching this class of failure in microservices architectures.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title c-amber">System testing</div>
+          <div class="acc-badge badge-q">full integrated system</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">The complete system — all components integrated — is tested as a whole against system requirements. No mocks. Real services, real databases, real infrastructure. The question: "Does the system, taken together, behave as specified?"</div>
+          </div>
+          <div class="acc-essence">QA-owned. The primary level for formal test execution. Tests derive from system requirements — functional AND non-functional. The environment should mirror production as closely as possible.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">What it tests</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Both functional and non-functional requirements at system scope: end-to-end user flows, performance under load, security, usability, reliability — everything the system specification covers.</div>
+                <div class="sub-example"><strong>Example:</strong> Full checkout — search → add to cart → apply discount → enter payment → confirmation email sent → inventory decremented → order record created. All real, all integrated, no stubs.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">What it finds that lower levels miss</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Emergent defects — behavior that only appears when ALL components interact under realistic conditions: race conditions, data consistency failures across services, configuration mismatches, environmental issues.</div>
+                <div class="sub-example"><strong>Example:</strong> Order service and Payment service both pass unit and integration tests. At system level, under concurrent load: two users simultaneously purchase the last item in stock — both orders succeed, inventory goes negative. The race condition only manifests when both services run against a shared database under real concurrency.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">[System integration testing]</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Testing the integrated system against external systems — third-party APIs, payment processors, legacy ERPs, external data feeds. Sometimes a separate formal level, sometimes folded into system testing depending on project context.</div>
+                <div class="sub-example"><strong>Example:</strong> Our order system integrated with Stripe (payment), SendGrid (email), and a legacy warehouse management system. System integration tests verify the full data flow across all three external integrations under realistic conditions — not mocked adapters.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title c-coral">Acceptance testing</div>
+          <div class="acc-badge badge-q">validates business goals</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">System testing asks "does it meet the spec?" — acceptance testing asks "does the spec actually satisfy the users and the business?" The system can pass system testing and still fail acceptance if the requirements were wrong or incomplete to begin with.</div>
+          </div>
+          <div class="acc-essence">Performed by or with the intended users, business stakeholders, or product owners — not by QA alone. Validates against <strong>business requirements and user goals</strong>, not technical specifications. This is the formal gate before release.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">UAT — User Acceptance Testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Actual users or business representatives validate the system meets their needs under conditions resembling real use.</div>
+                <div class="sub-example"><strong>Example:</strong> Finance team uses the new reporting module on real (anonymized) production data for one week before go-live. Their sign-off confirms the feature meets real operational needs, not just documented requirements.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Contractual acceptance</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Verifies the system meets acceptance criteria written into the contract between the development team and the client. Formal pass/fail against an agreed checklist.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Regulatory acceptance</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Verifies compliance with laws, regulations, or industry standards before the system can be legally operated.</div>
+                <div class="sub-example"><strong>Example:</strong> Medical device software passes regulatory acceptance against IEC 62304 before deployment. Financial system demonstrates GDPR compliance before processing personal data.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Alpha / Beta testing</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Pre-release validation with real users in conditions closer to actual deployment.</div>
+                <div class="sub-detail"><strong>Alpha:</strong> Internal users or invited testers in a controlled environment, close QA oversight.<br><strong>Beta:</strong> External users in their own environment, limited QA oversight — catches issues that only emerge at real-world scale and diversity of usage.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Key distinction from system testing</div>
+            <div class="example-text">System testing: "Does the system match the specification?" Acceptance testing: "Does the specification match what users actually need?" A system can be defect-free at system level and still be rejected at acceptance if the wrong feature was built. This is why acceptance criteria must be agreed <em>before</em> development starts, not after.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Change-induced testing — not a level, not a type</div>
+    <div class="plain-box purple" style="margin-bottom:12px;">
+      <div class="plain-label">Important distinction</div>
+      <div class="plain-text">Confirmation testing and regression testing are not test types or test levels — they are <strong>testing activities triggered by change</strong>. They can be performed at any test level using any technique. What makes them special is the trigger, not what they test or how.</div>
+    </div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-teal"></div>
+          <div class="acc-title c-teal">Confirmation testing (re-testing)</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box teal">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">A defect was found. A fix was deployed. Confirmation testing re-runs the specific test(s) that detected the defect to verify the fix actually works.</div>
+          </div>
+          <div class="acc-essence"><strong>Narrow focus:</strong> Re-run exactly the test cases that failed. Not a broad sweep — that is regression testing's job. Confirmation testing answers one question: "Is this specific defect now fixed?"</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">When and how</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">After a fix is deployed to the test environment, re-execute the failing test(s) with the same steps, same data, same environment. Pass → confirmed. Fail → defect re-opened.</div>
+                <div class="sub-example"><strong>Example:</strong> Bug #1234: checkout fails when cart has exactly 10 items (off-by-one in quantity validation). Fix deployed. Confirmation test: add exactly 10 items, proceed to checkout. Completes successfully → #1234 confirmed fixed. Then: trigger regression testing to check for side effects.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title c-purple">Regression testing</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">In plain words</div>
+            <div class="plain-text">After any change — a new feature, a bug fix, a refactor, a configuration update — verify that nothing that was working before is now broken. Changes have unintended side effects; regression testing finds them.</div>
+          </div>
+          <div class="acc-essence"><strong>Broad scope:</strong> Covers any area of the system that could plausibly have been affected by the change. Scope expands with risk — a critical shared library change may trigger a full suite; a minor UI text change needs only a targeted sweep.</div>
+          <div class="sub-list">
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Risk-based scope selection</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Running the full suite on every change is expensive. Prioritize: what changed, what it touches, what has failed historically, what is business-critical.</div>
+                <div class="sub-detail"><strong>Prioritization factors:</strong> Changed code paths · Downstream dependencies · Historical defect concentration · Business impact of failure · Frequency of real user interaction</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Why automation is essential</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">Regression suites grow with the product. Manual regression at scale is unsustainable — automation is required to run it fast enough to provide feedback after every change.</div>
+                <div class="sub-example"><strong>Example:</strong> 3-year-old product. Full manual regression = 2 weeks. Release cadence = every 2 weeks. Without automation, QA spends 100% of capacity on regression and has zero capacity for new feature testing.</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;">
+            <div class="example-label">Confirmation vs Regression</div>
+            <div class="example-text"><strong>Confirmation:</strong> "Is this specific defect fixed?" — narrow, targets the known failure.<br><strong>Regression:</strong> "Did fixing this break anything else?" — broad, targets unknown side effects.<br>Both are triggered by change. They ask different questions and use different scope. Both are typically run after a fix is applied — confirmation first, then regression.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ref-section">
+    <div class="ref-section-title">Common misconceptions</div>
+    <div class="acc-group">
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-coral"></div>
+          <div class="acc-title">Smoke = Sanity — and neither is a formal ISTQB test type</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box coral">
+            <div class="plain-label">Reality</div>
+            <div class="plain-text">"Smoke test" and "sanity test" are informal industry terms for the same thing: a quick, shallow check that a build is stable enough to test. ISTQB does not list them as formal test types. In interviews, the correct answer is that these are informal practices — a form of lightweight confirmation/regression testing typically run at system level to verify a build is alive before the full test suite is executed.</div>
+          </div>
+          <div class="acc-essence"><strong>Origin of "smoke test":</strong> Hardware engineering — power on a circuit board; if smoke appears, stop immediately. Applied to software: if the build cannot start or crashes on launch, there is no point running the full test suite. Smoke testing verifies the build is alive, not that it is correct.</div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-amber"></div>
+          <div class="acc-title">Maintenance testing ≠ Maintainability</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box amber">
+            <div class="plain-label">Reality</div>
+            <div class="plain-text"><strong>Maintenance testing</strong> — a test ACTIVITY. Testing triggered by a change to an existing system: a defect fix, a new feature added to a live product, a migration to a new environment, retirement of a legacy system. Something changed; you test to verify the change and catch side effects.<br><br><strong>Maintainability</strong> — an ISO 25010 quality CHARACTERISTIC. How easy it is for developers to modify, analyze, test, and extend the system's code. A property of the product's architecture, not a testing activity.</div>
+          </div>
+          <div class="example-box" style="margin-bottom:0;">
+            <div class="example-label">Example to keep them separate</div>
+            <div class="example-text"><strong>Maintenance testing:</strong> "We patched a security vulnerability in the auth service. We ran maintenance testing — confirmation + regression — to verify the patch works and has no side effects."<br><br><strong>Maintainability:</strong> "The auth service has poor maintainability: low testability (concrete dependencies, no injection), poor analysability (no structured logging), risky modifiability (73 hardcoded string literals)."<br><br>One describes what you DO after a change. The other describes what the code IS.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot bg-purple"></div>
+          <div class="acc-title">e2e is not a test level — it is a scope descriptor</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box purple">
+            <div class="plain-label">Reality</div>
+            <div class="plain-text">"End-to-end test" describes the <strong>scope</strong> of a test scenario — it covers the full flow from one end of the system to the other (UI → API → database → external services → back). It is not a separate test level in the ISTQB hierarchy. e2e tests are run at <strong>system level</strong> or <strong>acceptance level</strong>.</div>
+          </div>
+          <div class="acc-essence">When a team says "our e2e suite," they mean "our suite of system-level tests that exercise complete user flows." The term describes what the tests cover, not where they sit in the level hierarchy.</div>
+          <div class="example-box" style="margin-bottom:0;">
+            <div class="example-label">Why this matters</div>
+            <div class="example-text">Teams that treat e2e as a separate level tend to skip component integration testing ("we'll catch it in e2e") — then integration bugs are expensive to diagnose because they only surface in full-system runs. The correct approach: unit → integration → system (e2e) — not unit → e2e directly, skipping the integration level.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
 <script src="../../assets/site.js"></script>
 <script>
 function fitMindMap() {
@@ -875,6 +2136,12 @@ function switchTab(name) {
   var tabRef = document.getElementById('tab-ref');
   if (tabMap) tabMap.classList.toggle('active', name === 'map');
   if (tabRef) tabRef.classList.toggle('active', name === 'ref');
+  var tabIso = document.getElementById('tab-iso');
+  if (tabIso) tabIso.classList.toggle('active', name === 'iso');
+  var tabTech = document.getElementById('tab-tech');
+  if (tabTech) tabTech.classList.toggle('active', name === 'tech');
+  var tabLevels = document.getElementById('tab-levels');
+  if (tabLevels) tabLevels.classList.toggle('active', name === 'levels');
   if (name === 'map') fitMindMap();
 }
 function switchTabAndScroll(tab, id) {
