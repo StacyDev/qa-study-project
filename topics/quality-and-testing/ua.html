@@ -192,6 +192,13 @@
   .ls-bar.orange { background: #ffedd5;            color: #c2410c;       border-color: #c2410c; }
   .ls-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
   .ls-connector  { width: 1px; height: 8px; background: var(--border); margin: 0 auto; }
+  .cat-badge { display: inline-block; font-size: var(--fs-xs); font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+  .cat-type  { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid); }
+  .cat-level { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); }
+  .cat-tech  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309; }
+  .cat-exec  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
+  .cat-scope { background: #ffedd5; color: #c2410c; border-color: #c2410c; }
+  .cat-biz   { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
   @media (max-width: 600px) { #view-ref { padding: 16px; } #view-iso { padding: 16px; } #view-tech { padding: 16px; } #view-levels { padding: 16px; } .mm-root { min-width: 700px; } }
 </style>
 </head>
@@ -410,9 +417,69 @@
 <!-- ══════════ REFERENCE VIEW ══════════ -->
 <div id="view-ref" class="view">
 
+  <!-- ── CLASSIFICATION TABLE ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Класифікація тестових понять</div>
+    <div class="example-box" style="padding:0;margin-bottom:12px;overflow:auto;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Поняття</th><th>Категорія ISTQB</th><th>Що визначає</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Функціональне тестування</strong></td><td><span class="cat-badge cat-type">Тип тестування</span></td><td>Яку характеристику якості перевіряєте — функціональну придатність</td></tr>
+          <tr><td><strong>Нефункціональне тестування</strong></td><td><span class="cat-badge cat-type">Тип тестування</span></td><td>Яку характеристику якості перевіряєте — продуктивність, безпека, надійність, зручність використання, сумісність, зручність обслуговування, переносність</td></tr>
+          <tr><td><strong>Тестування чорного ящика</strong></td><td><span class="cat-badge cat-type">Тип тестування</span></td><td>Як проєктуєте тести — без доступу до внутрішнього коду</td></tr>
+          <tr><td><strong>Тестування білого ящика</strong></td><td><span class="cat-badge cat-type">Тип тестування</span></td><td>Як проєктуєте тести — використовуючи внутрішню структуру коду</td></tr>
+          <tr><td><strong>Юніт-тестування</strong></td><td><span class="cat-badge cat-level">Рівень тестування</span></td><td>Де у розробці тестуєте — окремий компонент в ізоляції</td></tr>
+          <tr><td><strong>Інтеграційне тестування</strong></td><td><span class="cat-badge cat-level">Рівень тестування</span></td><td>Де у розробці тестуєте — компоненти, що працюють разом</td></tr>
+          <tr><td><strong>Системне тестування</strong></td><td><span class="cat-badge cat-level">Рівень тестування</span></td><td>Де у розробці тестуєте — повністю інтегрована система</td></tr>
+          <tr><td><strong>Приймальне тестування</strong></td><td><span class="cat-badge cat-level">Рівень тестування</span></td><td>Де у розробці тестуєте — перевірка бізнес-вимог</td></tr>
+          <tr><td><strong>Alpha-тестування</strong></td><td><span class="cat-badge cat-level">Рівень тест. (приймальний)</span></td><td>Хто тестує і де — внутрішні користувачі, всередині компанії</td></tr>
+          <tr><td><strong>Beta-тестування</strong></td><td><span class="cat-badge cat-level">Рівень тест. (приймальний)</span></td><td>Хто тестує і де — реальні зовнішні користувачі, поза компанією</td></tr>
+          <tr><td><strong>E2E тестування</strong></td><td><span class="cat-badge cat-scope">Обсяг / підхід тестування</span></td><td>Повний потік користувача через всі інтегровані системи та межі</td></tr>
+          <tr><td><strong>Інтеграція знизу вгору</strong></td><td><span class="cat-badge cat-level">Стратегія інтеграційного тест.</span></td><td>Порядок інтеграції — спочатку нижні компоненти, потрібні драйвери</td></tr>
+          <tr><td><strong>Інтеграція зверху вниз</strong></td><td><span class="cat-badge cat-level">Стратегія інтеграційного тест.</span></td><td>Порядок інтеграції — спочатку вищий компонент, потрібні стаби</td></tr>
+          <tr><td><strong>Інтеграція «великий вибух»</strong></td><td><span class="cat-badge cat-level">Стратегія інтеграційного тест.</span></td><td>Всі компоненти інтегровано одразу, без поступового підходу</td></tr>
+          <tr><td><strong>Розбиття на класи еквівалентності</strong></td><td><span class="cat-badge cat-tech">Техніка проєктування тестів</span></td><td>Як виводити тест-кейси — групувати входи в розділи еквівалентності</td></tr>
+          <tr><td><strong>Аналіз граничних значень</strong></td><td><span class="cat-badge cat-tech">Техніка проєктування тестів</span></td><td>Як виводити тест-кейси — тестувати на межах розділів</td></tr>
+          <tr><td><strong>Тестування за таблицею рішень</strong></td><td><span class="cat-badge cat-tech">Техніка проєктування тестів</span></td><td>Як виводити тест-кейси — відображати комбінації умов на результати</td></tr>
+          <tr><td><strong>Тестування переходів між станами</strong></td><td><span class="cat-badge cat-tech">Техніка проєктування тестів</span></td><td>Як виводити тест-кейси — тестувати валідні та невалідні переходи між станами</td></tr>
+          <tr><td><strong>Позитивне тестування</strong></td><td><span class="cat-badge cat-tech">Підхід до проєктування тестів</span></td><td>Підхід до тестування — валідні вхідні дані, очікувана поведінка</td></tr>
+          <tr><td><strong>Негативне тестування</strong></td><td><span class="cat-badge cat-tech">Підхід до проєктування тестів</span></td><td>Підхід до тестування — невалідні вхідні дані, неочікувана поведінка</td></tr>
+          <tr><td><strong>Тестування на основі вимог</strong></td><td><span class="cat-badge cat-tech">Підхід до проєктування тестів</span></td><td>Виводить тести з вимог — перетинається з тестуванням чорного ящика</td></tr>
+          <tr><td><strong>A/B тестування</strong></td><td><span class="cat-badge cat-biz">Бізнес / продуктова техніка</span></td><td>Порівняння двох версій для бізнес-результату</td></tr>
+          <tr><td><strong>Тестування на основі ризиків</strong></td><td><span class="cat-badge cat-exec">Стратегія пріоритизації тестів</span></td><td>Що тестувати першим, виходячи з імовірності та впливу відмови</td></tr>
+          <tr><td><strong>Smoke-тестування</strong></td><td><span class="cat-badge cat-exec">Стратегія виконання тестів</span></td><td>Широка поверхнева перевірка після нового білду</td></tr>
+          <tr><td><strong>Sanity-тестування</strong></td><td><span class="cat-badge cat-exec">Стратегія виконання тестів</span></td><td>Вузька перевірка після конкретної зміни</td></tr>
+          <tr><td><strong>Регресійне тестування</strong></td><td><span class="cat-badge cat-exec">Стратегія виконання тестів</span></td><td>Повторне тестування системи після будь-якої зміни</td></tr>
+          <tr><td><strong>Підтвердне тестування</strong></td><td><span class="cat-badge cat-exec">Стратегія виконання тестів</span></td><td>Повторне тестування конкретного виправленого дефекту</td></tr>
+          <tr><td><strong>Ad-hoc тестування</strong></td><td><span class="cat-badge cat-exec">Підхід до виконання тестів</span></td><td>Непланове, неструктуроване, основане на досвіді</td></tr>
+          <tr><td><strong>Monkey-тестування</strong></td><td><span class="cat-badge cat-exec">Підхід до виконання тестів</span></td><td>Випадковий ввід без плану — підтип ad-hoc</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="example-box" style="padding:0;margin-bottom:0;">
+      <div class="example-label" style="padding:10px 16px 4px;">Легенда — визначення категорій</div>
+      <table class="concept-table">
+        <tbody>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-type">Тип тестування</span></td><td>Класифікує тестування за тим, <em>яку характеристику якості</em> ви перевіряєте. Відповідає: який аспект якості ми перевіряємо? <em>ISTQB FL 4.0 §2.2.2</em></td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-level">Рівень тестування</span></td><td>Класифікує тестування за тим, <em>де у циклі розробки</em> ви знаходитеся. Відповідає: скільки системи існує і тестується зараз? <em>ISTQB FL 4.0 §2.2.1</em></td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-scope">Обсяг / підхід тестування</span></td><td>Описує, <em>скільки системи</em> охоплює один тест. Відповідає: чи тестуємо один юніт, один сервіс або весь шлях користувача?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-level">Стратегія інтеграційного тест.</span></td><td>Класифікує тестування за <em>порядком та методом</em> об'єднання компонентів. Відповідає: в якій послідовності ми підключаємо компоненти та тестуємо їх?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-tech">Техніка проєктування тестів</span></td><td>Формальний структурований метод з конкретними правилами для виведення тест-кейсів. Відповідає: як саме я генерую тест-кейси?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-tech">Підхід до проєктування тестів</span></td><td>Ширша філософія або напрямок мислення. Менш формальний — без фіксованих кроків. Відповідає: який менталітет або кут зору я використовую?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-exec">Стратегія пріоритизації тестів</span></td><td>Визначає, <em>що тестувати першим</em>, виходячи із зовнішніх факторів: ризик, бізнес-цінність, імовірність відмови. Не визначає як тестувати.</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-exec">Стратегія виконання тестів</span></td><td>Визначає, <em>коли і скільки</em> тестувати. Активується конкретними подіями: новий білд, виправлення дефекту. <em>ISTQB FL 4.0 §2.2.3</em></td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-exec">Підхід до виконання тестів</span></td><td><em>Стиль</em> виконання тестів. Відповідає: я слідую скрипту чи досліджую вільно?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-biz">Бізнес / продуктова техніка</span></td><td>Не QA-техніка у строгому сенсі. Використовується для прийняття продуктових або бізнес-рішень за допомогою даних реальних користувачів.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ── FUNCTIONAL ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Функціональне тестування — за характеристикою якості</div>
+    <div class="ref-section-title">Функціональне тестування</div>
     <div class="acc-group">
       <div class="acc-item" id="acc-functional">
         <div class="acc-header" onclick="toggleAcc(this.parentElement)">
@@ -496,7 +563,7 @@
 
   <!-- ── NON-FUNCTIONAL ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Нефункціональне тестування — за характеристикою якості</div>
+    <div class="ref-section-title">Нефункціональне тестування</div>
     <div class="acc-group" id="acc-nonfunctional">
 
       <!-- PERFORMANCE -->
@@ -562,6 +629,22 @@
                 <div class="sub-example"><strong>Приклад:</strong> 2 поди: 1 000 запитів/сек. Додаємо ще 2 поди → очікуємо ~2 000 запитів/сек. Реальний результат: 1 200 запитів/сек. Знайдено вузьке місце — всі поди спільно використовують один пул підключень до БД з максимумом 50 з'єднань. Масштабування подів не допомагає, оскільки всі вони конкурують за ті самі 50 підключень.</div>
               </div>
             </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;padding:0;">
+            <div class="example-label" style="padding:10px 16px 4px;">Підвиди тестування продуктивності — швидка довідка</div>
+            <table class="concept-table">
+              <thead>
+                <tr><th>Назва ISTQB</th><th>Також відоме як</th><th>Рівень навантаження</th><th>Тривалість</th><th>Що шукаємо</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Навантажувальне тестування</strong></td><td>—</td><td>Нормальне очікуване</td><td>Короткий</td><td>Відповідає SLA при очікуваному трафіку?</td></tr>
+                <tr><td><strong>Стрес-тестування</strong></td><td>—</td><td>Понад норму, поступово</td><td>Короткий</td><td>Де ламається? Як відмовляє?</td></tr>
+                <tr><td><strong>Спайк-тестування</strong></td><td>—</td><td>Норма → екстрем → норма, миттєво</td><td>Дуже короткий</td><td>Витримує раптовий сплеск?</td></tr>
+                <tr><td><strong>Тестування витривалості</strong></td><td>Soak, Endurance, Longevity, Stamina</td><td>Нормальне або помірне</td><td>Дуже довгий (год / дні)</td><td>Повільно деградує з часом?</td></tr>
+                <tr><td><strong>Об'ємне тестування</strong></td><td>Flood testing</td><td>Будь-яке — але величезні дані</td><td>Будь-який</td><td>Обробляє великі обсяги даних?</td></tr>
+                <tr><td><strong>Тестування масштабованості</strong></td><td>Capacity testing</td><td>Збільшення</td><td>Будь-який</td><td>Додавання ресурсів дійсно допомагає?</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -752,7 +835,7 @@
 
   <!-- ── BLACK-BOX ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Тестування чорної скриньки — за технікою проектування тестів</div>
+    <div class="ref-section-title">Тестування чорної скриньки</div>
     <div class="acc-group">
       <div class="acc-item" id="acc-blackbox">
         <div class="acc-header" onclick="toggleAcc(this.parentElement)">
@@ -812,7 +895,7 @@
 
   <!-- ── WHITE-BOX ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Тестування білої скриньки — за технікою проектування тестів</div>
+    <div class="ref-section-title">Тестування білої скриньки</div>
     <div class="acc-group">
       <div class="acc-item" id="acc-whitebox">
         <div class="acc-header" onclick="toggleAcc(this.parentElement)">

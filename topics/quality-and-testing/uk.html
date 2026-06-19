@@ -192,6 +192,13 @@
   .ls-bar.orange { background: #ffedd5;            color: #c2410c;       border-color: #c2410c; }
   .ls-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
   .ls-connector  { width: 1px; height: 8px; background: var(--border); margin: 0 auto; }
+  .cat-badge { display: inline-block; font-size: var(--fs-xs); font-weight: 600; padding: 2px 7px; border-radius: 4px; border: 1px solid; white-space: nowrap; }
+  .cat-type  { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid); }
+  .cat-level { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); }
+  .cat-tech  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309; }
+  .cat-exec  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
+  .cat-scope { background: #ffedd5; color: #c2410c; border-color: #c2410c; }
+  .cat-biz   { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
   @media (max-width: 600px) { #view-ref { padding: 16px; } #view-iso { padding: 16px; } #view-tech { padding: 16px; } #view-levels { padding: 16px; } .mm-root { min-width: 700px; } }
 </style>
 </head>
@@ -410,9 +417,69 @@
 <!-- ══════════ REFERENCE VIEW ══════════ -->
 <div id="view-ref" class="view">
 
+  <!-- ── CLASSIFICATION TABLE ── -->
+  <div class="ref-section">
+    <div class="ref-section-title">Testing concepts classification</div>
+    <div class="example-box" style="padding:0;margin-bottom:12px;overflow:auto;">
+      <table class="concept-table">
+        <thead>
+          <tr><th>Concept</th><th>ISTQB category</th><th>What it defines</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Functional testing</strong></td><td><span class="cat-badge cat-type">Test type</span></td><td>What quality characteristic you verify — functional suitability</td></tr>
+          <tr><td><strong>Non-functional testing</strong></td><td><span class="cat-badge cat-type">Test type</span></td><td>What quality characteristic you verify — performance, security, reliability, usability, compatibility, maintainability, portability</td></tr>
+          <tr><td><strong>Black-box testing</strong></td><td><span class="cat-badge cat-type">Test type</span></td><td>How you design tests — without access to internal code</td></tr>
+          <tr><td><strong>White-box testing</strong></td><td><span class="cat-badge cat-type">Test type</span></td><td>How you design tests — using internal code structure</td></tr>
+          <tr><td><strong>Unit testing</strong></td><td><span class="cat-badge cat-level">Test level</span></td><td>Where in development you test — single component in isolation</td></tr>
+          <tr><td><strong>Integration testing</strong></td><td><span class="cat-badge cat-level">Test level</span></td><td>Where in development you test — components working together</td></tr>
+          <tr><td><strong>System testing</strong></td><td><span class="cat-badge cat-level">Test level</span></td><td>Where in development you test — complete integrated system</td></tr>
+          <tr><td><strong>Acceptance testing</strong></td><td><span class="cat-badge cat-level">Test level</span></td><td>Where in development you test — business requirements validation</td></tr>
+          <tr><td><strong>Alpha testing</strong></td><td><span class="cat-badge cat-level">Test level (acceptance)</span></td><td>Who tests and where — internal users, inside company</td></tr>
+          <tr><td><strong>Beta testing</strong></td><td><span class="cat-badge cat-level">Test level (acceptance)</span></td><td>Who tests and where — real external users, outside company</td></tr>
+          <tr><td><strong>E2E testing</strong></td><td><span class="cat-badge cat-scope">Test scope / approach</span></td><td>Complete user flow across all integrated systems and boundaries</td></tr>
+          <tr><td><strong>Bottom-up integration</strong></td><td><span class="cat-badge cat-level">Integration testing strategy</span></td><td>Order of integration — lowest components first, needs drivers</td></tr>
+          <tr><td><strong>Top-down integration</strong></td><td><span class="cat-badge cat-level">Integration testing strategy</span></td><td>Order of integration — highest component first, needs stubs</td></tr>
+          <tr><td><strong>Big bang integration</strong></td><td><span class="cat-badge cat-level">Integration testing strategy</span></td><td>All components integrated at once, no gradual approach</td></tr>
+          <tr><td><strong>Equivalence partitioning</strong></td><td><span class="cat-badge cat-tech">Test design technique</span></td><td>How you derive test cases — group inputs into partitions</td></tr>
+          <tr><td><strong>Boundary value analysis</strong></td><td><span class="cat-badge cat-tech">Test design technique</span></td><td>How you derive test cases — test at partition edges</td></tr>
+          <tr><td><strong>Decision table testing</strong></td><td><span class="cat-badge cat-tech">Test design technique</span></td><td>How you derive test cases — map condition combinations to outcomes</td></tr>
+          <tr><td><strong>State transition testing</strong></td><td><span class="cat-badge cat-tech">Test design technique</span></td><td>How you derive test cases — test valid and invalid state transitions</td></tr>
+          <tr><td><strong>Positive testing</strong></td><td><span class="cat-badge cat-tech">Test design approach</span></td><td>How you think about testing — valid inputs, expected behavior</td></tr>
+          <tr><td><strong>Negative testing</strong></td><td><span class="cat-badge cat-tech">Test design approach</span></td><td>How you think about testing — invalid inputs, unexpected behavior</td></tr>
+          <tr><td><strong>Requirement-based testing</strong></td><td><span class="cat-badge cat-tech">Test design approach</span></td><td>Derives tests from requirements — overlaps with black-box</td></tr>
+          <tr><td><strong>A/B testing</strong></td><td><span class="cat-badge cat-biz">Business / product technique</span></td><td>Comparing two versions for business outcome</td></tr>
+          <tr><td><strong>Risk-based testing</strong></td><td><span class="cat-badge cat-exec">Test prioritization strategy</span></td><td>What to test first based on probability and impact of failure</td></tr>
+          <tr><td><strong>Smoke testing</strong></td><td><span class="cat-badge cat-exec">Test execution strategy</span></td><td>Wide shallow check after new build</td></tr>
+          <tr><td><strong>Sanity testing</strong></td><td><span class="cat-badge cat-exec">Test execution strategy</span></td><td>Narrow check after specific change</td></tr>
+          <tr><td><strong>Regression testing</strong></td><td><span class="cat-badge cat-exec">Test execution strategy</span></td><td>Re-test system after any change</td></tr>
+          <tr><td><strong>Confirmation testing</strong></td><td><span class="cat-badge cat-exec">Test execution strategy</span></td><td>Re-test specific fixed bug</td></tr>
+          <tr><td><strong>Ad-hoc testing</strong></td><td><span class="cat-badge cat-exec">Test execution approach</span></td><td>Unplanned, unstructured, experience-driven testing</td></tr>
+          <tr><td><strong>Monkey testing</strong></td><td><span class="cat-badge cat-exec">Test execution approach</span></td><td>Random unguided input with no plan — subtype of ad-hoc</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="example-box" style="padding:0;margin-bottom:0;">
+      <div class="example-label" style="padding:10px 16px 4px;">Legend — category definitions</div>
+      <table class="concept-table">
+        <tbody>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-type">Test type</span></td><td>Classifies testing by <em>what quality characteristic</em> you are verifying. Answers: what aspect of quality are we checking? <em>ISTQB FL 4.0 §2.2.2</em></td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-level">Test level</span></td><td>Classifies testing by <em>where in the development lifecycle</em> you are testing. Answers: how much of the system exists and is being tested right now? <em>ISTQB FL 4.0 §2.2.1</em></td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-scope">Test scope / approach</span></td><td>Describes <em>how much of the system</em> is covered in a single test. Answers: are we testing one unit, one service, or the entire user journey from start to finish?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-level">Integration testing strategy</span></td><td>Classifies testing by <em>the order and method</em> of combining components. Answers: in what sequence do we plug components together and test them?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-tech">Test design technique</span></td><td>A formal, structured method with specific rules for deriving test cases. Produces a defined, repeatable set of test cases. Answers: exactly how do I generate my test cases?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-tech">Test design approach</span></td><td>A broader philosophy or direction for how you think about testing. Less formal — no fixed steps or defined output. Answers: what mindset or angle am I using?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-exec">Test prioritization strategy</span></td><td>Determines <em>what to test first</em> based on external factors like risk, business value, or probability of failure. Does not define how to test — only what to test first.</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-exec">Test execution strategy</span></td><td>Determines <em>when and how much</em> to test during execution. Triggered by specific events like a new build or a bug fix. <em>ISTQB FL 4.0 §2.2.3</em></td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-exec">Test execution approach</span></td><td>The <em>style</em> of test execution. Answers: am I following a script or exploring freely?</td></tr>
+          <tr><td style="white-space:nowrap;"><span class="cat-badge cat-biz">Business / product technique</span></td><td>Not a QA technique in the strict sense. Used to make product or business decisions using data from real users.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ── FUNCTIONAL ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Functional testing — quality-characteristic driven</div>
+    <div class="ref-section-title">Functional testing</div>
     <div class="acc-group">
       <div class="acc-item" id="acc-functional">
         <div class="acc-header" onclick="toggleAcc(this.parentElement)">
@@ -496,7 +563,7 @@
 
   <!-- ── NON-FUNCTIONAL ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Non-functional testing — quality-characteristic driven</div>
+    <div class="ref-section-title">Non-functional testing</div>
     <div class="acc-group" id="acc-nonfunctional">
 
       <!-- PERFORMANCE -->
@@ -562,6 +629,22 @@
                 <div class="sub-example"><strong>Example:</strong> 2 pods: 1,000 req/s. Add 2 more pods → expect ~2,000 req/s. Actual result: 1,200 req/s. Bottleneck found — all pods share one database connection pool with max 50 connections. Scaling pods does not help because they all compete for the same 50 DB connections.</div>
               </div>
             </div>
+          </div>
+          <div class="example-box" style="margin-top:12px;margin-bottom:0;padding:0;">
+            <div class="example-label" style="padding:10px 16px 4px;">Performance subtypes — quick reference</div>
+            <table class="concept-table">
+              <thead>
+                <tr><th>ISTQB name</th><th>Also known as</th><th>Load level</th><th>Duration</th><th>What you are looking for</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Load testing</strong></td><td>—</td><td>Normal expected</td><td>Short</td><td>Meets SLA at expected traffic?</td></tr>
+                <tr><td><strong>Stress testing</strong></td><td>—</td><td>Beyond normal, gradual</td><td>Short</td><td>Where does it break? How does it fail?</td></tr>
+                <tr><td><strong>Spike testing</strong></td><td>—</td><td>Normal → extreme → normal, instantly</td><td>Very short</td><td>Survives sudden burst?</td></tr>
+                <tr><td><strong>Soak testing</strong></td><td>Endurance, Longevity, Stamina</td><td>Normal or moderate</td><td>Very long (hours / days)</td><td>Degrades slowly over time?</td></tr>
+                <tr><td><strong>Volume testing</strong></td><td>Flood testing</td><td>Any — but huge data</td><td>Any</td><td>Handles large amounts of data?</td></tr>
+                <tr><td><strong>Scalability testing</strong></td><td>Capacity testing</td><td>Increasing</td><td>Any</td><td>Adding resources actually helps?</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -752,7 +835,7 @@
 
   <!-- ── BLACK-BOX ── -->
   <div class="ref-section">
-    <div class="ref-section-title">Black-box testing — test design driven</div>
+    <div class="ref-section-title">Black-box testing</div>
     <div class="acc-group">
       <div class="acc-item" id="acc-blackbox">
         <div class="acc-header" onclick="toggleAcc(this.parentElement)">
@@ -812,7 +895,7 @@
 
   <!-- ── WHITE-BOX ── -->
   <div class="ref-section">
-    <div class="ref-section-title">White-box testing — test design driven</div>
+    <div class="ref-section-title">White-box testing</div>
     <div class="acc-group">
       <div class="acc-item" id="acc-whitebox">
         <div class="acc-header" onclick="toggleAcc(this.parentElement)">
