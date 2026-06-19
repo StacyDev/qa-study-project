@@ -184,13 +184,14 @@
   .concept-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; color: var(--text); }
   .concept-table tr:last-child td { border-bottom: none; }
   #view-levels { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
-  .level-pyramid { display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: 560px; margin: 0 auto 20px; }
-  .lp-bar { border-radius: 6px; padding: 9px 16px; font-size: var(--fs-sm); font-weight: 600; border: 1px solid; text-align: center; }
-  .lp-bar.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid);  width: 100%; }
-  .lp-bar.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); width: 78%; }
-  .lp-bar.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309;          width: 56%; }
-  .lp-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d;          width: 35%; }
-  .lp-connector  { width: 1px; height: 8px; background: var(--border); }
+  .level-stack { display: flex; flex-direction: column; align-items: stretch; gap: 3px; max-width: 560px; margin: 0 auto 20px; }
+  .ls-bar { border-radius: 6px; padding: 9px 16px; font-size: var(--fs-sm); font-weight: 600; border: 1px solid; text-align: center; }
+  .ls-bar.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid); }
+  .ls-bar.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); }
+  .ls-bar.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309; }
+  .ls-bar.orange { background: #ffedd5;            color: #c2410c;       border-color: #c2410c; }
+  .ls-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
+  .ls-connector  { width: 1px; height: 8px; background: var(--border); margin: 0 auto; }
   @media (max-width: 600px) { #view-ref { padding: 16px; } #view-iso { padding: 16px; } #view-tech { padding: 16px; } #view-levels { padding: 16px; } .mm-root { min-width: 700px; } }
 </style>
 </head>
@@ -200,9 +201,9 @@
 <nav class="topnav">
   <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
   <a class="back-link" href="../../index.html">← all topics</a>
-  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Mind map</button>
-  <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Reference</button>
-  <button class="tab-btn" id="tab-iso" onclick="switchTab('iso')">ISO 25010</button>
+  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Testing Types</button>
+  <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Testing Types Details</button>
+  <button class="tab-btn" id="tab-iso" onclick="switchTab('iso')">Software Quality Characteristics</button>
   <button class="tab-btn" id="tab-tech" onclick="switchTab('tech')">Techniques</button>
   <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">Levels</button>
   <div class="settings-wrap">
@@ -1758,54 +1759,67 @@
 
   <div class="ref-section" style="margin-bottom:20px;">
     <div class="plain-box teal" style="margin-bottom:16px;">
-      <div class="plain-label">Test levels — the hierarchy</div>
-      <div class="plain-text">Each level tests a larger scope than the one below it. Tests at lower levels are faster, more numerous, and cheaper to fix when they fail. Tests at higher levels are slower and fewer, but closer to real-world use. The levels do not replace each other — they are complementary layers. A defect caught at unit level costs a fraction of the same defect found at acceptance.</div>
+      <div class="plain-label">What are test levels?</div>
+      <div class="plain-text">Test levels are distinct phases of testing, each defined by three dimensions: <strong>(1) the test object</strong> — what is under test (a single unit vs. the full system); <strong>(2) the degree of isolation</strong> — how many real components are involved vs. replaced by test doubles; <strong>(3) the SDLC stage</strong> — when testing occurs and who performs it.<br><br>Levels 1–4 follow the <strong>isolation axis</strong>: from maximum isolation (Unit — all dependencies mocked) to zero isolation (System Integration — all real, including external systems). <strong>Acceptance is the exception</strong> in the stack: it is defined not by a further reduction in isolation, but by <em>who</em> tests and <em>where</em> — the intended users or stakeholders in a production-like environment.</div>
     </div>
-    <div class="level-pyramid">
-      <div class="lp-bar coral">Acceptance</div>
-      <div class="lp-connector"></div>
-      <div class="lp-bar amber">System</div>
-      <div class="lp-connector"></div>
-      <div class="lp-bar purple">Component Integration</div>
-      <div class="lp-connector"></div>
-      <div class="lp-bar teal">Unit / Component / Module</div>
+    <div class="level-stack">
+      <div class="ls-bar teal">Unit / Component / Module</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar purple">Component Integration</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar amber">System</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar orange">System Integration</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar coral">Acceptance &nbsp;⚠ exception — defined by WHO and WHERE</div>
     </div>
-    <div class="example-box" style="margin-bottom:0;">
+    <div class="example-box" style="margin-bottom:12px;">
       <table class="concept-table">
         <thead>
-          <tr><th>Level</th><th>Scope</th><th>Owned by</th><th>Count</th><th>Speed</th></tr>
+          <tr><th>Level</th><th>Test object</th><th>Isolation</th><th>SDLC stage</th><th>Owner</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><strong class="c-teal">Unit</strong></td>
             <td>Single function, class, module</td>
+            <td>Full — all dependencies mocked</td>
+            <td>During development</td>
             <td>Developer</td>
-            <td>Thousands</td>
-            <td>Milliseconds</td>
           </tr>
           <tr>
-            <td><strong class="c-purple">Integration</strong></td>
-            <td>Interface between components</td>
+            <td><strong class="c-purple">Component Integration</strong></td>
+            <td>Interfaces between components</td>
+            <td>Partial — real component pairs, externals mocked</td>
+            <td>Development / build</td>
             <td>Developer / QA</td>
-            <td>Hundreds</td>
-            <td>Seconds</td>
           </tr>
           <tr>
             <td><strong class="c-amber">System</strong></td>
             <td>Full integrated system</td>
+            <td>None — all internal components real</td>
+            <td>Pre-release</td>
             <td>QA</td>
-            <td>Tens–hundreds</td>
-            <td>Seconds–minutes</td>
+          </tr>
+          <tr>
+            <td><strong style="color:#c2410c;">System Integration</strong></td>
+            <td>System + external systems</td>
+            <td>None — real third-party integrations</td>
+            <td>Pre-release</td>
+            <td>QA</td>
           </tr>
           <tr>
             <td><strong class="c-coral">Acceptance</strong></td>
             <td>Business goals, user journeys</td>
-            <td>Users / stakeholders</td>
-            <td>Fewest</td>
-            <td>Minutes–hours</td>
+            <td>Production-like — exception in the stack</td>
+            <td>Release gate</td>
+            <td>Users / Stakeholders</td>
           </tr>
         </tbody>
       </table>
+    </div>
+    <div class="plain-box amber" style="margin-bottom:0;">
+      <div class="plain-label">Test levels vs. test coverage distribution — two different concepts</div>
+      <div class="plain-text">Test levels define <em>what</em> is tested and <em>when</em>. How <em>many</em> tests to have at each level is a separate concern: <strong>test coverage distribution</strong>. Do not conflate the two.<br><br><em>Side note:</em> As a practice recommendation, the test suite should follow a pyramid-like distribution — many fast unit tests, fewer integration tests, even fewer system-level tests. This optimises speed and cost of feedback. The pyramid describes the recommended <strong>quantity ratio across levels</strong>, not the definition of the levels themselves.</div>
     </div>
   </div>
 
@@ -1923,11 +1937,35 @@
                 <div class="sub-example"><strong>Example:</strong> Order service and Payment service both pass unit and integration tests. At system level, under concurrent load: two users simultaneously purchase the last item in stock — both orders succeed, inventory goes negative. The race condition only manifests when both services run against a shared database under real concurrency.</div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot" style="background:#c2410c;"></div>
+          <div class="acc-title" style="color:#c2410c;">System integration testing</div>
+          <div class="acc-badge badge-q">system + external systems</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box" style="background:#ffedd5;border-left:3px solid #c2410c;margin-bottom:12px;">
+            <div class="plain-label" style="color:#c2410c;">In plain words</div>
+            <div class="plain-text">The fully integrated system is tested together with the external systems it depends on — third-party APIs, payment processors, legacy ERPs, data feeds, messaging buses. No mocks at the system boundary. The question: "Does our system work correctly when plugged into the real external world?"</div>
+          </div>
+          <div class="acc-essence">Builds on system testing: the internal system is treated as complete and correct. The focus moves to <strong>integration points at the system boundary</strong> — data format compatibility with external APIs, correct handling of external failures and timeouts, authentication with third-party identity providers, SLA compliance across integration seams. Often driven by contractual or regulatory obligations.</div>
+          <div class="sub-list">
             <div class="sub-item">
-              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">[System integration testing]</div><div class="sub-arrow">›</div></div>
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">What it tests</div><div class="sub-arrow">›</div></div>
               <div class="sub-body">
-                <div class="sub-plain">Testing the integrated system against external systems — third-party APIs, payment processors, legacy ERPs, external data feeds. Sometimes a separate formal level, sometimes folded into system testing depending on project context.</div>
-                <div class="sub-example"><strong>Example:</strong> Our order system integrated with Stripe (payment), SendGrid (email), and a legacy warehouse management system. System integration tests verify the full data flow across all three external integrations under realistic conditions — not mocked adapters.</div>
+                <div class="sub-plain">Data format compatibility with external APIs, correct error and timeout handling at integration points, authentication with third-party identity providers, SLA compliance, data consistency across system boundaries.</div>
+                <div class="sub-example"><strong>Example:</strong> Order system + Stripe + SendGrid + legacy warehouse WMS. System integration tests verify: Stripe webhook → order confirmation triggered; SendGrid send triggered on status change; WMS stock reserved on order creation — all with real external endpoints, not stubs.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Separate level or part of system testing?</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">ISTQB defines system integration testing as a formal level. Teams often fold it into system testing. The distinguishing criterion: if a test requires a real external endpoint — real Stripe sandbox, real SendGrid API key, real partner API — it belongs at system integration level regardless of the team's internal naming.</div>
               </div>
             </div>
           </div>

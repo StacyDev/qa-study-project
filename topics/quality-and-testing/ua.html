@@ -184,13 +184,14 @@
   .concept-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.55; color: var(--text); }
   .concept-table tr:last-child td { border-bottom: none; }
   #view-levels { padding: 24px 32px; max-width: 980px; margin: 0 auto; }
-  .level-pyramid { display: flex; flex-direction: column; align-items: center; gap: 3px; max-width: 560px; margin: 0 auto 20px; }
-  .lp-bar { border-radius: 6px; padding: 9px 16px; font-size: var(--fs-sm); font-weight: 600; border: 1px solid; text-align: center; }
-  .lp-bar.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid);  width: 100%; }
-  .lp-bar.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); width: 78%; }
-  .lp-bar.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309;          width: 56%; }
-  .lp-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d;          width: 35%; }
-  .lp-connector  { width: 1px; height: 8px; background: var(--border); }
+  .level-stack { display: flex; flex-direction: column; align-items: stretch; gap: 3px; max-width: 560px; margin: 0 auto 20px; }
+  .ls-bar { border-radius: 6px; padding: 9px 16px; font-size: var(--fs-sm); font-weight: 600; border: 1px solid; text-align: center; }
+  .ls-bar.teal   { background: var(--teal-dim);   color: var(--teal);   border-color: var(--teal-mid); }
+  .ls-bar.purple { background: var(--purple-dim); color: var(--purple); border-color: var(--purple-mid); }
+  .ls-bar.amber  { background: var(--amber-dim);  color: var(--amber);  border-color: #b45309; }
+  .ls-bar.orange { background: #ffedd5;            color: #c2410c;       border-color: #c2410c; }
+  .ls-bar.coral  { background: var(--coral-dim);  color: var(--coral);  border-color: #993c1d; }
+  .ls-connector  { width: 1px; height: 8px; background: var(--border); margin: 0 auto; }
   @media (max-width: 600px) { #view-ref { padding: 16px; } #view-iso { padding: 16px; } #view-tech { padding: 16px; } #view-levels { padding: 16px; } .mm-root { min-width: 700px; } }
 </style>
 </head>
@@ -200,9 +201,9 @@
 <nav class="topnav">
   <a class="logo logo-link" href="../../index.html">QA STUDY NOTES</a>
   <a class="back-link" href="../../index.html">← всі теми</a>
-  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Ментальна карта</button>
-  <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Довідник</button>
-  <button class="tab-btn" id="tab-iso" onclick="switchTab('iso')">ISO 25010</button>
+  <button class="tab-btn active" id="tab-map" onclick="switchTab('map')">Типи тестування</button>
+  <button class="tab-btn" id="tab-ref" onclick="switchTab('ref')">Типи тестування: деталі</button>
+  <button class="tab-btn" id="tab-iso" onclick="switchTab('iso')">Характеристики якості ПЗ</button>
   <button class="tab-btn" id="tab-tech" onclick="switchTab('tech')">Техніки</button>
   <button class="tab-btn" id="tab-levels" onclick="switchTab('levels')">Рівні</button>
   <div class="settings-wrap">
@@ -1758,54 +1759,67 @@
 
   <div class="ref-section" style="margin-bottom:20px;">
     <div class="plain-box teal" style="margin-bottom:16px;">
-      <div class="plain-label">Рівні тестування — ієрархія</div>
-      <div class="plain-text">Кожен рівень охоплює більший обсяг системи, ніж попередній. Тести на нижчих рівнях — швидші, їх більше, і дефекти там дешевше виправляти. Тести на вищих рівнях — повільніші та їх менше, але вони ближчі до реального використання. Рівні не замінюють один одного — вони доповнюють. Дефект, знайдений на рівні юніт-тестів, коштує значно менше, ніж той самий дефект, виявлений на рівні приймального тестування.</div>
+      <div class="plain-label">Що таке рівні тестування?</div>
+      <div class="plain-text">Рівні тестування — це окремі фази тестування, кожна з яких визначається трьома вимірами: <strong>(1) об'єкт тестування</strong> — що тестується (окремий юніт чи вся система); <strong>(2) ступінь ізоляції</strong> — скільки реальних компонентів задіяно, а скільки замінено тестовими дублями; <strong>(3) стадія SDLC</strong> — коли відбувається тестування і хто його виконує.<br><br>Рівні 1–4 слідують <strong>осі ізоляції</strong>: від максимальної ізоляції (Юніт — усі залежності замоковано) до нульової (Системне інтеграційне — все реальне, включно із зовнішніми системами). <strong>Приймальне тестування — виняток</strong> у стеку: воно визначається не подальшим зменшенням ізоляції, а тим, <em>хто</em> тестує і <em>де</em> — призначені користувачі або стейкхолдери в середовищі, наближеному до production.</div>
     </div>
-    <div class="level-pyramid">
-      <div class="lp-bar coral">Приймальне тестування</div>
-      <div class="lp-connector"></div>
-      <div class="lp-bar amber">Системне тестування</div>
-      <div class="lp-connector"></div>
-      <div class="lp-bar purple">Інтеграційне тестування компонентів</div>
-      <div class="lp-connector"></div>
-      <div class="lp-bar teal">Юніт / Компонентне / Модульне тестування</div>
+    <div class="level-stack">
+      <div class="ls-bar teal">Юніт / Компонентне / Модульне</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar purple">Інтеграційне тестування компонентів</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar amber">Системне тестування</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar orange">Системне інтеграційне тестування</div>
+      <div class="ls-connector"></div>
+      <div class="ls-bar coral">Приймальне &nbsp;⚠ виняток — за КИМ і ДЕ</div>
     </div>
-    <div class="example-box" style="margin-bottom:0;">
+    <div class="example-box" style="margin-bottom:12px;">
       <table class="concept-table">
         <thead>
-          <tr><th>Рівень</th><th>Обсяг</th><th>Власник</th><th>Кількість</th><th>Швидкість</th></tr>
+          <tr><th>Рівень</th><th>Об'єкт тестування</th><th>Ізоляція</th><th>Стадія SDLC</th><th>Власник</th></tr>
         </thead>
         <tbody>
           <tr>
             <td><strong class="c-teal">Юніт</strong></td>
             <td>Функція, клас, модуль</td>
+            <td>Повна — усі залежності замоковано</td>
+            <td>Під час розробки</td>
             <td>Розробник</td>
-            <td>Тисячі</td>
-            <td>Мілісекунди</td>
           </tr>
           <tr>
-            <td><strong class="c-purple">Інтеграція</strong></td>
-            <td>Інтерфейс між компонентами</td>
+            <td><strong class="c-purple">Інтеграційне компонентів</strong></td>
+            <td>Інтерфейси між компонентами</td>
+            <td>Часткова — реальні пари компонентів, зовнішні замоковано</td>
+            <td>Розробка / білд</td>
             <td>Розробник / QA</td>
-            <td>Сотні</td>
-            <td>Секунди</td>
           </tr>
           <tr>
             <td><strong class="c-amber">Системне</strong></td>
             <td>Повна інтегрована система</td>
+            <td>Відсутня — всі внутрішні компоненти реальні</td>
+            <td>Перед релізом</td>
             <td>QA</td>
-            <td>Десятки–сотні</td>
-            <td>Секунди–хвилини</td>
+          </tr>
+          <tr>
+            <td><strong style="color:#c2410c;">Системне інтеграційне</strong></td>
+            <td>Система + зовнішні системи</td>
+            <td>Відсутня — реальні сторонні інтеграції</td>
+            <td>Перед релізом</td>
+            <td>QA</td>
           </tr>
           <tr>
             <td><strong class="c-coral">Приймальне</strong></td>
             <td>Бізнес-цілі, user journeys</td>
-            <td>Користувачі / стейкхолдери</td>
-            <td>Найменше</td>
-            <td>Хвилини–години</td>
+            <td>Наближена до production — виняток у стеку</td>
+            <td>Рубіж перед релізом</td>
+            <td>Користувачі / Стейкхолдери</td>
           </tr>
         </tbody>
       </table>
+    </div>
+    <div class="plain-box amber" style="margin-bottom:0;">
+      <div class="plain-label">Рівні тестування vs. розподіл покриття — два різних поняття</div>
+      <div class="plain-text">Рівні тестування визначають <em>що</em> і <em>коли</em> тестується — структуру. Скільки тестів мати на кожному рівні — окреме поняття: <strong>розподіл покриття тестами</strong>. Не змішуйте їх.<br><br><em>Примітка:</em> Як практична рекомендація, тестовий набір має відповідати пірамідальному розподілу — багато швидких юніт-тестів, менше інтеграційних, ще менше системних. Це оптимізує швидкість і вартість зворотного зв'язку. Піраміда описує рекомендоване <strong>співвідношення кількості між рівнями</strong>, а не самі рівні.</div>
     </div>
   </div>
 
@@ -1923,11 +1937,35 @@
                 <div class="sub-example"><strong>Приклад:</strong> Сервіси Order і Payment проходять юніт- і інтеграційні тести. На системному рівні під одночасним навантаженням: два користувачі одночасно купують останній товар — обидва замовлення успішні, інвентар стає від'ємним. Гонка стану проявляється тільки коли обидва сервіси працюють проти спільної БД під реальним паралелізмом.</div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this.parentElement)">
+          <div class="acc-dot" style="background:#c2410c;"></div>
+          <div class="acc-title" style="color:#c2410c;">Системне інтеграційне тестування</div>
+          <div class="acc-badge badge-q">система + зовнішні системи</div>
+          <div class="acc-arrow">›</div>
+        </div>
+        <div class="acc-body">
+          <div class="plain-box" style="background:#ffedd5;border-left:3px solid #c2410c;margin-bottom:12px;">
+            <div class="plain-label" style="color:#c2410c;">Простими словами</div>
+            <div class="plain-text">Повністю інтегрована система тестується разом із зовнішніми системами, від яких вона залежить — сторонні API, платіжні сервіси, legacy ERP, дата-фіди, шини повідомлень. Без моків на межі системи. Питання: "Чи коректно наша система працює, коли підключена до реального зовнішнього світу?"</div>
+          </div>
+          <div class="acc-essence">Будується на системному тестуванні: внутрішня система вважається завершеною і коректною. Фокус переміщується на <strong>точки інтеграції на межі системи</strong> — сумісність форматів даних із зовнішніми API, коректна обробка зовнішніх збоїв та таймаутів, автентифікація з постачальниками ідентифікації, відповідність SLA. Часто обумовлено контрактними або регуляторними зобов'язаннями.</div>
+          <div class="sub-list">
             <div class="sub-item">
-              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">[Системне інтеграційне тестування]</div><div class="sub-arrow">›</div></div>
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Що тестує</div><div class="sub-arrow">›</div></div>
               <div class="sub-body">
-                <div class="sub-plain">Тестування інтегрованої системи із зовнішніми системами — сторонні API, платіжні сервіси, legacy ERP, зовнішні дата-фіди. Іноді окремий формальний рівень, іноді об'єднується із системним тестуванням залежно від контексту проєкту.</div>
-                <div class="sub-example"><strong>Приклад:</strong> Наша система + Stripe (оплата), SendGrid (email), legacy-система управління складом. Системні інтеграційні тести перевіряють повний потік даних через всі три зовнішні інтеграції в реалістичних умовах.</div>
+                <div class="sub-plain">Сумісність форматів даних із зовнішніми API, коректна обробка помилок та таймаутів на точках інтеграції, автентифікація з постачальниками ідентифікації, відповідність SLA, узгодженість даних між межами систем.</div>
+                <div class="sub-example"><strong>Приклад:</strong> Система замовлень + Stripe + SendGrid + legacy WMS. Системні інтеграційні тести перевіряють: webhook від Stripe → підтвердження замовлення; SendGrid спрацьовує при зміні статусу; WMS резервує запас при створенні замовлення — все з реальними зовнішніми ендпоїнтами, без стабів.</div>
+              </div>
+            </div>
+            <div class="sub-item">
+              <div class="sub-header" onclick="toggleSub(this.parentElement)"><div class="sub-title">Окремий рівень чи частина системного тестування?</div><div class="sub-arrow">›</div></div>
+              <div class="sub-body">
+                <div class="sub-plain">ISTQB визначає системне інтеграційне тестування як окремий формальний рівень. Команди часто об'єднують його із системним. Розрізнювальний критерій: якщо тест вимагає реального зовнішнього ендпоїнту — реального Stripe sandbox, реального API ключа SendGrid, реального API партнера — він належить до рівня системного інтеграційного тестування, незалежно від внутрішньої назви в команді.</div>
               </div>
             </div>
           </div>
